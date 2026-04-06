@@ -1,0 +1,251 @@
+import { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext';
+import { ShoppingCart, Menu, X, ChevronDown, User, Heart, LogOut, Settings, Wrench, MapPin } from 'lucide-react';
+import API from '../../api/axios';
+
+const navLinks = [
+  { label: 'Buy Bikes', href: '/bikes' },
+  { label: 'Sell Bike', href: '/sell' },
+  { label: 'Service', href: '/services' },
+  { label: 'Parts', href: '/parts' },
+  { label: 'Featured', href: '/featured' },
+  { label: 'Bestseller', href: '/bestseller' },
+  { label: 'Contact', href: '/contact' },
+];
+
+export default function Navbar() {
+  const { user, logout } = useAuth();
+  const { itemCount } = useCart();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const [pincode, setPincode] = useState(() => localStorage.getItem('selectedPincode') || '');
+  const [isDeliverable, setIsDeliverable] = useState(null);
+
+  // Auto-save & check availability when 6-digit pincode entered
+  useEffect(() => {
+    if (pincode.length === 6) {
+      const saved = localStorage.getItem('selectedPincode');
+      if (saved !== pincode) {
+        localStorage.setItem('selectedPincode', pincode);
+        window.dispatchEvent(new Event('pincode-updated'));
+      }
+      API.get('/store/parts', { params: { pincode, limit: 1 } })
+        .then(({ data }) => setIsDeliverable((data.total || 0) > 0))
+        .catch(() => setIsDeliverable(false));
+    } else if (pincode.length === 0) {
+      setIsDeliverable(null);
+      if (localStorage.getItem('selectedPincode')) {
+        localStorage.removeItem('selectedPincode');
+        window.dispatchEvent(new Event('pincode-updated'));
+      }
+    } else {
+      setIsDeliverable(null);
+    }
+  }, [pincode]);
+
+  // Sync pincode when another component updates it
+  useEffect(() => {
+    const handlePincodeUpdate = () => {
+      const saved = localStorage.getItem('selectedPincode') || '';
+      setPincode(prev => prev !== saved ? saved : prev);
+    };
+    window.addEventListener('pincode-updated', handlePincodeUpdate);
+    return () => window.removeEventListener('pincode-updated', handlePincodeUpdate);
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    // Clear pincode on logout like the shoe project
+    localStorage.removeItem('selectedPincode');
+    setPincode('');
+    window.dispatchEvent(new Event('pincode-updated'));
+    navigate('/');
+    setDropdownOpen(false);
+  };
+
+  return (
+    <nav style={{ background: '#111111', borderBottom: '1px solid #1e1e1e' }} className="sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2">
+            <div style={{ background: 'linear-gradient(135deg, #E53935, #C62828)', borderRadius: '8px', padding: '6px 10px' }}>
+              <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: 'white', fontSize: '1.2rem', letterSpacing: '0.05em' }}>MOTO</span>
+            </div>
+            <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: 'white', fontSize: '1.35rem', letterSpacing: '0.03em' }}>
+              XPRESS
+            </span>
+          </Link>
+
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center gap-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                to={link.href}
+                style={{
+                  color: location.pathname.startsWith(link.href) ? '#E53935' : '#ccc',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '6px',
+                  fontSize: '0.9rem',
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                  transition: 'color 0.2s',
+                }}
+                onMouseEnter={(e) => { if (!location.pathname.startsWith(link.href)) e.target.style.color = 'white'; }}
+                onMouseLeave={(e) => { if (!location.pathname.startsWith(link.href)) e.target.style.color = '#ccc'; }}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Right side */}
+          <div className="flex items-center gap-3">
+            {/* Pincode Input */}
+            <div className="hidden md:flex items-center gap-1.5" style={{ background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: '8px', padding: '0.3rem 0.7rem' }}>
+              <MapPin size={13} style={{ color: '#E53935', flexShrink: 0 }} />
+              <input
+                type="text"
+                placeholder="Pincode"
+                maxLength="6"
+                value={pincode}
+                onChange={e => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                style={{ background: 'none', border: 'none', outline: 'none', color: 'white', width: 62, fontSize: '0.82rem' }}
+              />
+              {isDeliverable !== null && (
+                <span style={{ fontSize: '0.68rem', fontWeight: 700, color: isDeliverable ? '#4CAF50' : '#E53935', whiteSpace: 'nowrap' }}>
+                  {isDeliverable ? '✓' : '✗'}
+                </span>
+              )}
+            </div>
+
+            {/* Cart */}
+            <Link to="/cart" style={{ position: 'relative', color: '#ccc', display: 'flex', alignItems: 'center' }}>
+              <ShoppingCart size={20} />
+              {itemCount > 0 && (
+                <span style={{
+                  position: 'absolute', top: '-8px', right: '-8px',
+                  background: '#E53935', color: 'white', borderRadius: '50%',
+                  width: '18px', height: '18px', fontSize: '0.7rem',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700,
+                }}>
+                  {itemCount}
+                </span>
+              )}
+            </Link>
+
+            {/* User Menu */}
+            {user ? (
+              <div style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '0.4rem',
+                    background: '#1A1A1A', border: '1px solid #2A2A2A',
+                    borderRadius: '8px', padding: '0.4rem 0.8rem', color: 'white',
+                    cursor: 'pointer', fontSize: '0.9rem',
+                  }}
+                >
+                  {user.avatar ? (
+                    <img src={user.avatar} alt={user.name} style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#E53935', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700 }}>
+                      {user.name?.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <span className="hidden sm:block">{user.name?.split(' ')[0]}</span>
+                  <ChevronDown size={14} />
+                </button>
+
+                {dropdownOpen && (
+                  <div style={{
+                    position: 'absolute', right: 0, top: '110%',
+                    background: '#1A1A1A', border: '1px solid #2A2A2A',
+                    borderRadius: '10px', minWidth: '180px', zIndex: 100,
+                    boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+                    overflow: 'hidden',
+                  }}>
+                    <Link to="/profile" onClick={() => setDropdownOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem 1rem', color: '#ccc', textDecoration: 'none', fontSize: '0.9rem' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = '#222'; e.currentTarget.style.color = 'white'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#ccc'; }}>
+                      <User size={15} /> My Profile
+                    </Link>
+                    <Link to="/my-bookings" onClick={() => setDropdownOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem 1rem', color: '#ccc', textDecoration: 'none', fontSize: '0.9rem' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = '#222'; e.currentTarget.style.color = 'white'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#ccc'; }}>
+                      <Wrench size={15} /> My Bookings
+                    </Link>
+                    <Link to="/wishlist" onClick={() => setDropdownOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem 1rem', color: '#ccc', textDecoration: 'none', fontSize: '0.9rem' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = '#222'; e.currentTarget.style.color = 'white'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#ccc'; }}>
+                      <Heart size={15} /> Wishlist
+                    </Link>
+                    {user.role === 'admin' && (
+                      <Link to="/admin" onClick={() => setDropdownOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem 1rem', color: '#E53935', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = '#222'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}>
+                        <Settings size={15} /> Admin Panel
+                      </Link>
+                    )}
+                    <div style={{ borderTop: '1px solid #2A2A2A' }}>
+                      <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem 1rem', color: '#E53935', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', width: '100%' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = '#1f0a0a'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}>
+                        <LogOut size={15} /> Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link to="/login" className="btn-outline" style={{ padding: '0.45rem 1.1rem', fontSize: '0.85rem' }}>Login</Link>
+                <Link to="/register" className="btn-primary" style={{ padding: '0.45rem 1.1rem', fontSize: '0.85rem' }}>Sign Up</Link>
+              </div>
+            )}
+
+            {/* Mobile hamburger */}
+            <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden" style={{ color: 'white', background: 'none', border: 'none', cursor: 'pointer' }}>
+              {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Nav */}
+        {mobileOpen && (
+          <div style={{ borderTop: '1px solid #1e1e1e', padding: '1rem 0' }}>
+            {/* Pincode in mobile */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: '8px', padding: '0.5rem 0.8rem', marginBottom: '0.75rem' }}>
+              <MapPin size={14} style={{ color: '#E53935', flexShrink: 0 }} />
+              <input
+                type="text"
+                placeholder="Enter Pincode"
+                maxLength="6"
+                value={pincode}
+                onChange={e => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                style={{ background: 'none', border: 'none', outline: 'none', color: 'white', flex: 1, fontSize: '0.9rem' }}
+              />
+              {isDeliverable !== null && (
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: isDeliverable ? '#4CAF50' : '#E53935' }}>
+                  {isDeliverable ? '✓ Available' : '✗ Not Available'}
+                </span>
+              )}
+            </div>
+            {navLinks.map((link) => (
+              <Link key={link.href} to={link.href} onClick={() => setMobileOpen(false)}
+                style={{ display: 'block', color: '#ccc', textDecoration: 'none', padding: '0.7rem 0', fontSize: '1rem', fontWeight: 500 }}>
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </nav>
+  );
+}

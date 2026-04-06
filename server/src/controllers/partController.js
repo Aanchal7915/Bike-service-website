@@ -1,0 +1,222 @@
+const asyncHandler = require('express-async-handler');
+const SparePart = require('../models/SparePart');
+const Order = require('../models/Order');
+const { createOrder: createRazorpayOrder, verifyPayment } = require('../services/paymentService');
+
+// ---- PARTS ----
+// @desc  Get all parts
+// @route GET /api/store/parts
+const getParts = asyncHandler(async (req, res) => {
+  const { category, search, minPrice, maxPrice, page = 1, limit = 12, pincode } = req.query;
+  const query = { isActive: true };
+  if (category) query.category = category;
+  if (search) query.name = new RegExp(search, 'i');
+  if (minPrice || maxPrice) query.price = { ...(minPrice && { $gte: Number(minPrice) }), ...(maxPrice && { $lte: Number(maxPrice) }) };
+  if (pincode) query['pincodePricing.pincode'] = pincode;
+
+  const total = await SparePart.countDocuments(query);
+  const parts = await SparePart.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(Number(limit));
+  res.json({ success: true, total, parts });
+});
+
+// @desc  Get featured parts
+// @route GET /api/store/parts/featured
+const getFeaturedParts = asyncHandler(async (req, res) => {
+  const { pincode } = req.query;
+  const query = { isFeatured: true, isActive: true };
+  if (pincode) query['pincodePricing.pincode'] = pincode;
+  const parts = await SparePart.find(query).sort({ createdAt: -1 });
+  res.json({ success: true, parts });
+});
+
+// @desc  Get bestseller parts
+// @route GET /api/store/parts/bestseller
+const getBestsellerParts = asyncHandler(async (req, res) => {
+  const { pincode } = req.query;
+  const query = { bestSeller: true, isActive: true };
+  if (pincode) query['pincodePricing.pincode'] = pincode;
+  const parts = await SparePart.find(query).sort({ createdAt: -1 });
+  res.json({ success: true, parts });
+});
+
+// @desc  Get upcoming/coming-soon parts
+// @route GET /api/store/parts/upcoming
+const getUpcomingParts = asyncHandler(async (req, res) => {
+  const { pincode } = req.query;
+  const query = { comingSoon: true, isActive: true };
+  if (pincode) query['pincodePricing.pincode'] = pincode;
+  const parts = await SparePart.find(query).sort({ createdAt: -1 });
+  res.json({ success: true, parts });
+});
+
+// @desc  Get recent parts
+// @route GET /api/store/parts/recent
+const getRecentParts = asyncHandler(async (req, res) => {
+  const { pincode, limit = 20 } = req.query;
+  const query = { comingSoon: { $ne: true }, isActive: true };
+  if (pincode) query['pincodePricing.pincode'] = pincode;
+  const parts = await SparePart.find(query).sort({ createdAt: -1 }).limit(Number(limit));
+  res.json({ success: true, parts });
+});
+
+// @desc  Search parts
+// @route GET /api/store/parts/search
+const searchParts = asyncHandler(async (req, res) => {
+  const { keyword, pincode } = req.query;
+  if (!keyword) { res.status(400); throw new Error('Search keyword is required'); }
+  const regex = new RegExp(keyword, 'i');
+  const searchFilter = {
+    $or: [{ name: { $regex: regex } }, { brand: { $regex: regex } }, { subCategory: { $regex: regex } }, { category: { $regex: regex } }],
+    isActive: true
+  };
+  const query = pincode ? { $and: [searchFilter, { 'pincodePricing.pincode': pincode }] } : searchFilter;
+  const parts = await SparePart.find(query);
+  res.json({ success: true, parts });
+});
+
+// @desc  Get distinct categories from active parts
+// @route GET /api/store/parts/categories
+const getPartCategories = asyncHandler(async (req, res) => {
+  const categories = await SparePart.distinct('category', { isActive: true, category: { $exists: true, $ne: '' } });
+  res.json({ success: true, categories: categories.sort() });
+});
+
+// @desc  Get single part
+const getPart = asyncHandler(async (req, res) => {
+  const part = await SparePart.findById(req.params.id);
+  if (!part) { res.status(404); throw new Error('Part not found'); }
+  res.json({ success: true, part });
+});
+
+const toUrl = (f) => f.path.includes('uploads') ? '/uploads' + f.path.split('uploads')[1].replace(/\\/g, '/') : f.path;
+
+// @desc  Create part (admin)
+const createPart = asyncHandler(async (req, res) => {
+  const images = (req.files?.images || []).map(toUrl);
+  const videoFile = req.files?.video?.[0];
+
+  const body = { ...req.body };
+  if (typeof body.farmerDetails === 'string') body.farmerDetails = JSON.parse(body.farmerDetails);
+  if (typeof body.pincodePricing === 'string') body.pincodePricing = JSON.parse(body.pincodePricing);
+  if (typeof body.compatibleBikes === 'string') body.compatibleBikes = JSON.parse(body.compatibleBikes);
+
+  if (videoFile) body.videoUrl = toUrl(videoFile);
+
+  const part = await SparePart.create({ ...body, images });
+  res.status(201).json({ success: true, part });
+});
+
+// @desc  Update part (admin)
+const updatePart = asyncHandler(async (req, res) => {
+  const body = { ...req.body };
+
+  if (typeof body.farmerDetails === 'string') body.farmerDetails = JSON.parse(body.farmerDetails);
+  if (typeof body.pincodePricing === 'string') body.pincodePricing = JSON.parse(body.pincodePricing);
+  if (typeof body.compatibleBikes === 'string') body.compatibleBikes = JSON.parse(body.compatibleBikes);
+
+  if (req.files?.images?.length > 0) body.images = req.files.images.map(toUrl);
+  const videoFile = req.files?.video?.[0];
+  if (videoFile) body.videoUrl = toUrl(videoFile);
+
+  const part = await SparePart.findByIdAndUpdate(req.params.id, body, { new: true });
+  if (!part) { res.status(404); throw new Error('Part not found'); }
+  res.json({ success: true, part });
+});
+
+// @desc  Delete part (admin)
+const deletePart = asyncHandler(async (req, res) => {
+  await SparePart.findByIdAndDelete(req.params.id);
+  res.json({ success: true, message: 'Part deleted' });
+});
+
+// ---- ORDERS ----
+// @desc  Place order
+const placeOrder = asyncHandler(async (req, res) => {
+  const { items, deliveryAddress, payment } = req.body;
+
+  if (!items || !items.length) { res.status(400); throw new Error('No items in order'); }
+
+  let subtotal = 0;
+  const orderItems = [];
+  for (const item of items) {
+    const part = await SparePart.findById(item.product);
+    if (!part || part.stock < item.quantity) { res.status(400); throw new Error(`${part?.name || 'Item'} out of stock`); }
+    subtotal += (part.discountedPrice || part.price) * item.quantity;
+    orderItems.push({ product: item.product, name: part.name, price: part.discountedPrice || part.price, quantity: item.quantity, image: part.images[0] });
+    part.stock -= item.quantity;
+    await part.save();
+  }
+
+  const shippingCharge = subtotal > 500 ? 0 : 50;
+  const total = subtotal + shippingCharge;
+
+  const order = await Order.create({
+    user: req.user._id, items: orderItems, deliveryAddress,
+    subtotal, shippingCharge, total,
+    payment: { method: payment?.method || 'cod' },
+    statusHistory: [{ status: 'placed', note: 'Order placed' }],
+  });
+
+  res.status(201).json({ success: true, order });
+});
+
+// @desc  Get user orders
+const getMyOrders = asyncHandler(async (req, res) => {
+  const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
+  res.json({ success: true, orders });
+});
+
+// @desc  Get single order
+const getOrder = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id).populate('user', 'name phone');
+  if (!order) { res.status(404); throw new Error('Order not found'); }
+  res.json({ success: true, order });
+});
+
+// @desc  Create Razorpay order for parts
+const createPartPayment = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) { res.status(404); throw new Error('Order not found'); }
+  const razorpayOrder = await createRazorpayOrder({ amount: order.total, receipt: `ord_${order._id}` });
+  res.json({ success: true, order: razorpayOrder, key: process.env.RAZORPAY_KEY_ID });
+});
+
+// @desc  Verify parts payment
+const verifyPartPayment = asyncHandler(async (req, res) => {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+  const isValid = verifyPayment({ razorpay_order_id, razorpay_payment_id, razorpay_signature });
+  if (!isValid) { res.status(400); throw new Error('Payment verification failed'); }
+
+  const order = await Order.findById(req.params.id);
+  order.payment.status = 'paid';
+  order.payment.transactionId = razorpay_payment_id;
+  order.payment.razorpayOrderId = razorpay_order_id;
+  order.payment.paidAt = new Date();
+  order.status = 'confirmed';
+  order.statusHistory.push({ status: 'confirmed', note: 'Payment confirmed' });
+  await order.save();
+
+  res.json({ success: true, order });
+});
+
+// @desc  Update order status (admin)
+const updateOrderStatus = asyncHandler(async (req, res) => {
+  const { status, note } = req.body;
+  const order = await Order.findById(req.params.id);
+  if (!order) { res.status(404); throw new Error('Order not found'); }
+  order.status = status;
+  order.statusHistory.push({ status, note });
+  await order.save();
+  res.json({ success: true, order });
+});
+
+// @desc  Get all orders (admin)
+const getAllOrders = asyncHandler(async (req, res) => {
+  const { status, page = 1, limit = 10 } = req.query;
+  const query = status ? { status } : {};
+  const total = await Order.countDocuments(query);
+  const orders = await Order.find(query).populate('user', 'name phone').sort({ createdAt: -1 }).skip((page - 1) * limit).limit(Number(limit));
+  res.json({ success: true, total, orders });
+});
+
+module.exports = { getParts, getPart, getPartCategories, getFeaturedParts, getBestsellerParts, getUpcomingParts, getRecentParts, searchParts, createPart, updatePart, deletePart, placeOrder, getMyOrders, getOrder, createPartPayment, verifyPartPayment, updateOrderStatus, getAllOrders };

@@ -1,0 +1,166 @@
+const asyncHandler = require('express-async-handler');
+const Bike = require('../models/Bike');
+const Enquiry = require('../models/Enquiry');
+
+// @desc  Get all bikes (with filters)
+// @route GET /api/bikes
+const getBikes = asyncHandler(async (req, res) => {
+  const {
+    type, brand, model, minPrice, maxPrice, minYear, maxYear,
+    minKm, maxKm, condition, fuelType, city, sort, page = 1, limit = 12, search, isAdmin
+  } = req.query;
+
+  const query = isAdmin === 'true' ? {} : { isApproved: true, status: 'available' };
+
+  if (type) query.type = type;
+  if (brand) query.brand = new RegExp(brand, 'i');
+  if (model) query.model = new RegExp(model, 'i');
+  if (condition) query.condition = condition;
+  if (fuelType) query.fuelType = fuelType;
+  if (city) query['location.city'] = new RegExp(city, 'i');
+  if (minPrice || maxPrice) query.price = { ...(minPrice && { $gte: Number(minPrice) }), ...(maxPrice && { $lte: Number(maxPrice) }) };
+  if (minYear || maxYear) query.year = { ...(minYear && { $gte: Number(minYear) }), ...(maxYear && { $lte: Number(maxYear) }) };
+  if (minKm || maxKm) query.kmDriven = { ...(minKm && { $gte: Number(minKm) }), ...(maxKm && { $lte: Number(maxKm) }) };
+  if (search) query.$or = [
+    { title: new RegExp(search, 'i') },
+    { brand: new RegExp(search, 'i') },
+    { model: new RegExp(search, 'i') },
+  ];
+
+  const sortOptions = {
+    newest: { createdAt: -1 },
+    oldest: { createdAt: 1 },
+    price_asc: { price: 1 },
+    price_desc: { price: -1 },
+    popular: { views: -1 },
+  };
+
+  const total = await Bike.countDocuments(query);
+  const bikes = await Bike.find(query)
+    .populate('seller', 'name phone')
+    .sort(sortOptions[sort] || { createdAt: -1 })
+    .skip((page - 1) * limit)
+    .limit(Number(limit));
+
+  res.json({
+    success: true,
+    total,
+    page: Number(page),
+    pages: Math.ceil(total / limit),
+    bikes,
+  });
+});
+
+// @desc  Get single bike
+// @route GET /api/bikes/:id
+const getBike = asyncHandler(async (req, res) => {
+  const bike = await Bike.findById(req.params.id).populate('seller', 'name phone email');
+  if (!bike) { res.status(404); throw new Error('Bike not found'); }
+
+  // Increment views
+  bike.views += 1;
+  await bike.save();
+
+  res.json({ success: true, bike });
+});
+
+// @desc  Create bike listing (admin)
+// @route POST /api/bikes
+const createBike = asyncHandler(async (req, res) => {
+  const images = req.files ? req.files.map((f) => f.path) : [];
+  const body = { ...req.body };
+  if (typeof body.specifications === 'string') body.specifications = JSON.parse(body.specifications);
+  if (typeof body.location === 'string') body.location = JSON.parse(body.location);
+  if (typeof body.features === 'string') body.features = JSON.parse(body.features);
+  if (typeof body.pincodePricing === 'string') body.pincodePricing = JSON.parse(body.pincodePricing);
+  if (typeof body.sellerDetails === 'string') body.sellerDetails = JSON.parse(body.sellerDetails);
+  const bike = await Bike.create({
+    ...body,
+    images,
+    seller: req.user._id,
+    isApproved: req.user.role === 'admin',
+  });
+  res.status(201).json({ success: true, bike });
+});
+
+// @desc  Update bike
+// @route PUT /api/bikes/:id
+const updateBike = asyncHandler(async (req, res) => {
+  const bike = await Bike.findById(req.params.id);
+  if (!bike) { res.status(404); throw new Error('Bike not found'); }
+  const body = { ...req.body };
+  if (typeof body.specifications === 'string') body.specifications = JSON.parse(body.specifications);
+  if (typeof body.location === 'string') body.location = JSON.parse(body.location);
+  if (typeof body.features === 'string') body.features = JSON.parse(body.features);
+  if (typeof body.pincodePricing === 'string') body.pincodePricing = JSON.parse(body.pincodePricing);
+  if (typeof body.sellerDetails === 'string') body.sellerDetails = JSON.parse(body.sellerDetails);
+  if (req.files && req.files.length > 0) body.images = req.files.map(f => f.path);
+  const updated = await Bike.findByIdAndUpdate(req.params.id, body, { new: true });
+  res.json({ success: true, bike: updated });
+});
+
+// @desc  Delete bike
+// @route DELETE /api/bikes/:id
+const deleteBike = asyncHandler(async (req, res) => {
+  const bike = await Bike.findByIdAndDelete(req.params.id);
+  if (!bike) { res.status(404); throw new Error('Bike not found'); }
+  res.json({ success: true, message: 'Bike deleted' });
+});
+
+// @desc  Get featured bikes
+// @route GET /api/bikes/featured
+const getFeaturedBikes = asyncHandler(async (req, res) => {
+  const bikes = await Bike.find({ isFeatured: true, isApproved: true, status: 'available' }).limit(6);
+  res.json({ success: true, bikes });
+});
+
+// @desc  Get bestseller bikes
+// @route GET /api/bikes/bestseller
+const getBestsellerBikes = asyncHandler(async (req, res) => {
+  const bikes = await Bike.find({ bestSeller: true, isApproved: true, status: 'available' }).limit(6);
+  res.json({ success: true, bikes });
+});
+
+// @desc  Enquire about a bike
+// @route POST /api/bikes/:id/enquire
+const enquireBike = asyncHandler(async (req, res) => {
+  const { message, phone } = req.body;
+  const bike = await Bike.findById(req.params.id);
+  if (!bike) { res.status(404); throw new Error('Bike not found'); }
+  
+  // Register or update the enquiry record
+  await Enquiry.findOneAndUpdate(
+    { user: req.user._id, bike: req.params.id },
+    { message, phone, updatedAt: new Date() },
+    { upsert: true, new: true }
+  );
+
+  // Still keep user in bike enquiries array for backwards compatibility
+  if (!bike.enquiries.includes(req.user._id)) {
+    bike.enquiries.push(req.user._id);
+    await bike.save();
+  }
+  res.json({ success: true, message: 'Enquiry registered' });
+});
+
+// @desc  Get distinct brands from active bikes
+// @route GET /api/bikes/brands
+const getBrands = asyncHandler(async (req, res) => {
+  const brands = await Bike.distinct('brand', { status: 'available' });
+  res.json({ success: true, brands: brands.sort() });
+});
+
+// @desc  Get user's bike enquiries
+// @route GET /api/bikes/my-enquiries
+const getMyEnquiries = asyncHandler(async (req, res) => {
+  const enquiries = await Enquiry.find({ user: req.user._id })
+    .populate({
+      path: 'bike',
+      populate: { path: 'seller', select: 'name phone' }
+    })
+    .sort({ createdAt: -1 });
+
+  res.json({ success: true, enquiries });
+});
+
+module.exports = { getBikes, getBike, getBrands, createBike, updateBike, deleteBike, getFeaturedBikes, getBestsellerBikes, enquireBike, getMyEnquiries };

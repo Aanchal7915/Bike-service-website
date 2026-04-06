@@ -1,0 +1,41 @@
+import API from './axios';
+
+export const getStats = () => API.get('/admin/stats');
+export const getUsers = (page = 1) => API.get(`/admin/users?page=${page}&limit=20`);
+export const updateUser = (id, data) => API.put(`/admin/users/${id}`, data);
+export const getMechanics = () => API.get('/admin/mechanics');
+
+export const getBikes = (page = 1) => API.get(`/bikes?page=${page}&limit=20&isAdmin=true`);
+export const createBike = (data) => API.post('/bikes', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const updateBike = (id, data) => API.put(`/bikes/${id}`, data);
+export const updateBikeMultipart = (id, data) => API.put(`/bikes/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const approveBike = (id) => API.put(`/admin/bikes/${id}/approve`);
+export const deleteBike = (id) => API.delete(`/bikes/${id}`);
+export const getBikeBrands = () => API.get('/bikes/brands');
+
+export const getServices = (page = 1) => API.get(`/services?page=${page}&limit=20`);
+export const updateServiceStatus = (id, data) => API.put(`/services/${id}/status`, data);
+
+export const getSells = (page = 1) => API.get(`/sell?page=${page}&limit=20`);
+export const updateSellStatus = (id, data) => API.put(`/sell/${id}/status`, data);
+
+export const getOrders = (page = 1) => API.get(`/store/orders?page=${page}&limit=20`);
+export const updateOrderStatus = (id, data) => API.put(`/store/orders/${id}/status`, data);
+
+export const getParts = () => API.get('/store/parts');
+export const getPartCategories = () => API.get('/store/parts/categories');
+export const createPart = (data) => API.post('/store/parts', data);
+export const updatePart = (id, data) => API.put(`/store/parts/${id}`, data);
+export const updatePartMultipart = (id, data) => API.put(`/store/parts/${id}`, data);
+export const deletePart = (id) => API.delete(`/store/parts/${id}`);
+
+// Categories
+export const getAdminCategories = () => API.get('/admin/categories');
+export const createCategory = (data) => API.post('/admin/categories', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const deleteCategory = (id) => API.delete(`/admin/categories/${id}`);
+
+// Brands
+export const getAdminBrands = () => API.get('/admin/brands-list');
+export const createBrand = (data) => API.post('/admin/brands', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const deleteBrand = (id) => API.delete(`/admin/brands/${id}`);
+
