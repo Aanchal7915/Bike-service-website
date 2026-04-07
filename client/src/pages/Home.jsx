@@ -364,7 +364,7 @@ export default function Home() {
 
       {/* BESTSELLER PRODUCTS section — Hide if empty (after loading) */}
       {(partsLoading || bestsellerParts.length > 0) && (
-        <section style={{ background: '#F9F9F9', padding: '5rem 0' }}>
+        <section style={{ background: '#FFFFFF', padding: '5rem 0' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
