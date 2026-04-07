@@ -49,7 +49,15 @@ export default function SpareParts() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#FFFFFF' }}>
- 
+      <style>{`
+        @media (max-width: 640px) {
+          .parts-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.6rem !important; }
+          .parts-header h1 { font-size: 1.8rem !important; }
+        }
+        @media (max-width: 400px) {
+          .parts-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+      `}</style>
        {/* ── HERO HEADER ── */}
        <div style={{ position: 'relative', background: '#F9F9F9', overflow: 'hidden', paddingBottom: '0', borderBottom: '1px solid #EEE' }}>
          {/* Decorative red line */}
@@ -66,7 +74,7 @@ export default function SpareParts() {
                    MotoXpress Store
                  </span>
                </div>
-               <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: 'clamp(2.2rem, 5vw, 3.2rem)', fontWeight: 900, color: '#111', lineHeight: 1, margin: 0 }}>
+               <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: 'clamp(1.5rem, 4vw, 3.2rem)', fontWeight: 900, color: '#111', lineHeight: 1, margin: 0 }}>
                  SPARE <span style={{ color: '#E53935' }}>PARTS</span>
                </h1>
                <p style={{ color: '#666', marginTop: '0.5rem', fontSize: '0.88rem' }}>
@@ -190,7 +198,7 @@ export default function SpareParts() {
            </div>
          ) : parts.length > 0 ? (
            <>
-             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.5rem' }}>
+             <div className="parts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem' }}>
                {parts.map((part) => <PartCard key={part._id} part={part} />)}
              </div>
  

@@ -11,12 +11,14 @@ export default function PincodeModal() {
   const [status, setStatus] = useState(null); // null | 'available' | 'unavailable'
 
   useEffect(() => {
-    // Show once per session if no pincode is set
+    // Automatic modal showing is disabled per user request
+    /*
     const alreadyShown = sessionStorage.getItem('pincodeModalShown');
     const saved = localStorage.getItem('selectedPincode');
     if (!alreadyShown && !saved) {
       setVisible(true);
     }
+    */
   }, []);
 
   const applyPincode = (pin) => {

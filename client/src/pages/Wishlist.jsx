@@ -230,7 +230,7 @@ export default function Wishlist() {
           </div>
         )}
  
-        <div className="animate-fadeInUp" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.8rem' }}>
+        <div className="animate-fadeInUp" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.2rem' }}>
           {wishlist.map((id) => (
             <WishlistItemLoader key={id} partId={id} pincode={pincode} toggleWishlist={toggleWishlist} addToCart={addToCart} />
           ))}

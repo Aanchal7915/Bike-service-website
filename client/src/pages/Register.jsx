@@ -14,7 +14,7 @@ export default function Register() {
   const onSubmit = async (data) => {
     try {
       await registerUser(data);
-      toast.success('Account created! Welcome 🏍️');
+      toast.success('Account created! Welcome');
       navigate('/');
     } catch (err) {
       toast.error(err.message);

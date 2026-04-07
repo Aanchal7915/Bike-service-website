@@ -86,6 +86,16 @@ export default function BikeDetail() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#FFFFFF' }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .bike-detail-grid { grid-template-columns: 1fr !important; }
+          .bike-detail-grid > div:last-child { position: static !important; }
+          .bike-detail-grid img, .bike-detail-grid video { height: 280px !important; }
+          .bike-specs-grid { grid-template-columns: 1fr 1fr !important; }
+          .bike-detail-grid h1 { font-size: 1.4rem !important; }
+          .bike-price-text { font-size: 2rem !important; }
+        }
+      `}</style>
       {/* Breadcrumb */}
       <div style={{ background: '#F9F9F9', borderBottom: '1px solid #EEE', padding: '0.8rem 0' }}>
         <div className="max-w-6xl mx-auto px-4 flex items-center gap-2" style={{ fontSize: '0.9rem', color: '#666', fontWeight: 600 }}>
@@ -100,7 +110,7 @@ export default function BikeDetail() {
       </div>
  
       <div className="max-w-6xl mx-auto px-4 py-4">
-        <div className="animate-fadeInUp" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '1.5rem', alignItems: 'start' }}>
+        <div className="animate-fadeInUp bike-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '1.5rem', alignItems: 'start' }}>
  
           {/* Left: Media & Details */}
           <div>

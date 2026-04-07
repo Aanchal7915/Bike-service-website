@@ -150,10 +150,18 @@ export default function Profile() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#FFFFFF', padding: '2.5rem 0' }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .profile-header { flex-direction: column; text-align: center; padding: 1.2rem !important; gap: 0.8rem !important; }
+          .profile-header > div:first-child { width: 70px !important; height: 70px !important; }
+          .profile-header h1 { font-size: 1.5rem !important; }
+          .profile-tabs button { font-size: 0.8rem !important; padding: 0.6rem 0.8rem !important; }
+        }
+      `}</style>
       <div className="max-w-4xl mx-auto px-4">
-        
+
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', background: '#F9F9F9', padding: '2rem', borderRadius: '24px', border: '1px solid #EEE', marginBottom: '2.5rem', boxShadow: '0 10px 40px rgba(0,0,0,0.02)' }}>
+        <div className="profile-header" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', background: '#F9F9F9', padding: '2rem', borderRadius: '24px', border: '1px solid #EEE', marginBottom: '2.5rem', boxShadow: '0 10px 40px rgba(0,0,0,0.02)' }}>
           <div style={{ position: 'relative', width: 100, height: 100 }}>
             {avatarPreview || user.avatar ? (
               <img src={avatarPreview || user.avatar} alt={user.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '3px solid #E53935' }} />

@@ -57,16 +57,32 @@ export default function BuyBikes() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#FFFFFF' }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .bikes-search-bar { flex-direction: column !important; }
+          .bikes-search-bar > div:first-child { min-width: 100% !important; }
+          .bikes-type-pills { width: 100%; justify-content: center; }
+          .bikes-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.6rem !important; }
+          .bikes-filter-panel { grid-template-columns: 1fr 1fr !important; }
+          .bikes-sort-row { width: 100% !important; }
+          .bikes-sort-row select { width: 100% !important; }
+          .bikes-sort-row button { flex: 1 !important; }
+        }
+        @media (max-width: 400px) {
+          .bikes-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .bikes-filter-panel { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       {/* Header */}
-      <div style={{ background: '#F9F9F9', borderBottom: '1px solid #EEE', padding: '2.5rem 0' }}>
+      <div style={{ background: '#F9F9F9', borderBottom: '1px solid #EEE', padding: '2rem 0' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2.5rem', fontWeight: 800, color: '#111', marginBottom: '0.3rem' }}>
+          <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: 'clamp(1.6rem, 4vw, 2.5rem)', fontWeight: 800, color: '#111', marginBottom: '0.3rem' }}>
             Buy <span style={{ color: '#E53935' }}>Bikes</span>
           </h1>
           <p style={{ color: '#666' }}>{total} bikes available</p>
  
           {/* Search & Sort Bar */}
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
+          <div className="bikes-search-bar" style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: 250, position: 'relative' }}>
               <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#888' }} />
               <input type="text" className="input-light" style={{ paddingLeft: '2.5rem' }}
@@ -92,23 +108,25 @@ export default function BuyBikes() {
               ))}
             </div>
  
-            <select className="input-light" style={{ width: 'auto' }} value={filters.sort} onChange={(e) => handleFilter('sort', e.target.value)}>
-              <option value="newest">Newest First</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-              <option value="popular">Most Popular</option>
-            </select>
- 
-            <button onClick={() => setFiltersOpen(!filtersOpen)}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.2rem', background: '#FFF', border: '1px solid #EEE', borderRadius: '8px', color: '#666', cursor: 'pointer', fontWeight: 600 }}>
-              <SlidersHorizontal size={16} /> Filters
-            </button>
+            <div className="bikes-sort-row" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <select className="input-light" style={{ width: 'auto' }} value={filters.sort} onChange={(e) => handleFilter('sort', e.target.value)}>
+                <option value="newest">Newest First</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="popular">Most Popular</option>
+              </select>
+
+              <button onClick={() => setFiltersOpen(!filtersOpen)}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.2rem', background: '#FFF', border: '1px solid #EEE', borderRadius: '8px', color: '#666', cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                <SlidersHorizontal size={16} /> Filters
+              </button>
+            </div>
           </div>
  
           {/* Expanded Filters */}
           {filtersOpen && (
             <div style={{ marginTop: '1.5rem', padding: '1.5rem', background: '#FFF', borderRadius: '12px', border: '1px solid #EEE', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
+              <div className="bikes-filter-panel" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
                 {/* Brand */}
                 <div>
                   <label style={{ color: '#888', fontSize: '0.82rem', display: 'block', marginBottom: '0.4rem', fontWeight: 600 }}>Brand</label>
@@ -166,7 +184,7 @@ export default function BuyBikes() {
           </div>
         ) : bikes.length > 0 ? (
           <>
-            <div className="animate-fadeInUp" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.5rem' }}>
+            <div className="animate-fadeInUp bikes-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem' }}>
               {bikes.map((bike) => <BikeCard key={bike._id} bike={bike} hideBadges={true} />)}
             </div>
  

@@ -3,6 +3,15 @@ const SparePart = require('../models/SparePart');
 const Order = require('../models/Order');
 const { createOrder: createRazorpayOrder, verifyPayment } = require('../services/paymentService');
 
+// Helper: pincode filter that also includes products with no pincodePricing (available everywhere)
+const pincodeFilter = (pincode) => ({
+  $or: [
+    { 'pincodePricing.pincode': pincode },
+    { pincodePricing: { $size: 0 } },
+    { pincodePricing: { $exists: false } },
+  ]
+});
+
 // ---- PARTS ----
 // @desc  Get all parts
 // @route GET /api/store/parts
@@ -12,7 +21,7 @@ const getParts = asyncHandler(async (req, res) => {
   if (category) query.category = category;
   if (search) query.name = new RegExp(search, 'i');
   if (minPrice || maxPrice) query.price = { ...(minPrice && { $gte: Number(minPrice) }), ...(maxPrice && { $lte: Number(maxPrice) }) };
-  if (pincode) query['pincodePricing.pincode'] = pincode;
+  if (pincode) Object.assign(query, pincodeFilter(pincode));
 
   const total = await SparePart.countDocuments(query);
   const parts = await SparePart.find(query).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(Number(limit));
@@ -24,7 +33,7 @@ const getParts = asyncHandler(async (req, res) => {
 const getFeaturedParts = asyncHandler(async (req, res) => {
   const { pincode } = req.query;
   const query = { isFeatured: true, isActive: true };
-  if (pincode) query['pincodePricing.pincode'] = pincode;
+  if (pincode) Object.assign(query, pincodeFilter(pincode));
   const parts = await SparePart.find(query).sort({ createdAt: -1 });
   res.json({ success: true, parts });
 });
@@ -34,7 +43,7 @@ const getFeaturedParts = asyncHandler(async (req, res) => {
 const getBestsellerParts = asyncHandler(async (req, res) => {
   const { pincode } = req.query;
   const query = { bestSeller: true, isActive: true };
-  if (pincode) query['pincodePricing.pincode'] = pincode;
+  if (pincode) Object.assign(query, pincodeFilter(pincode));
   const parts = await SparePart.find(query).sort({ createdAt: -1 });
   res.json({ success: true, parts });
 });
@@ -44,7 +53,7 @@ const getBestsellerParts = asyncHandler(async (req, res) => {
 const getUpcomingParts = asyncHandler(async (req, res) => {
   const { pincode } = req.query;
   const query = { comingSoon: true, isActive: true };
-  if (pincode) query['pincodePricing.pincode'] = pincode;
+  if (pincode) Object.assign(query, pincodeFilter(pincode));
   const parts = await SparePart.find(query).sort({ createdAt: -1 });
   res.json({ success: true, parts });
 });
@@ -54,7 +63,7 @@ const getUpcomingParts = asyncHandler(async (req, res) => {
 const getRecentParts = asyncHandler(async (req, res) => {
   const { pincode, limit = 20 } = req.query;
   const query = { comingSoon: { $ne: true }, isActive: true };
-  if (pincode) query['pincodePricing.pincode'] = pincode;
+  if (pincode) Object.assign(query, pincodeFilter(pincode));
   const parts = await SparePart.find(query).sort({ createdAt: -1 }).limit(Number(limit));
   res.json({ success: true, parts });
 });
@@ -69,7 +78,7 @@ const searchParts = asyncHandler(async (req, res) => {
     $or: [{ name: { $regex: regex } }, { brand: { $regex: regex } }, { subCategory: { $regex: regex } }, { category: { $regex: regex } }],
     isActive: true
   };
-  const query = pincode ? { $and: [searchFilter, { 'pincodePricing.pincode': pincode }] } : searchFilter;
+  const query = pincode ? { $and: [searchFilter, pincodeFilter(pincode)] } : searchFilter;
   const parts = await SparePart.find(query);
   res.json({ success: true, parts });
 });

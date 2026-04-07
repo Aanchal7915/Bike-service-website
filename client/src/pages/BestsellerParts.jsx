@@ -37,6 +37,11 @@ export default function BestsellerParts() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#FFFFFF' }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .bestseller-products-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.6rem !important; }
+        }
+      `}</style>
       <div style={{ height: '4px', background: 'linear-gradient(90deg, #E53935, #E57373, transparent)' }} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" style={{ paddingTop: '3.5rem', paddingBottom: '5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '3.5rem' }}>
@@ -47,7 +52,7 @@ export default function BestsellerParts() {
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <div style={{ width: 6, height: 32, background: '#E53935', borderRadius: '3px' }} />
-            <h1 style={{ color: '#111', fontFamily: 'Rajdhani, sans-serif', fontSize: '2.5rem', fontWeight: 950, margin: 0, letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
+            <h1 style={{ color: '#111', fontFamily: 'Rajdhani, sans-serif', fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontWeight: 950, margin: 0, letterSpacing: '-0.02em', textTransform: 'uppercase' }}>
               BEST <span style={{ color: '#E53935' }}>SELLERS</span>
             </h1>
           </div>
@@ -58,11 +63,11 @@ export default function BestsellerParts() {
           </div>
         )}
         {loading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '2rem' }}>
             {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : (parts.length > 0 || bikes.length > 0) ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2.5rem' }}>
+          <div className="bestseller-products-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '2.5rem' }}>
             {bikes.map(bike => <BikeCard key={bike._id} bike={bike} hideBadges={true} />)}
             {parts.map(part => <PartCard key={part._id} part={part} />)}
           </div>

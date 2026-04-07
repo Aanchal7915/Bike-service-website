@@ -20,7 +20,7 @@ export default function Login() {
     try {
       if (mode === 'password') {
         await login(data);
-        toast.success('Welcome back! 🏍️');
+        toast.success('Welcome back!');
         navigate('/');
       } else if (mode === 'otp' && !otpSent) {
         await sendOTP({ email: data.email, phone: data.phone });
@@ -28,7 +28,7 @@ export default function Login() {
         toast.success('OTP sent!');
       } else if (mode === 'otp' && otpSent) {
         await loginWithOTP({ email: data.email, phone: data.phone, otp: data.otp });
-        toast.success('Welcome! 🏍️');
+        toast.success('Welcome!');
         navigate('/');
       }
     } catch (err) {
@@ -62,7 +62,7 @@ export default function Login() {
                 fontWeight: 700, fontSize: '0.9rem', transition: 'all 0.25s',
                 boxShadow: mode === m ? '0 4px 12px rgba(0,0,0,0.05)' : 'none'
               }}>
-              {m === 'password' ? '🔐 Password' : '📱 OTP Login'}
+              {m === 'password' ? 'Password' : 'OTP Login'}
             </button>
           ))}
         </div>

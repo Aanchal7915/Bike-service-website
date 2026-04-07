@@ -167,6 +167,15 @@ export default function Cart() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#FFFFFF' }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .cart-layout { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
+          .cart-item-grid { grid-template-columns: 80px 1fr !important; gap: 0.75rem !important; }
+          .cart-item-grid > div:last-child { grid-column: 1 / -1; }
+          .cart-addr-grid { grid-template-columns: 1fr !important; }
+          .cart-addr-row { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       {/* Top red accent line */}
       <div style={{ height: '4px', background: 'linear-gradient(90deg, #E53935, #FF7043, transparent)' }} />
  
@@ -191,7 +200,7 @@ export default function Cart() {
         {/* Step indicator */}
         <StepIndicator step={step} />
  
-        <div className="animate-fadeIn" style={{ display: 'grid', gridTemplateColumns: '1fr 520px', gap: '3rem', alignItems: 'start' }}>
+        <div className="animate-fadeIn cart-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 520px', gap: '3rem', alignItems: 'start' }}>
  
           {/* ── Cart Items ── */}
           <div className="animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
@@ -199,7 +208,7 @@ export default function Cart() {
               const itemPrice = item.effectivePrice ?? item.discountedPrice ?? item.price;
               const saved = item.price > itemPrice ? item.price - itemPrice : 0;
               return (
-                <div key={item._id} style={{
+                <div key={item._id} className="cart-item-grid" style={{
                   display: 'grid', gridTemplateColumns: '110px 1fr auto',
                   gap: '1.5rem', background: '#FFF',
                   border: '1px solid #EEE', borderRadius: '20px',
@@ -441,7 +450,7 @@ export default function Cart() {
                     {/* Contact Details Section */}
                     <div style={{ marginBottom: '1rem' }}>
                       <p style={{ color: '#888', fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.6rem' }}>CONTACT DETAILS</p>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div className="cart-addr-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                         <div style={{ position: 'relative' }}>
                           <div style={{ position: 'absolute', left: '0.8rem', top: '50%', transform: 'translateY(-50%)', color: '#BBB' }}><User size={16} /></div>
                           <input
@@ -468,7 +477,7 @@ export default function Cart() {
                     {/* Shipping Address Section */}
                     <div style={{ marginBottom: '1rem' }}>
                       <p style={{ color: '#888', fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '0.6rem' }}>SHIPPING ADDRESS</p>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1.7fr 1.5fr 0.8fr', gap: '0.6rem' }}>
+                      <div className="cart-addr-row" style={{ display: 'grid', gridTemplateColumns: '1.7fr 1.5fr 0.8fr', gap: '0.6rem' }}>
                         <div style={{ position: 'relative' }}>
                           <div style={{ position: 'absolute', left: '0.6rem', top: '50%', transform: 'translateY(-50%)', color: '#BBB' }}><MapPin size={14} /></div>
                           <input

@@ -96,7 +96,7 @@ export default function Services() {
       });
       setBookingId(res.data.booking?._id || res.data._id);
       setStep(3);
-      toast.success('Service booked successfully! 🏍️');
+      toast.success('Service booked successfully!');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Booking failed');
     } finally { setSubmitting(false); }
@@ -104,6 +104,13 @@ export default function Services() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#FFFFFF' }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .svc-form-grid { grid-template-columns: 1fr !important; }
+          .svc-addr-grid { grid-template-columns: 1fr !important; }
+          .svc-step-label { display: none !important; }
+        }
+      `}</style>
       {/* Header */}
       <div style={{ background: '#F9F9F9', borderBottom: '1px solid #EEE', padding: '1rem 0' }}>
         <div className="max-w-4xl mx-auto px-4">
@@ -125,7 +132,7 @@ export default function Services() {
                   }}>
                     {step > i + 1 ? '✓' : i + 1}
                   </div>
-                  <span style={{ color: step === i + 1 ? '#111' : '#888', fontSize: '0.9rem', fontWeight: step === i + 1 ? 700 : 500 }}>{s}</span>
+                  <span className="svc-step-label" style={{ color: step === i + 1 ? '#111' : '#888', fontSize: '0.9rem', fontWeight: step === i + 1 ? 700 : 500 }}>{s}</span>
                 </div>
                 {i < 2 && <div style={{ width: 40, height: 2, background: '#EEE', margin: '0 0.8rem' }} />}
               </div>
@@ -174,7 +181,7 @@ export default function Services() {
             </div>
  
             <form onSubmit={handleSubmit(onSubmit)} style={{ background: '#FFF', border: '1px solid #EEE', borderRadius: '16px', padding: '1.2rem', boxShadow: '0 10px 40px rgba(0,0,0,0.03)' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
+              <div className="svc-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
                 <div>
                   <label style={{ color: '#333', fontSize: '0.75rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem' }}>Bike Brand *</label>
                   <input className="input-light" placeholder="Brand" {...register('bikeBrand', { required: 'Required' })} style={{ height: '42px', fontSize: '0.85rem' }} />
@@ -206,7 +213,7 @@ export default function Services() {
  
               <div style={{ marginTop: '1rem', padding: '1rem', background: '#F9F9F9', borderRadius: '10px', border: '1px solid #EEE' }}>
                 <div style={{ color: '#111', fontWeight: 800, fontFamily: 'Rajdhani, sans-serif', fontSize: '0.9rem', marginBottom: '0.6rem' }}>PICKUP & DROP ADDRESS</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+                <div className="svc-addr-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
                   <input className="input-light" placeholder="Street" {...register('address.street')} style={{ height: '38px', fontSize: '0.8rem' }} />
                   <input className="input-light" placeholder="City" {...register('address.city')} style={{ height: '38px', fontSize: '0.8rem' }} />
                   <input className="input-light" placeholder="State" {...register('address.state')} style={{ height: '38px', fontSize: '0.8rem' }} />
@@ -240,7 +247,7 @@ export default function Services() {
         {/* Step 3: Confirmation */}
         {step === 3 && (
           <div className="animate-fadeInUp" style={{ textAlign: 'center', padding: '1.5rem 1.2rem', background: '#FFF', borderRadius: '24px', border: '1px solid #EEE', boxShadow: '0 15px 50px rgba(0,0,0,0.04)' }}>
-            <div style={{ fontSize: '4.5rem', marginBottom: '0.8rem' }}>🏍️💨</div>
+            <div style={{ fontSize: '4.5rem', marginBottom: '0.8rem' }}>✓</div>
             <h2 style={{ color: '#111', fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', fontWeight: 900, marginBottom: '0.4rem' }}>
               BOOKING <span style={{ color: '#E53935' }}>SUCCESSFUL!</span>
             </h2>

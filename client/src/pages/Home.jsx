@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Shield, Clock, MapPin, Star, Zap, Wrench, ShoppingBag, TrendingUp } from 'lucide-react';
-import { getParts, getBestsellerParts } from '../api/storeApi';
+import { getFeaturedParts, getBestsellerParts } from '../api/storeApi';
 import { getFeaturedBikes, getBestsellerBikes } from '../api/bikeApi';
 import BikeCard from '../components/bikes/BikeCard';
 import PartCard from '../components/parts/PartCard';
@@ -35,7 +35,7 @@ export default function Home() {
   useEffect(() => {
     Promise.all([
       getFeaturedBikes().then(({ data }) => setFeatured(data.bikes)),
-      getParts({ limit: 4, sort: '-createdAt' }).then(({ data }) => setFeaturedParts(data.parts || [])),
+      getFeaturedParts().then(({ data }) => setFeaturedParts(data.parts || [])),
       getBestsellerParts({ limit: 4 }).then(({ data }) => setBestsellerParts(data.parts || [])),
       getBestsellerBikes().then(({ data }) => setBestsellerBikes(data.bikes || []))
     ])
@@ -329,7 +329,7 @@ export default function Home() {
       </section>
 
       {/* FEATURED PRODUCTS section — Hide if empty (after loading) */}
-      {(partsLoading || featuredParts.length > 0) && (
+      {(partsLoading || featuredParts.length > 0 || featured.length > 0) && (
         <section style={{ background: '#FFFFFF', padding: '5rem 0' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
@@ -340,12 +340,12 @@ export default function Home() {
                 </h2>
                 <p style={{ color: '#555', marginTop: '0.3rem' }}>High-quality components for every ride</p>
               </div>
-              <Link to="/parts" style={{ 
-                background: '#000', color: 'white', padding: '0.6rem 1.4rem', 
+              <Link to="/featured" style={{
+                background: '#000', color: 'white', padding: '0.6rem 1.4rem',
                 fontSize: '0.9rem', borderRadius: '6px', textDecoration: 'none',
                 fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.5rem'
               }}>
-                View All Parts <ArrowRight size={16} />
+                View All Featured <ArrowRight size={16} />
               </Link>
             </div>
 
@@ -357,14 +357,16 @@ export default function Home() {
               </div>
             ) : (
               <div className="home-parts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.5rem' }}>
-                {featuredParts.map((part) => <PartCard key={part._id} part={part} />)}
+                {featured.slice(0, 2).map((bike) => <BikeCard key={bike._id} bike={bike} />)}
+                {featuredParts.slice(0, 4).map((part) => <PartCard key={part._id} part={part} />)}
               </div>
             )}
           </div>
         </section>
       )}
 
-      {/* BESTSELLER PRODUCTS section — Show fallback if empty */}
+      {/* BESTSELLER PRODUCTS section — Hide if empty */}
+      {(loading || bestsellerBikes.length > 0 || bestsellerParts.length > 0) && (
       <section style={{ background: '#FFFFFF', padding: '5rem 0' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
@@ -375,12 +377,12 @@ export default function Home() {
               </h2>
               <p style={{ color: '#555', marginTop: '0.3rem' }}>Our most trusted items by riders</p>
             </div>
-            <Link to="/parts" style={{ 
-              background: '#000', color: 'white', padding: '0.6rem 1.4rem', 
+            <Link to="/bestseller" style={{
+              background: '#000', color: 'white', padding: '0.6rem 1.4rem',
               fontSize: '0.9rem', borderRadius: '6px', textDecoration: 'none',
               fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.5rem'
             }}>
-              View All <ArrowRight size={16} />
+              View All Bestsellers <ArrowRight size={16} />
             </Link>
           </div>
 
@@ -395,13 +397,14 @@ export default function Home() {
               {bestsellerBikes.slice(0, 2).map((bike) => (
                 <BikeCard key={bike._id} bike={bike} />
               ))}
-              {(bestsellerParts.length > 0 ? bestsellerParts : featuredParts.slice(0, 4)).map((part) => (
+              {bestsellerParts.slice(0, 4).map((part) => (
                 <PartCard key={part._id} part={part} />
               ))}
             </div>
           )}
         </div>
       </section>
+      )}
 
       {/* WHY CHOOSE US */}
       <section style={{ background: '#F5F5F5', padding: '5rem 0' }}>

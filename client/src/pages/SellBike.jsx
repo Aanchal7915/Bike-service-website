@@ -60,7 +60,7 @@ export default function SellBike() {
       images.forEach((img) => formData.append('images', img));
       await createSellRequest(formData);
       setStep(3);
-      toast.success('Sell request submitted! 🏍️');
+      toast.success('Sell request submitted!');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Submission failed');
     } finally { setSubmitting(false); }
@@ -68,10 +68,18 @@ export default function SellBike() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#FFFFFF' }}>
-      <div style={{ background: '#F9F9F9', borderBottom: '1px solid #EEE', padding: '3.5rem 0' }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .sell-form-grid { grid-template-columns: 1fr !important; }
+          .sell-pickup-grid { grid-template-columns: 1fr !important; }
+          .sell-header h1 { font-size: 1.8rem !important; }
+          .sell-header p { font-size: 0.9rem !important; }
+        }
+      `}</style>
+      <div style={{ background: '#F9F9F9', borderBottom: '1px solid #EEE', padding: '2.5rem 0' }}>
         <div className="max-w-3xl mx-auto px-4">
-          <div className="animate-fadeInUp" style={{ textAlign: 'center' }}>
-            <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '3.5rem', fontWeight: 900, color: '#111', lineHeight: 1.1, marginBottom: '0.8rem' }}>
+          <div className="animate-fadeInUp sell-header" style={{ textAlign: 'center' }}>
+            <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: 'clamp(1.8rem, 5vw, 3.5rem)', fontWeight: 900, color: '#111', lineHeight: 1.1, marginBottom: '0.8rem' }}>
               SELL YOUR <span style={{ color: '#E53935' }}>BIKE INSTANTLY</span>
             </h1>
             <p style={{ color: '#666', fontSize: '1.15rem', fontWeight: 600, letterSpacing: '0.02em', maxWidth: '500px', margin: '0 auto' }}>Get the industry-best price appraisal and sell your motorcycle in under 60 minutes.</p>
@@ -83,7 +91,7 @@ export default function SellBike() {
         {step === 1 && (
           <div className="animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
             {/* USPs */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div className="sell-usp-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
               {[
                 { title: 'Instant Valuation', desc: 'AI-derived precision pricing' },
                 { title: 'Free Home Pickup', desc: 'We come to your doorstep' },
@@ -104,7 +112,7 @@ export default function SellBike() {
                 <h3 style={{ color: '#111', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.4rem', fontWeight: 900, margin: 0 }}>VEHICLE SPECIFICATIONS</h3>
               </div>
  
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
+              <div className="sell-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
                 <div>
                   <label style={{ color: '#666', fontSize: '0.65rem', fontWeight: 800, display: 'block', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Brand *</label>
                   <select className="input-light" style={{ borderRadius: '10px', fontWeight: 600, height: '42px', fontSize: '0.8rem', padding: '0 0.8rem' }} {...register('brand', { required: 'Required' })}>
@@ -190,7 +198,7 @@ export default function SellBike() {
                   <Truck size={14} style={{ color: '#E53935' }} />
                   <span style={{ color: '#111', fontWeight: 800, fontSize: '0.85rem', fontFamily: 'Rajdhani, sans-serif' }}>PICKUP DETAILS</span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1.7fr 1.5fr 0.8fr', gap: '0.5rem' }}>
+                <div className="sell-pickup-grid" style={{ display: 'grid', gridTemplateColumns: '1.7fr 1.5fr 0.8fr', gap: '0.5rem' }}>
                   <input className="input-light" style={{ borderRadius: '8px', fontWeight: 600, height: '36px', fontSize: '0.75rem' }} placeholder="Address" {...register('pickupStreet')} />
                   <input className="input-light" style={{ borderRadius: '8px', fontWeight: 600, height: '36px', fontSize: '0.75rem' }} placeholder="City" {...register('pickupCity')} />
                   <input className="input-light" style={{ borderRadius: '8px', fontWeight: 600, height: '36px', fontSize: '0.75rem' }} placeholder="Pin" {...register('pickupPincode')} />
