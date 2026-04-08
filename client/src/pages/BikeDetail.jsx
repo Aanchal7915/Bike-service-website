@@ -91,7 +91,7 @@ export default function BikeDetail() {
         @media (max-width: 768px) {
           .bike-detail-grid { grid-template-columns: 1fr !important; }
           .bike-detail-grid > div:last-child { position: static !important; }
-          .bike-detail-grid img, .bike-detail-grid video { height: 400px !important; object-fit: contain !important; padding: 1rem !important; }
+          .main-detail-img { height: 400px !important; object-fit: contain !important; padding: 1rem !important; width: 100% !important; }
           .bike-specs-grid { grid-template-columns: 1fr 1fr !important; }
           .bike-detail-grid h1 { font-size: 1.4rem !important; }
           .bike-price-text { font-size: 2rem !important; }
@@ -154,10 +154,12 @@ export default function BikeDetail() {
                   key={media[selectedImage]}
                   src={media[selectedImage]}
                   controls autoPlay muted playsInline
+                  className="main-detail-img"
                   style={{ width: '100%', height: 420, objectFit: 'contain', background: '#000' }}
                 />
               ) : (
                 <img src={media[selectedImage]} alt={bike.title}
+                  className="main-detail-img"
                   style={{
                     width: '100%', height: 420, objectFit: 'contain', padding: isMobile ? '1.5rem' : '0.5rem',
                     transition: 'transform 0.5s ease-out',

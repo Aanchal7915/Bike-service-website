@@ -179,7 +179,7 @@ export default function PartDetail() {
         @media (max-width: 768px) {
           .part-detail-grid { grid-template-columns: 1fr !important; }
           .part-detail-grid > div:last-child { position: static !important; }
-          .part-detail-grid img, .part-detail-grid video { height: 400px !important; object-fit: contain !important; padding: 1rem !important; }
+          .main-detail-img { height: 400px !important; object-fit: contain !important; padding: 1rem !important; width: 100% !important; }
           .part-thumb-row { gap: 0.5rem !important; }
           .part-thumb-row button { width: 60px !important; height: 60px !important; border-radius: 10px !important; }
           .part-nav-right { right: 12px !important; }
@@ -241,10 +241,12 @@ export default function PartDetail() {
                   key={images[activeImg]}
                   src={images[activeImg]}
                   controls autoPlay muted playsInline
+                  className="main-detail-img"
                   style={{ width: '100%', height: 420, objectFit: 'contain', background: '#000' }}
                 />
               ) : (
                 <img src={images[activeImg]} alt={part.name}
+                  className="main-detail-img"
                   style={{
                     width: '100%', height: 420, objectFit: 'contain', padding: isMobile ? '1.5rem' : '0.5rem',
                     transition: 'transform 0.5s ease-out',
