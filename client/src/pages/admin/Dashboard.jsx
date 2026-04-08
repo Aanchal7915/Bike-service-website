@@ -210,7 +210,10 @@ const ServicesTab = () => {
           {serviceTypes.map(st => (
             <div key={st._id} style={{ background: st.isActive ? '#FFF' : '#F9F9F9', border: '1px solid #EEE', borderRadius: '12px', padding: '1rem', opacity: st.isActive ? 1 : 0.6 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.3rem' }}>
-                <h4 style={{ color: '#111', fontWeight: 800, fontSize: '0.95rem', margin: 0, fontFamily: 'Rajdhani, sans-serif' }}>{st.label.toUpperCase()}</h4>
+                <h4 style={{ color: '#111', fontWeight: 800, fontSize: '0.95rem', margin: 0, fontFamily: 'Rajdhani, sans-serif' }}>
+                  {st.label.toUpperCase()}
+                  <span style={{ fontSize: '0.65rem', color: '#AAA', marginLeft: '0.6rem', fontWeight: 600 }}>ID: {st.value}</span>
+                </h4>
                 <div style={{ display: 'flex', gap: '0.3rem' }}>
                   <button onClick={() => handleStEdit(st)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888', padding: '2px' }}><Edit2 size={14} /></button>
                   <button onClick={() => handleStDelete(st._id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#E53935', padding: '2px' }}><Trash2 size={14} /></button>
