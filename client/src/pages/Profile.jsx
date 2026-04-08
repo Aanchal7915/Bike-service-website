@@ -164,9 +164,11 @@ export default function Profile() {
           .profile-save-btn { width: 100% !important; padding: 0.8rem !important; font-size: 0.9rem !important; }
           .address-card { padding: 1.2rem !important; }
           .address-card h4 { font-size: 0.95rem !important; }
-          .map-locate-btn { padding: 0.5rem 0.8rem !important; font-size: 0.75rem !important; bottom: 1rem !important; }
-          .map-modal-content { padding: 1rem !important; }
-          .map-modal-header { padding: 1rem 1.2rem !important; }
+          .map-locate-btn { padding: 0.4rem 0.8rem !important; font-size: 0.7rem !important; bottom: 0.8rem !important; right: 0.6rem !important; border-radius: 8px !important; }
+          .map-modal-content { padding: 0.8rem !important; margin-top: 1rem !important; }
+          .map-modal-header { padding: 0.8rem 1rem !important; }
+          .map-container-mobile { height: 250px !important; }
+          .map-confirm-btn { padding: 0.8rem !important; font-size: 0.9rem !important; border-radius: 10px !important; }
         }
       `}</style>
       <div className="max-w-4xl mx-auto px-4">
@@ -427,13 +429,15 @@ export default function Profile() {
             {/* Modal Body / Map */}
             <div style={{ padding: '1.5rem', position: 'relative' }}>
               <div style={{ position: 'relative', border: '1px solid #EEE', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.04)' }}>
-                <MapContainer center={mapLocation} zoom={14} style={mapContainerStyle}>
-                  <TileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                  />
-                  <MapClickHandler />
-                </MapContainer>
+                <div className="map-container-mobile" style={{ width: '100%', height: '350px', borderRadius: '8px', zIndex: 1 }}>
+                  <MapContainer center={mapLocation} zoom={14} style={{ width: '100%', height: '100%' }}>
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    />
+                    <MapClickHandler />
+                  </MapContainer>
+                </div>
                 
                 {/* Locate Me Button Overlay */}
                 <button 
@@ -486,7 +490,7 @@ export default function Profile() {
                   setLocationSet(true);
                   setShowMapModal(false);
                 }}
-                className="btn-primary" 
+                className="btn-primary map-confirm-btn" 
                 style={{ width: '100%', justifyContent: 'center', padding: '1.1rem', fontSize: '1.05rem', fontWeight: 800, borderRadius: '12px' }}
               >
                 CONFIRM THIS LOCATION
