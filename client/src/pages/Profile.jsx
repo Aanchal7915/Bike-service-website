@@ -413,21 +413,21 @@ export default function Profile() {
           <div style={{ background: '#FFF', width: '100%', maxWidth: '550px', borderRadius: '24px', border: '1px solid #EEE', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 60px rgba(0,0,0,0.15)' }}>
             
             {/* Modal Header */}
-            <div className="map-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem 2rem', borderBottom: '1px solid #EEE' }}>
+            <div className="map-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.2rem 1.5rem', borderBottom: '1px solid #EEE' }}>
               <div>
-                <h3 style={{ color: '#111', fontWeight: 900, margin: 0, fontSize: '1.2rem', fontFamily: 'Rajdhani, sans-serif' }}>PINPOINT LOCATION</h3>
-                <p style={{ color: '#666', margin: 0, fontSize: '0.85rem', fontWeight: 500 }}>Select the exact service location</p>
+                <h3 style={{ color: '#111', fontWeight: 900, margin: 0, fontSize: '1.1rem', fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.02em' }}>PINPOINT LOCATION</h3>
+                <p style={{ color: '#888', margin: 0, fontSize: '0.75rem', fontWeight: 600 }}>Select the exact service location</p>
               </div>
               <button 
                 onClick={() => setShowMapModal(false)}
-                style={{ background: '#F5F5F5', border: 'none', color: '#666', cursor: 'pointer', padding: '0.6rem', borderRadius: '50%', display: 'flex' }}
+                style={{ background: '#F5F5F5', border: 'none', color: '#666', cursor: 'pointer', padding: '0.5rem', borderRadius: '50%', display: 'flex' }}
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
  
             {/* Modal Body / Map */}
-            <div style={{ padding: '1.5rem', position: 'relative' }}>
+            <div style={{ padding: '1rem', position: 'relative' }}>
               <div style={{ position: 'relative', border: '1px solid #EEE', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.04)' }}>
                 <div className="map-container-mobile" style={{ width: '100%', height: '350px', borderRadius: '8px', zIndex: 1 }}>
                   <MapContainer center={mapLocation} zoom={14} style={{ width: '100%', height: '100%' }}>
@@ -462,20 +462,20 @@ export default function Profile() {
               </div>
  
               {/* Final Address Details Label */}
-              <div className="map-modal-content" style={{ background: '#F9F9F9', borderRadius: '16px', padding: '1.2rem', border: '1px solid #EEE', marginTop: '1.5rem' }}>
-                <p style={{ color: '#E53935', fontSize: '0.75rem', fontWeight: 900, margin: 0, marginBottom: '0.5rem', letterSpacing: '0.04em' }}>SELECTED ADDRESS:</p>
+              <div className="map-modal-content" style={{ background: '#F9F9F9', borderRadius: '12px', padding: '0.8rem 1rem', border: '1px solid #EEE', marginTop: '1rem' }}>
+                <p style={{ color: '#E53935', fontSize: '0.7rem', fontWeight: 900, margin: 0, marginBottom: '0.3rem', letterSpacing: '0.04em' }}>SELECTED ADDRESS:</p>
                 
                 {isGeocoding ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#666', fontSize: '0.9rem', marginTop: '0.5rem', fontWeight: 600 }}>
-                    <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} /> Fetching geolocation details...
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#666', fontSize: '0.85rem', marginTop: '0.2rem', fontWeight: 600 }}>
+                    <Loader size={14} style={{ animation: 'spin 1s linear infinite' }} /> Fetching geolocation...
                   </div>
                 ) : (
                   <>
-                    <p style={{ color: '#111', fontSize: '0.95rem', marginTop: '0.3rem', fontWeight: 700, margin: 0, lineHeight: 1.4 }}>
+                    <p style={{ color: '#111', fontSize: '0.88rem', fontWeight: 800, margin: 0, lineHeight: 1.3 }}>
                       {humanAddress ? humanAddress : 'Click anywhere on the map to set location'}
                     </p>
-                    <p style={{ color: '#AAA', fontSize: '0.85rem', marginTop: '0.4rem', margin: 0, fontWeight: 600 }}>
-                      COORD: {mapLocation.lat.toFixed(6)}, {mapLocation.lng.toFixed(6)}
+                    <p style={{ color: '#AAA', fontSize: '0.75rem', marginTop: '0.2rem', margin: 0, fontWeight: 700 }}>
+                      {mapLocation.lat.toFixed(6)}, {mapLocation.lng.toFixed(6)}
                     </p>
                   </>
                 )}
@@ -483,7 +483,7 @@ export default function Profile() {
             </div>
  
             {/* Modal Footer */}
-            <div style={{ padding: '0 1.5rem 2rem 1.5rem' }}>
+            <div style={{ padding: '0 1rem 1.5rem 1.5rem' }}>
               <button 
                 type="button"
                 onClick={() => {
@@ -491,7 +491,7 @@ export default function Profile() {
                   setShowMapModal(false);
                 }}
                 className="btn-primary map-confirm-btn" 
-                style={{ width: '100%', justifyContent: 'center', padding: '1.1rem', fontSize: '1.05rem', fontWeight: 800, borderRadius: '12px' }}
+                style={{ width: '100%', justifyContent: 'center', padding: '0.8rem', fontSize: '0.95rem', fontWeight: 800, borderRadius: '10px' }}
               >
                 CONFIRM THIS LOCATION
               </button>
