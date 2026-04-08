@@ -65,9 +65,8 @@ const partMulter = multer({ storage: partsStorage, fileFilter, limits: { fileSiz
 
 exports.uploadBikeMedia = multer({ storage: bikeStorage, fileFilter, limits: { fileSize: 50 * 1024 * 1024 } });
 exports.uploadAvatar = multer({ storage: avatarStorage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } });
-// Handles both images[] (up to 5) and video (1) in one multipart request
-// Handles both images[] (up to 5) and video (1) in one multipart request
-exports.uploadPartMedia = partMulter.fields([{ name: 'images', maxCount: 5 }, { name: 'video', maxCount: 1 }]);
+// All media (images + videos) uploaded together in order via 'images' field
+exports.uploadPartMedia = partMulter.array('images', 10);
 
 // Added for category/brand images
 exports.uploadCategoryMedia = multer({ 

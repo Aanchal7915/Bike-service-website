@@ -5,7 +5,7 @@ import { toggleWishlist } from '../api/authApi';
 import { useAuth } from '../context/AuthContext';
 import { PageLoader } from '../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
-import { Heart, Phone, MessageCircle, MapPin, Calendar, Gauge, Zap, CheckCircle, ArrowLeft, Eye, Share2 } from 'lucide-react';
+import { Heart, Phone, MessageCircle, MapPin, Calendar, Gauge, Zap, CheckCircle, ArrowLeft, Eye, Share2, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Maximize2, X as XIcon } from 'lucide-react';
 
 const isVideo = (url = '') => /\.(mp4|mov|webm|ogg|m4v)(\?.*)?$/i.test(url) || url.includes('/video/upload/');
 
@@ -19,6 +19,10 @@ export default function BikeDetail() {
   const [wishlisted, setWishlisted] = useState(false);
   const [enquiryMsg, setEnquiryMsg] = useState('');
   const [enquiryPhone, setEnquiryPhone] = useState('');
+  const [zoomed, setZoomed] = useState(false);
+  const [fullScreenZoom, setFullScreenZoom] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const isMobile = typeof window !== 'undefined' && window.matchMedia("(pointer: coarse)").matches;
   const [enquirySending, setEnquirySending] = useState(false);
 
   const [selectedPincode, setSelectedPincode] = useState(
@@ -68,11 +72,8 @@ export default function BikeDetail() {
   if (loading) return <PageLoader />;
   if (!bike) return null;
 
-  // Combine images and videos into a single media array
-  const imageList = bike.images?.length ? bike.images : [];
-  const videoList = bike.videos?.length ? bike.videos : [];
-  const media = [...imageList, ...videoList];
-  if (media.length === 0) media.push('https://via.placeholder.com/800x500/1A1A1A/E53935?text=Bike+Image');
+  // Media array — images and videos stored together in upload order
+  const media = bike.images?.length ? bike.images : ['https://via.placeholder.com/800x500/1A1A1A/E53935?text=Bike+Image'];
 
   // Pincode pricing logic
   const pincodeData = bike.pincodePricing?.find(p => p.pincode === selectedPincode.trim()) || null;
@@ -90,10 +91,13 @@ export default function BikeDetail() {
         @media (max-width: 768px) {
           .bike-detail-grid { grid-template-columns: 1fr !important; }
           .bike-detail-grid > div:last-child { position: static !important; }
-          .bike-detail-grid img, .bike-detail-grid video { height: 280px !important; }
+          .bike-detail-grid img, .bike-detail-grid video { height: 320px !important; object-fit: cover !important; padding: 0 !important; }
           .bike-specs-grid { grid-template-columns: 1fr 1fr !important; }
           .bike-detail-grid h1 { font-size: 1.4rem !important; }
           .bike-price-text { font-size: 2rem !important; }
+          .bike-thumb-row { gap: 0.4rem !important; flex-wrap: wrap !important; }
+          .bike-thumb-row button { width: 50px !important; height: 50px !important; border-radius: 8px !important; }
+          .bike-nav-right { right: 12px !important; }
         }
       `}</style>
       {/* Breadcrumb */}
@@ -114,15 +118,36 @@ export default function BikeDetail() {
  
           {/* Left: Media & Details */}
           <div>
+            {/* Fullscreen Zoom Modal */}
+            {fullScreenZoom && (
+              <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backdropFilter: 'blur(10px)' }}
+                onClick={() => setFullScreenZoom(false)}>
+                <img src={media[selectedImage]} alt={bike.title} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                <button style={{ position: 'absolute', top: 20, right: 20, background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                  <XIcon size={24} />
+                </button>
+              </div>
+            )}
+
             {/* Main Image/Video */}
-            <div style={{ position: 'relative', background: '#F5F5F5', borderRadius: '20px', overflow: 'hidden', marginBottom: '1rem', border: '1px solid #EEE', boxShadow: '0 8px 30px rgba(0,0,0,0.03)' }}>
+            <div style={{ position: 'relative', background: '#F5F5F5', borderRadius: '20px', overflow: 'hidden', marginBottom: '1rem', border: '1px solid #EEE', boxShadow: '0 8px 30px rgba(0,0,0,0.03)', minHeight: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isVideo(media[selectedImage]) ? 'default' : 'crosshair' }}
+              onMouseMove={e => { if (!zoomed) return; const r = e.currentTarget.getBoundingClientRect(); setMousePos({ x: ((e.pageX - r.left) / r.width) * 100, y: ((e.pageY - r.top) / r.height) * 100 }); }}
+              onMouseLeave={() => setZoomed(false)}
+              onClick={() => isMobile && !isVideo(media[selectedImage]) && setFullScreenZoom(true)}>
               {/* Wishlist Floating Button */}
-              <button onClick={handleWishlist}
+              <button onClick={(e) => { e.stopPropagation(); handleWishlist(); }}
                 style={{ position: 'absolute', top: '15px', right: '15px', width: '42px', height: '42px', borderRadius: '50%', background: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10, boxShadow: '0 4px 15px rgba(0,0,0,0.1)', transition: 'transform 0.2s' }}
                 onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
                 onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
                 <Heart size={20} fill={wishlisted ? '#E53935' : 'none'} color={wishlisted ? '#E53935' : '#111'} strokeWidth={2.5} />
               </button>
+
+              {/* Discount badge */}
+              {discount > 0 && (
+                <div style={{ position: 'absolute', top: 15, left: 15, zIndex: 10 }}>
+                  <span style={{ background: '#111', color: 'white', fontSize: '0.65rem', fontWeight: 900, padding: '4px 10px', borderRadius: '8px', letterSpacing: '0.04em' }}>{discount}% OFF</span>
+                </div>
+              )}
 
               {isVideo(media[selectedImage]) ? (
                 <video
@@ -132,21 +157,60 @@ export default function BikeDetail() {
                   style={{ width: '100%', height: 420, objectFit: 'contain', background: '#000' }}
                 />
               ) : (
-                <img src={media[selectedImage]} alt={bike.title} style={{ width: '100%', height: 420, objectFit: 'cover' }} />
+                <img src={media[selectedImage]} alt={bike.title}
+                  style={{
+                    width: '100%', height: 420, objectFit: 'cover',
+                    transition: 'transform 0.5s ease-out',
+                    transform: zoomed && !isMobile ? 'scale(2)' : 'scale(1)',
+                    transformOrigin: zoomed && !isMobile ? `${mousePos.x}% ${mousePos.y}%` : 'center',
+                  }} />
+              )}
+
+              {/* Zoom button (desktop) */}
+              {!isVideo(media[selectedImage]) && !isMobile && (
+                <button onClick={(e) => { e.stopPropagation(); setZoomed(!zoomed); }}
+                  style={{ position: 'absolute', bottom: 15, right: 15, background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '14px', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', backdropFilter: 'blur(8px)', zIndex: 10 }}>
+                  {zoomed ? <ZoomOut size={18} /> : <ZoomIn size={18} />}
+                </button>
+              )}
+
+              {/* Fullscreen button (mobile) */}
+              {isMobile && !isVideo(media[selectedImage]) && (
+                <button onClick={() => setFullScreenZoom(true)}
+                  style={{ position: 'absolute', bottom: 15, right: 15, background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '14px', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', zIndex: 10 }}>
+                  <Maximize2 size={18} />
+                </button>
+              )}
+
+              {/* Navigation Arrows */}
+              {media.length > 1 && (
+                <>
+                  <button onClick={(e) => { e.stopPropagation(); setSelectedImage((selectedImage - 1 + media.length) % media.length); setZoomed(false); }}
+                    style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '50%', width: 38, height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', opacity: 0.6, transition: 'opacity 0.2s', zIndex: 10 }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = '1'} onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}>
+                    <ChevronLeft size={20} />
+                  </button>
+                  <button className="bike-nav-right" onClick={(e) => { e.stopPropagation(); setSelectedImage((selectedImage + 1) % media.length); setZoomed(false); }}
+                    style={{ position: 'absolute', right: 60, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '50%', width: 38, height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', opacity: 0.6, transition: 'opacity 0.2s', zIndex: 10 }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = '1'} onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}>
+                    <ChevronRight size={20} />
+                  </button>
+                </>
               )}
             </div>
- 
+
             {/* Thumbnails */}
             {media.length > 1 && (
-              <div style={{ display: 'flex', gap: '0.8rem', overflowX: 'auto', paddingBottom: '0.8rem', marginBottom: '2rem' }} className="hide-scrollbar">
+              <div className="hide-scrollbar bike-thumb-row" style={{ display: 'flex', gap: '0.8rem', overflowX: 'auto', paddingBottom: '0.8rem', marginBottom: '2rem' }}>
                 {media.map((src, i) => (
-                  <button key={i} onClick={() => setSelectedImage(i)}
-                    style={{ flexShrink: 0, width: 90, height: 65, borderRadius: '12px', overflow: 'hidden', border: '2.5px solid', borderColor: selectedImage === i ? '#E53935' : '#EEE', cursor: 'pointer', padding: 0, position: 'relative', transition: 'all 0.2s', background: '#FFF' }}>
+                  <button key={i} onClick={() => { setSelectedImage(i); setZoomed(false); }}
+                    style={{ flexShrink: 0, width: 80, height: 80, borderRadius: '16px', overflow: 'hidden', border: '2.5px solid', borderColor: selectedImage === i ? '#E53935' : 'transparent', cursor: 'pointer', padding: 0, position: 'relative', transition: 'all 0.2s', background: '#F5F5F5', opacity: selectedImage === i ? 1 : 0.6, boxShadow: selectedImage === i ? '0 4px 12px rgba(229,57,53,0.2)' : 'none' }}
+                    onMouseEnter={e => { if (selectedImage !== i) e.currentTarget.style.opacity = '1'; }}
+                    onMouseLeave={e => { if (selectedImage !== i) e.currentTarget.style.opacity = '0.6'; }}>
                     {isVideo(src) ? (
-                      <>
-                        <video src={src} muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.3)', color: 'white', fontSize: '1.2rem' }}>▶</div>
-                      </>
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111' }}>
+                        <span style={{ color: 'white', fontSize: '1.5rem' }}>▶</span>
+                      </div>
                     ) : (
                       <img src={src} alt={`Thumb ${i}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     )}

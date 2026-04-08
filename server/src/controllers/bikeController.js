@@ -94,7 +94,13 @@ const updateBike = asyncHandler(async (req, res) => {
   if (typeof body.features === 'string') body.features = JSON.parse(body.features);
   if (typeof body.pincodePricing === 'string') body.pincodePricing = JSON.parse(body.pincodePricing);
   if (typeof body.sellerDetails === 'string') body.sellerDetails = JSON.parse(body.sellerDetails);
-  if (req.files && req.files.length > 0) body.images = req.files.map(f => f.path);
+
+  // Merge existing images (URLs kept from client) + newly uploaded files
+  const existing = body.existingImages ? (Array.isArray(body.existingImages) ? body.existingImages : [body.existingImages]) : [];
+  const newUploads = (req.files || []).map(f => f.path);
+  if (existing.length > 0 || newUploads.length > 0) body.images = [...existing, ...newUploads];
+  delete body.existingImages;
+
   const updated = await Bike.findByIdAndUpdate(req.params.id, body, { new: true });
   res.json({ success: true, bike: updated });
 });

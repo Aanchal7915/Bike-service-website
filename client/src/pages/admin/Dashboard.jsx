@@ -292,6 +292,8 @@ const PartsTab = () => {
   const [pincodeLocationMap, setPincodeLocationMap] = useState({});
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
+  const [selectedPreview, setSelectedPreview] = useState(0);
   const [videoFile, setVideoFile] = useState(null);
   const [existingVideoUrl, setExistingVideoUrl] = useState('');
 
@@ -361,7 +363,7 @@ const PartsTab = () => {
   };
 
   const resetForm = () => {
-    setShowForm(false); setEditId(null); setImages([]); setImagePreviews([]); setVideoFile(null); setExistingVideoUrl('');
+    setShowForm(false); setEditId(null); setImages([]); setImagePreviews([]); setExistingImages([]); setVideoFile(null); setExistingVideoUrl('');
     setFormData({ name: '', description: '', brand: '', category: '', featured: false, bestSeller: false, comingSoon: false, itemType: '', subCategory: '', farmerName: '', farmerPhone: '', farmerLocation: '', farmerEmail: '', videoUrl: '' });
     setPincodePricingRows([{ pincodes: '', size: '', originalPrice: '', discount: '', price: '', inventory: '' }]);
     setPincodeLocationMap({});
@@ -399,7 +401,9 @@ const PartsTab = () => {
     } else {
       setPincodePricingRows([{ pincodes: '', size: '', originalPrice: '', discount: '', price: '', inventory: '' }]);
     }
-    setImages([]); setImagePreviews([]); setVideoFile(null); setExistingVideoUrl(part.videoUrl || ''); setShowForm(true);
+    const allMedia = [...(part.images || [])];
+    if (part.videoUrl && !allMedia.includes(part.videoUrl)) allMedia.push(part.videoUrl);
+    setImages([]); setImagePreviews([]); setExistingImages(allMedia); setVideoFile(null); setExistingVideoUrl(''); setShowForm(true);
   };
 
   const handlePincodeRowChange = (idx, e) => {
@@ -448,15 +452,13 @@ const PartsTab = () => {
       fd.append('comingSoon', formData.comingSoon);
       fd.append('itemType', formData.itemType);
       fd.append('subCategory', formData.subCategory);
-      // Keep existing videoUrl if no new file uploaded; new file overrides it on server
-      if (!videoFile && existingVideoUrl) fd.append('videoUrl', existingVideoUrl);
-      if (videoFile) fd.append('video', videoFile);
       fd.append('farmerDetails', JSON.stringify({ name: formData.farmerName, phone: formData.farmerPhone, location: formData.farmerLocation, email: formData.farmerEmail }));
       fd.append('pincodePricing', JSON.stringify(pricing));
       fd.append('price', String(pricing[0]?.originalPrice || 0));
       fd.append('discountedPrice', String(pricing[0]?.price || 0));
       fd.append('stock', String(pricing.reduce((s, p) => s + (p.inventory || 0), 0)));
       for (const img of images) fd.append('images', img);
+      for (const url of existingImages) fd.append('existingImages', url);
 
       if (editId) {
         const { data: res } = await adminApi.updatePartMultipart(editId, fd);
@@ -587,44 +589,48 @@ const PartsTab = () => {
 
           {/* Media */}
           <div style={{ background: '#FFFFFF', padding: '1.5rem', borderRadius: '12px', border: '1px solid #EEE' }}>
-            <h4 style={{ color: '#111', fontSize: '0.8rem', fontWeight: 900, textTransform: 'uppercase', marginBottom: '1rem', letterSpacing: '1px' }}>Media</h4>
-            <div className="admin-media-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div>
-                <label style={{ color: '#666', fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>Product Images</label>
-                <div className="input-light" style={{ borderStyle: 'dashed' }}>
-                  <input type="file" multiple accept="image/*" style={{ color: '#aaa' }} onChange={e => {
-                    const files = Array.from(e.target.files);
-                    setImages(prev => [...prev, ...files]);
-                    setImagePreviews(prev => [...prev, ...files.map(f => URL.createObjectURL(f))]);
-                  }} />
-                </div>
-                {imagePreviews.length > 0 && (
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
-                    {imagePreviews.map((src, i) => (
-                      <div key={i} style={{ position: 'relative', width: 70, height: 70, borderRadius: '6px', overflow: 'hidden', border: '1px solid #2A2A2A' }}>
-                        <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        <button type="button" onClick={() => { setImages(prev => prev.filter((_, j) => j !== i)); setImagePreviews(prev => prev.filter((_, j) => j !== i)); }} style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(229,57,53,0.9)', color: 'white', border: 'none', borderRadius: '50%', width: 16, height: 16, fontSize: '9px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div>
-                <label style={{ color: '#666', fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>Product Video (Optional)</label>
-                <div className="input-light" style={{ borderStyle: 'dashed', borderColor: '#2563eb44' }}>
-                  <input type="file" accept="video/*" style={{ color: '#888' }} onChange={e => setVideoFile(e.target.files[0] || null)} />
-                </div>
-                {videoFile ? (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.4rem', background: 'rgba(37,99,235,0.12)', color: '#60a5fa', border: '1px solid rgba(37,99,235,0.3)', borderRadius: '4px', padding: '2px 8px', fontSize: '0.75rem' }}>
-                    🎬 {videoFile.name}
-                  </span>
-                ) : existingVideoUrl ? (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.4rem', background: 'rgba(37,99,235,0.12)', color: '#60a5fa', border: '1px solid rgba(37,99,235,0.3)', borderRadius: '4px', padding: '2px 8px', fontSize: '0.75rem' }}>
-                    ✅ Current video attached
-                  </span>
-                ) : null}
-              </div>
+            <h4 style={{ color: '#111', fontSize: '0.8rem', fontWeight: 900, textTransform: 'uppercase', marginBottom: '1rem', letterSpacing: '1px' }}>Media (Images & Videos)</h4>
+            <p style={{ color: '#888', fontSize: '0.72rem', marginBottom: '0.6rem' }}>Upload images and videos in the order you want them to appear on the product page.</p>
+            <div className="input-light" style={{ borderStyle: 'dashed' }}>
+              <input type="file" multiple accept="image/*,video/*" style={{ color: '#aaa' }} onChange={e => {
+                const files = Array.from(e.target.files);
+                setImages(prev => [...prev, ...files]);
+                setImagePreviews(prev => [...prev, ...files.map(f => ({ url: URL.createObjectURL(f), isVideo: f.type.startsWith('video/'), name: f.name }))]);
+              }} />
             </div>
+            {(existingImages.length > 0 || imagePreviews.length > 0) && (
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
+                {existingImages.map((src, i) => {
+                  const isVid = /\.(mp4|mov|webm|ogg|m4v)(\?.*)?$/i.test(src) || src.includes('/video/upload/');
+                  return (
+                    <div key={`ex-${i}`} style={{ position: 'relative', width: 70, height: 70, borderRadius: '6px', overflow: 'hidden', border: '2px solid #2E7D32' }}>
+                      {isVid ? (
+                        <div style={{ width: '100%', height: '100%', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '1.2rem' }}>▶</div>
+                      ) : (
+                        <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      )}
+                      <button type="button" onClick={() => setExistingImages(prev => prev.filter((_, j) => j !== i))} style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(229,57,53,0.9)', color: 'white', border: 'none', borderRadius: '50%', width: 16, height: 16, fontSize: '9px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                    </div>
+                  );
+                })}
+                {imagePreviews.map((preview, i) => {
+                  const p = typeof preview === 'string' ? { url: preview, isVideo: false } : preview;
+                  return (
+                    <div key={`new-${i}`} style={{ position: 'relative', width: 70, height: 70, borderRadius: '6px', overflow: 'hidden', border: '1px solid #EEE' }}>
+                      {p.isVideo ? (
+                        <div style={{ width: '100%', height: '100%', background: '#111', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.9rem', gap: '2px' }}>
+                          <span>▶</span>
+                          <span style={{ fontSize: '0.5rem', color: '#888', maxWidth: '90%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                        </div>
+                      ) : (
+                        <img src={p.url || p} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      )}
+                      <button type="button" onClick={() => { setImages(prev => prev.filter((_, j) => j !== i)); setImagePreviews(prev => prev.filter((_, j) => j !== i)); }} style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(229,57,53,0.9)', color: 'white', border: 'none', borderRadius: '50%', width: 16, height: 16, fontSize: '9px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div style={{ display: 'flex', gap: '1.2rem', marginTop: '1.5rem' }}>
@@ -710,6 +716,8 @@ const BikesTab = () => {
   });
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
+  const [selectedPreview, setSelectedPreview] = useState(0);
   const [videoFile, setVideoFile] = useState(null);
   const [existingVideoUrl, setExistingVideoUrl] = useState('');
   const [showAddBrand, setShowAddBrand] = useState(false);
@@ -766,7 +774,7 @@ const BikesTab = () => {
   };
 
   const resetForm = () => {
-    setShowForm(false); setEditId(null); setImages([]); setImagePreviews([]);
+    setShowForm(false); setEditId(null); setImages([]); setImagePreviews([]); setExistingImages([]);
     setVideoFile(null); setExistingVideoUrl('');
     setFormData({ title: '', brand: '', model: '', year: '', type: 'used', condition: 'good', price: '', kmDriven: '', engineCC: '', fuelType: 'petrol', description: '', city: '', state: '', pincode: '', isFeatured: false, bestSeller: false, power: '', torque: '', transmission: '', brakes: '', tyres: '', weight: '', fuelTank: '', mileage: '', sellerName: '', sellerPhone: '', sellerLocation: '', sellerEmail: '' });
     setBikePincodeRows([{ pincodes: '', size: '', originalPrice: '', discount: '', price: '', inventory: '' }]);
@@ -797,8 +805,9 @@ const BikesTab = () => {
       });
       setBikePincodeRows(Object.values(rowMap));
     } else { setBikePincodeRows([{ pincodes: '', size: '', originalPrice: '', discount: '', price: '', inventory: '' }]); }
-    setImages([]); setImagePreviews([]);
-    setExistingVideoUrl(bike.videoUrl || '');
+    const allMedia = [...(bike.images || []), ...(bike.videos || [])];
+    setImages([]); setImagePreviews([]); setExistingImages(allMedia);
+    setExistingVideoUrl('');
     setVideoFile(null);
     setShowForm(true);
   };
@@ -839,8 +848,7 @@ const BikesTab = () => {
       fd.append('pincodePricing', JSON.stringify(pricing));
       fd.append('sellerDetails', JSON.stringify({ name: formData.sellerName, phone: formData.sellerPhone, location: formData.sellerLocation, email: formData.sellerEmail }));
       for (const img of images) fd.append('images', img);
-      if (!videoFile && existingVideoUrl) fd.append('videoUrl', existingVideoUrl);
-      if (videoFile) fd.append('video', videoFile);
+      for (const url of existingImages) fd.append('existingImages', url);
 
       if (editId) {
         const { data: res } = await adminApi.updateBikeMultipart(editId, fd);
@@ -999,40 +1007,48 @@ const BikesTab = () => {
 
           {/* Media */}
           <div style={{ background: '#FFFFFF', padding: '2rem', borderRadius: '20px', border: '1.5px solid #EEE', marginBottom: '1.8rem' }}>
-            <h4 style={{ color: '#111', fontSize: '0.85rem', fontWeight: 900, textTransform: 'uppercase', marginBottom: '1.5rem', letterSpacing: '0.1em' }}>MEDIA</h4>
-            <div className="admin-media-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-              <div>
-                <label style={{ color: '#666', fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.6rem', display: 'block' }}>BIKE IMAGES</label>
-                <div className="input-light" style={{ borderStyle: 'dashed', minHeight: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <input type="file" multiple accept="image/*" style={{ color: '#888', fontWeight: 600 }} onChange={e => {
-                    const files = Array.from(e.target.files);
-                    setImages(prev => [...prev, ...files]);
-                    setImagePreviews(prev => [...prev, ...files.map(f => URL.createObjectURL(f))]);
-                  }} />
-                </div>
-                {imagePreviews.length > 0 && (
-                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1rem' }}>
-                    {imagePreviews.map((src, i) => (
-                      <div key={i} style={{ position: 'relative', width: 80, height: 80, borderRadius: '16px', overflow: 'hidden', border: '1.5px solid #EEE', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-                        <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        <button type="button" onClick={() => { setImages(prev => prev.filter((_, j) => j !== i)); setImagePreviews(prev => prev.filter((_, j) => j !== i)); }} style={{ position: 'absolute', top: 4, right: 4, background: '#E53935', color: 'white', border: 'none', borderRadius: '50%', width: 20, height: 20, fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>✕</button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div>
-                <label style={{ color: '#666', fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.6rem', display: 'block' }}>BIKE VIDEO (OPTIONAL)</label>
-                <div className="input-light" style={{ borderStyle: 'dashed', minHeight: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderColor: '#E5393544' }}>
-                  <input type="file" accept="video/*" style={{ color: '#888', fontWeight: 600 }} onChange={e => setVideoFile(e.target.files[0] || null)} />
-                </div>
-                {(videoFile || existingVideoUrl) && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.8rem', background: '#F0F7FF', color: '#0052CC', border: '1.5px solid rgba(0,82,204,0.1)', borderRadius: '10px', padding: '0.4rem 1rem', fontSize: '0.8rem', fontWeight: 800 }}>
-                    {videoFile ? `🎬 ${videoFile.name}` : '✅ CURRENT VIDEO ATTACHED'}
-                  </span>
-                )}
-              </div>
+            <h4 style={{ color: '#111', fontSize: '0.85rem', fontWeight: 900, textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.1em' }}>MEDIA (IMAGES & VIDEOS)</h4>
+            <p style={{ color: '#888', fontSize: '0.75rem', marginBottom: '1rem' }}>Upload images and videos in the order you want them to appear on the listing page.</p>
+            <div className="input-light" style={{ borderStyle: 'dashed', minHeight: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <input type="file" multiple accept="image/*,video/*" style={{ color: '#888', fontWeight: 600 }} onChange={e => {
+                const files = Array.from(e.target.files);
+                setImages(prev => [...prev, ...files]);
+                setImagePreviews(prev => [...prev, ...files.map(f => ({ url: URL.createObjectURL(f), isVideo: f.type.startsWith('video/'), name: f.name }))]);
+              }} />
             </div>
+            {(existingImages.length > 0 || imagePreviews.length > 0) && (
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1rem' }}>
+                {existingImages.map((src, i) => {
+                  const isVid = /\.(mp4|mov|webm|ogg|m4v)(\?.*)?$/i.test(src) || src.includes('/video/upload/');
+                  return (
+                    <div key={`ex-${i}`} style={{ position: 'relative', width: 80, height: 80, borderRadius: '16px', overflow: 'hidden', border: '2px solid #2E7D32', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                      {isVid ? (
+                        <div style={{ width: '100%', height: '100%', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '1.5rem' }}>▶</div>
+                      ) : (
+                        <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      )}
+                      <button type="button" onClick={() => setExistingImages(prev => prev.filter((_, j) => j !== i))} style={{ position: 'absolute', top: 4, right: 4, background: '#E53935', color: 'white', border: 'none', borderRadius: '50%', width: 20, height: 20, fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>✕</button>
+                    </div>
+                  );
+                })}
+                {imagePreviews.map((preview, i) => {
+                  const p = typeof preview === 'string' ? { url: preview, isVideo: false } : preview;
+                  return (
+                    <div key={`new-${i}`} style={{ position: 'relative', width: 80, height: 80, borderRadius: '16px', overflow: 'hidden', border: '1.5px solid #EEE', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                      {p.isVideo ? (
+                        <div style={{ width: '100%', height: '100%', background: '#111', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'white', gap: '2px' }}>
+                          <span style={{ fontSize: '1.2rem' }}>▶</span>
+                          <span style={{ fontSize: '0.5rem', color: '#888', maxWidth: '90%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                        </div>
+                      ) : (
+                        <img src={p.url || p} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      )}
+                      <button type="button" onClick={() => { setImages(prev => prev.filter((_, j) => j !== i)); setImagePreviews(prev => prev.filter((_, j) => j !== i)); }} style={{ position: 'absolute', top: 4, right: 4, background: '#E53935', color: 'white', border: 'none', borderRadius: '50%', width: 20, height: 20, fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>✕</button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div style={{ display: 'flex', gap: '1.2rem' }}>

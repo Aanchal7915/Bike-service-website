@@ -174,148 +174,167 @@ export default function PartDetail() {
   const images = part.images?.length ? part.images : ['https://via.placeholder.com/800x800/F9F9F9/E53935?text=No+Preview'];
 
   return (
-    <div className="bg-white min-h-screen">
-      {/* Mobile Full Screen Zoom Modal */}
-      <AnimatePresence>
-        {fullScreenZoom && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 backdrop-blur-md"
-            onClick={() => setFullScreenZoom(false)}
-          >
-            <motion.img
-              src={images[activeImg]} alt={part.name}
-              initial={{ scale: 0.8 }} animate={{ scale: 1 }}
-              className="max-w-full max-h-full object-contain"
-            />
-            <button className="absolute top-6 right-6 text-white bg-white/10 p-3 rounded-full hover:bg-white/20 transition">
-              <X size={24} />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <div style={{ minHeight: '100vh', background: '#FFFFFF' }}>
+      <style>{`
+          .part-detail-grid { grid-template-columns: 1fr !important; }
+          .part-detail-grid > div:last-child { position: static !important; }
+          .part-detail-grid img, .part-detail-grid video { height: 320px !important; object-fit: cover !important; padding: 0 !important; }
+          .part-thumb-row { gap: 0.5rem !important; }
+          .part-thumb-row button { width: 60px !important; height: 60px !important; border-radius: 10px !important; }
+          .part-nav-right { right: 12px !important; }
+        }
+      `}</style>
 
-      <div className="container mx-auto px-4 py-1 md:py-2">
-        <div className="flex flex-col md:flex-row gap-8 lg:gap-16 items-start">
-          
-          {/* Left: Image Gallery */}
-          <div className="w-full md:w-1/2 md:sticky md:top-24">
-            <div
-              className="relative bg-[#F9F9F9] rounded-3xl overflow-hidden border border-gray-100 shadow-sm group cursor-crosshair min-h-[300px] md:min-h-[500px] flex items-center justify-center"
+      {/* Fullscreen Zoom Modal */}
+      {fullScreenZoom && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backdropFilter: 'blur(10px)' }}
+          onClick={() => setFullScreenZoom(false)}>
+          <img src={images[activeImg]} alt={part.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+          <button style={{ position: 'absolute', top: 20, right: 20, background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <X size={24} />
+          </button>
+        </div>
+      )}
+
+      {/* Breadcrumb */}
+      <div style={{ background: '#F9F9F9', borderBottom: '1px solid #EEE', padding: '0.8rem 0' }}>
+        <div className="max-w-6xl mx-auto px-4 flex items-center gap-2" style={{ fontSize: '0.9rem', color: '#666', fontWeight: 600 }}>
+          <button onClick={() => navigate('/parts')} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, transition: 'color 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#111'}
+            onMouseLeave={e => e.currentTarget.style.color = '#666'}>
+            <ArrowRight size={16} style={{ transform: 'rotate(180deg)' }} /> Back to Store
+          </button>
+          <span>/</span>
+          <span style={{ color: '#E53935', fontWeight: 800 }}>{part.name}</span>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 py-4">
+        <div className="animate-fadeInUp part-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '1.5rem', alignItems: 'start' }}>
+
+          {/* Left: Media & Details */}
+          <div>
+            {/* Main Image/Video */}
+            <div style={{ position: 'relative', background: '#F5F5F5', borderRadius: '20px', overflow: 'hidden', marginBottom: '1rem', border: '1px solid #EEE', boxShadow: '0 8px 30px rgba(0,0,0,0.03)', minHeight: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isVideoUrl(images[activeImg]) ? 'default' : 'crosshair' }}
               onMouseMove={handleMouseMove}
               onMouseLeave={() => setZoomed(false)}
-              onClick={() => isMobile && !isVideoUrl(images[activeImg]) && setFullScreenZoom(true)}
-            >
+              onClick={() => isMobile && !isVideoUrl(images[activeImg]) && setFullScreenZoom(true)}>
+
+              {/* Wishlist Floating Button */}
+              <button onClick={(e) => { e.stopPropagation(); toggleWishlist?.(id); }}
+                style={{ position: 'absolute', top: '15px', right: '15px', width: '42px', height: '42px', borderRadius: '50%', background: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10, boxShadow: '0 4px 15px rgba(0,0,0,0.1)', transition: 'transform 0.2s' }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
+                <Heart size={20} fill={isWishlisted ? '#E53935' : 'none'} color={isWishlisted ? '#E53935' : '#111'} strokeWidth={2.5} />
+              </button>
+
+              {/* Discount badge */}
+              {discount > 0 && (
+                <div style={{ position: 'absolute', top: 15, left: 15, zIndex: 10 }}>
+                  <span style={{ background: '#111', color: 'white', fontSize: '0.65rem', fontWeight: 900, padding: '4px 10px', borderRadius: '8px', letterSpacing: '0.04em' }}>{discount}% OFF</span>
+                </div>
+              )}
+
               {isVideoUrl(images[activeImg]) ? (
                 <video
-                  src={images[activeImg]} controls autoPlay loop muted playsInline
-                  className="w-full h-full object-contain p-2"
+                  key={images[activeImg]}
+                  src={images[activeImg]}
+                  controls autoPlay muted playsInline
+                  style={{ width: '100%', height: 420, objectFit: 'contain', background: '#000' }}
                 />
               ) : (
-                <img
-                  src={images[activeImg]} alt={part.name}
-                  className={`w-full h-full object-contain p-2 transition-transform duration-500 ease-out ${zoomed && !isMobile ? "scale-[2]" : "scale-100"}`}
-                  style={zoomed && !isMobile ? { transformOrigin: `${mousePos.x}% ${mousePos.y}%` } : {}}
-                />
+                <img src={images[activeImg]} alt={part.name}
+                  style={{
+                    width: '100%', height: 420, objectFit: 'cover',
+                    transition: 'transform 0.5s ease-out',
+                    transform: zoomed && !isMobile ? 'scale(2)' : 'scale(1)',
+                    transformOrigin: zoomed && !isMobile ? `${mousePos.x}% ${mousePos.y}%` : 'center',
+                  }} />
               )}
 
-              {/* Status Badge Overlays */}
-              <div className="absolute top-6 left-6 flex flex-col gap-2">
-                {part.isFeatured && (
-                  <span className="bg-red-600 text-white text-[10px] font-black px-3 py-1 rounded-lg shadow-lg tracking-widest uppercase">
-                    Premium
-                  </span>
-                )}
-                {discount > 0 && (
-                  <span className="bg-black text-white text-[10px] font-black px-3 py-1 rounded-lg shadow-lg tracking-widest">
-                    {discount}% OFF
-                  </span>
-                )}
-              </div>
-
-              {/* Floating Action Buttons */}
-              {!isVideoUrl(images[activeImg]) && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); setZoomed(!zoomed); }}
-                  className="hidden md:flex absolute bottom-6 right-6 bg-white/90 backdrop-blur-md p-3 rounded-2xl shadow-xl hover:bg-white transition-all transform hover:scale-110"
-                >
-                  {zoomed ? <ZoomOut size={20} className="text-gray-900" /> : <ZoomIn size={20} className="text-gray-900" />}
+              {/* Zoom button (desktop) */}
+              {!isVideoUrl(images[activeImg]) && !isMobile && (
+                <button onClick={(e) => { e.stopPropagation(); setZoomed(!zoomed); }}
+                  style={{ position: 'absolute', bottom: 15, right: 15, background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '14px', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', backdropFilter: 'blur(8px)', zIndex: 10 }}>
+                  {zoomed ? <ZoomOut size={18} /> : <ZoomIn size={18} />}
                 </button>
               )}
+
+              {/* Fullscreen button (mobile) */}
               {isMobile && !isVideoUrl(images[activeImg]) && (
-                <button
-                  onClick={() => setFullScreenZoom(true)}
-                  className="absolute bottom-6 right-6 bg-white/90 backdrop-blur-md p-3 rounded-2xl shadow-xl transition-all"
-                >
-                  <Maximize2 size={20} className="text-gray-900" />
+                <button onClick={() => setFullScreenZoom(true)}
+                  style={{ position: 'absolute', bottom: 15, right: 15, background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '14px', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', zIndex: 10 }}>
+                  <Maximize2 size={18} />
                 </button>
               )}
 
               {/* Navigation Arrows */}
               {images.length > 1 && (
-                <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setActiveImg((activeImg - 1 + images.length) % images.length); }}
-                    className="pointer-events-auto bg-white/90 p-3 rounded-full shadow-lg hover:bg-white transition transform hover:scale-110 active:scale-95"
-                  >
+                <>
+                  <button onClick={(e) => { e.stopPropagation(); setActiveImg((activeImg - 1 + images.length) % images.length); setZoomed(false); }}
+                    style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '50%', width: 38, height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', opacity: 0.6, transition: 'opacity 0.2s', zIndex: 10 }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = '1'} onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}>
                     <ChevronLeft size={20} />
                   </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setActiveImg((activeImg + 1) % images.length); }}
-                    className="pointer-events-auto bg-white/90 p-3 rounded-full shadow-lg hover:bg-white transition transform hover:scale-110 active:scale-95"
-                  >
+                  <button className="part-nav-right" onClick={(e) => { e.stopPropagation(); setActiveImg((activeImg + 1) % images.length); setZoomed(false); }}
+                    style={{ position: 'absolute', right: 60, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '50%', width: 38, height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', opacity: 0.6, transition: 'opacity 0.2s', zIndex: 10 }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = '1'} onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}>
                     <ChevronRight size={20} />
                   </button>
-                </div>
+                </>
               )}
 
               {/* Sold Out Overlay */}
               {effectiveStock === 0 && !isCheckingPincode && (
-                <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center z-10">
-                  <div className="bg-red-600 text-white font-black px-8 py-3 rounded-2xl shadow-2xl transform -rotate-12 scale-110 border-4 border-white text-center">
+                <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+                  <span style={{ background: '#E53935', color: 'white', fontWeight: 900, padding: '0.6rem 2rem', borderRadius: '12px', fontSize: '0.9rem', transform: 'rotate(-12deg)', border: '3px solid white', boxShadow: '0 8px 25px rgba(0,0,0,0.2)' }}>
                     {selectedPincode.length === 6 && isUnavailable ? 'NOT AVAILABLE' : 'OUT OF STOCK'}
-                  </div>
+                  </span>
                 </div>
               )}
             </div>
 
-            {/* Thumbnail Navigation */}
+            {/* Thumbnails */}
             {images.length > 1 && (
-              <div className="flex gap-4 mt-6 overflow-x-auto pb-4 hide-scrollbar snap-x">
-                {images.map((img, i) => (
-                  <button
-                    key={i} onClick={() => setActiveImg(i)}
-                    className={`shrink-0 w-20 h-20 rounded-2xl overflow-hidden border-2 transition-all snap-start ${activeImg === i ? 'border-red-600 shadow-md ring-4 ring-red-50' : 'border-transparent bg-gray-50 opacity-60 hover:opacity-100'}`}
-                  >
-                    {isVideoUrl(img) ? (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-900 relative">
-                        <Play size={20} className="text-white fill-white" />
+              <div className="hide-scrollbar part-thumb-row" style={{ display: 'flex', gap: '0.8rem', overflowX: 'auto', paddingBottom: '0.8rem', marginBottom: '2rem' }}>
+                {images.map((src, i) => (
+                  <button key={i} onClick={() => { setActiveImg(i); setZoomed(false); }}
+                    style={{ flexShrink: 0, width: 80, height: 80, borderRadius: '16px', overflow: 'hidden', border: '2.5px solid', borderColor: activeImg === i ? '#E53935' : 'transparent', cursor: 'pointer', padding: 0, position: 'relative', transition: 'all 0.2s', background: '#F5F5F5', opacity: activeImg === i ? 1 : 0.6, boxShadow: activeImg === i ? '0 4px 12px rgba(229,57,53,0.2)' : 'none' }}
+                    onMouseEnter={e => { if (activeImg !== i) e.currentTarget.style.opacity = '1'; }}
+                    onMouseLeave={e => { if (activeImg !== i) e.currentTarget.style.opacity = '0.6'; }}>
+                    {isVideoUrl(src) ? (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111' }}>
+                        <span style={{ color: 'white', fontSize: '1.5rem' }}>▶</span>
                       </div>
                     ) : (
-                      <img src={img} alt="" className="w-full h-full object-cover" />
+                      <img src={src} alt={`Thumb ${i}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     )}
                   </button>
                 ))}
               </div>
             )}
+
+            {/* Description */}
+            {part.description && (
+              <div style={{ marginTop: '0.8rem', background: '#FFF', border: '1px solid #EEE', borderRadius: '20px', padding: '1.2rem', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+                <h3 style={{ color: '#111', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.2rem', fontWeight: 900, marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ width: 6, height: 20, background: '#E53935', borderRadius: '4px' }} />
+                  Product Details
+                </h3>
+                <p style={{ color: '#555', lineHeight: 1.6, fontSize: '0.95rem', fontWeight: 500 }}>{part.description}</p>
+              </div>
+            )}
           </div>
 
           {/* Right: Product Details */}
-          <div className="w-full md:w-1/2 flex flex-col pt-4 md:pt-0">
+          <div style={{ position: 'sticky', top: 100 }}>
+            <div style={{ background: '#FFF', border: '1px solid #EEE', borderRadius: '20px', padding: '1.2rem', marginBottom: '1.2rem', boxShadow: '0 10px 40px rgba(0,0,0,0.03)' }}>
             
-            {/* Header: Actions */}
-            <div className="flex items-center justify-between mb-1">
+            {/* Header */}
+            <div style={{ marginBottom: '0.3rem' }}>
               <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
                 {part.name}
               </h1>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => toggleWishlist?.(id)}
-                  className={`p-2.5 rounded-full border transition-all ${isWishlisted ? 'bg-red-600 border-red-600 text-white shadow-lg' : 'bg-white border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200'}`}
-                >
-                  <Heart size={20} fill={isWishlisted ? "currentColor" : "none"} />
-                </button>
-              </div>
             </div>
             <div className="text-gray-500 font-medium mb-3">{part.brand || 'Original Equipment'}</div>
 
@@ -375,9 +394,6 @@ export default function PartDetail() {
                   <>
                     <p className="text-gray-900 font-medium">Location: <span className="text-gray-500">{pincodeRule?.location || 'Your Area'}</span></p>
                     <p className="text-emerald-600 font-bold">Availability: <span className="font-bold">Available (Qty {effectiveStock})</span></p>
-                    {part.pincodePricing?.length > 0 && (
-                      <p className="text-gray-400">Available Locations: {Array.from(new Set(part.pincodePricing.map(p => p.location))).filter(Boolean).slice(0, 5).join(', ')}</p>
-                    )}
                   </>
                 )}
                 {isUnavailable && <p className="text-red-500 font-bold uppercase tracking-tight">Service unavailable for this Pincode</p>}
@@ -401,7 +417,7 @@ export default function PartDetail() {
                         key={index}
                         disabled={oos}
                         onClick={() => { userPickedSize.current = true; setSelectedSize(variant); }}
-                        className={`h-11 px-8 rounded-lg border font-bold text-sm transition-all ${isSelected ? 'bg-gray-900 border-gray-900 text-white' : 'bg-white border-gray-300 text-gray-900 hover:border-gray-900'} ${oos ? 'opacity-40 cursor-not-allowed grayscale' : ''}`}
+                        style={{ height: 36, padding: '0 1rem', borderRadius: '8px', border: '1px solid', fontWeight: 700, fontSize: '0.7rem', transition: 'all 0.2s', cursor: oos ? 'not-allowed' : 'pointer', opacity: oos ? 0.4 : 1, background: isSelected ? '#EFF6FF' : '#FFF', borderColor: isSelected ? '#3B82F6' : '#D1D5DB', color: isSelected ? '#1D4ED8' : '#111' }}
                       >
                         {variant.size}
                       </button>
@@ -411,56 +427,38 @@ export default function PartDetail() {
               </div>
             )}
 
-            {/* Description */}
-            <div className="mb-8">
-               <h4 className="text-sm font-bold text-gray-900 mb-2">
-                 Description:
-               </h4>
-               <p className="text-gray-500 text-sm leading-relaxed">
-                 {part.description}
-               </p>
-            </div>
-
             {/* CTA Action Bar */}
-            <div className="mb-12">
+            <div style={{ marginBottom: '1.5rem' }}>
               {cartItem ? (
-                <div className="flex items-center gap-4 bg-gray-50 p-3 rounded-2xl border border-gray-100">
-                  <button 
-                    onClick={() => updateQty(id, cartItem.quantity - 1)}
-                    className="w-12 h-12 flex items-center justify-center bg-gray-900 text-white rounded-xl font-bold text-xl hover:bg-gray-800 transition"
-                  >-</button>
-                  <div className="flex-1 text-center">
-                    <span className="text-sm font-black text-gray-400 uppercase tracking-widest block mb-1">Quantity in Cart</span>
-                    <span className="text-2xl font-black text-gray-900">{cartItem.quantity}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: '#F9F9F9', padding: '0.8rem', borderRadius: '12px', border: '1px solid #EEE' }}>
+                  <button onClick={() => updateQty(id, cartItem.quantity - 1)}
+                    style={{ width: 44, height: 44, borderRadius: '10px', border: 'none', background: '#111', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 900 }}>-</button>
+                  <div style={{ flex: 1, textAlign: 'center' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#888', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '0.2rem' }}>Qty in Cart</span>
+                    <span style={{ fontSize: '1.5rem', fontWeight: 950, color: '#111', fontFamily: 'Rajdhani, sans-serif' }}>{cartItem.quantity}</span>
                   </div>
-                  <button 
-                    onClick={() => updateQty(id, cartItem.quantity + 1)}
-                    className="w-12 h-12 flex items-center justify-center bg-gray-900 text-white rounded-xl font-bold text-xl hover:bg-gray-800 transition"
-                  >+</button>
+                  <button onClick={() => updateQty(id, cartItem.quantity + 1)}
+                    style={{ width: 44, height: 44, borderRadius: '10px', border: 'none', background: '#111', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 900 }}>+</button>
                 </div>
               ) : (
-                <button
-                  disabled={isUnavailable || effectiveStock === 0}
-                  onClick={handleAddToCart}
-                  className={`w-full h-14 font-bold text-lg rounded-lg transition-all flex items-center justify-center gap-2 ${isUnavailable || effectiveStock === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-[#E53935] hover:bg-[#C62828] text-white shadow-lg'}`}
-                >
-                  <ShoppingCart size={20} /> Add to Cart
+                <button disabled={isUnavailable || effectiveStock === 0} onClick={handleAddToCart}
+                  className="btn-primary" style={{ width: '100%', height: '52px', borderRadius: '12px', fontSize: '1rem', fontWeight: 900, background: isUnavailable || effectiveStock === 0 ? '#EEE' : '#111', color: isUnavailable || effectiveStock === 0 ? '#AAA' : 'white', cursor: isUnavailable || effectiveStock === 0 ? 'not-allowed' : 'pointer', justifyContent: 'center' }}>
+                  <ShoppingCart size={20} /> {effectiveStock === 0 ? 'OUT OF STOCK' : 'ADD TO CART'}
                 </button>
               )}
             </div>
-          </div>
-        </div>
+            </div>{/* close card div */}
+          </div>{/* close sticky right div */}
+        </div>{/* close grid */}
 
         {/* Similar Products */}
         {similar.length > 0 && (
-          <div className="mt-20 mb-20 border-t border-gray-100 pt-16">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-2xl font-bold text-gray-900 tracking-tight">Recommended Items</h3>
-              <Link to="/parts" className="text-emerald-600 font-bold text-sm hover:underline">
-                View All
-              </Link>
+          <div style={{ marginTop: '4rem', marginBottom: '4rem', borderTop: '1px solid #EEE', paddingTop: '3rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', fontWeight: 900, color: '#111' }}>Recommended <span style={{ color: '#E53935' }}>Items</span></h3>
+              <Link to="/parts" style={{ color: '#E53935', fontWeight: 800, fontSize: '0.9rem', textDecoration: 'none' }}>View All</Link>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 md:gap-8">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem' }}>
               {similar.map(p => <PartCard key={p._id || p.id} part={p} />)}
             </div>
           </div>

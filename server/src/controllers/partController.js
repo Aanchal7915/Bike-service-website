@@ -101,15 +101,12 @@ const toUrl = (f) => f.path.includes('uploads') ? '/uploads' + f.path.split('upl
 
 // @desc  Create part (admin)
 const createPart = asyncHandler(async (req, res) => {
-  const images = (req.files?.images || []).map(toUrl);
-  const videoFile = req.files?.video?.[0];
+  const images = (req.files || []).map(toUrl);
 
   const body = { ...req.body };
   if (typeof body.farmerDetails === 'string') body.farmerDetails = JSON.parse(body.farmerDetails);
   if (typeof body.pincodePricing === 'string') body.pincodePricing = JSON.parse(body.pincodePricing);
   if (typeof body.compatibleBikes === 'string') body.compatibleBikes = JSON.parse(body.compatibleBikes);
-
-  if (videoFile) body.videoUrl = toUrl(videoFile);
 
   const part = await SparePart.create({ ...body, images });
   res.status(201).json({ success: true, part });
@@ -123,9 +120,11 @@ const updatePart = asyncHandler(async (req, res) => {
   if (typeof body.pincodePricing === 'string') body.pincodePricing = JSON.parse(body.pincodePricing);
   if (typeof body.compatibleBikes === 'string') body.compatibleBikes = JSON.parse(body.compatibleBikes);
 
-  if (req.files?.images?.length > 0) body.images = req.files.images.map(toUrl);
-  const videoFile = req.files?.video?.[0];
-  if (videoFile) body.videoUrl = toUrl(videoFile);
+  // Merge existing media (URLs kept from client) + newly uploaded files in order
+  const existing = body.existingImages ? (Array.isArray(body.existingImages) ? body.existingImages : [body.existingImages]) : [];
+  const newUploads = (req.files || []).map(toUrl);
+  if (existing.length > 0 || newUploads.length > 0) body.images = [...existing, ...newUploads];
+  delete body.existingImages;
 
   const part = await SparePart.findByIdAndUpdate(req.params.id, body, { new: true });
   if (!part) { res.status(404); throw new Error('Part not found'); }
