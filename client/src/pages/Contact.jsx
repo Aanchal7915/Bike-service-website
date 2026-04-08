@@ -149,21 +149,6 @@ export default function Contact() {
                 </div>
               </div>
 
-              <div style={{ position: 'relative' }}>
-                <Bike size={18} style={{ position: 'absolute', left: '1.1rem', top: '1.1rem', color: '#AAA' }} />
-                <select 
-                  value={formData.serviceType}
-                  onChange={e => setFormData({...formData, serviceType: e.target.value})}
-                  className="input-light" 
-                  style={{ paddingLeft: '3.2rem', height: '52px', appearance: 'none', cursor: 'pointer' }}
-                >
-                  <option value="Engine Repair">Engine & Mechanical</option>
-                  <option value="Bike Buy Inquiry">Interested in Buying</option>
-                  <option value="Bike Sell Valuation">Instant Bike Valuation</option>
-                  <option value="Spare Parts Query">Spare Parts Inquiry</option>
-                </select>
-                <ChevronDown size={16} style={{ position: 'absolute', right: '1.2rem', top: '1.2rem', color: '#AAA', pointerEvents: 'none' }} />
-              </div>
 
               <textarea 
                 placeholder="How can we assist you today? (Optional)" 
