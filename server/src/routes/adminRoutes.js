@@ -4,11 +4,15 @@ const {
   getDashboardStats, getUsers, updateUser, approveBike, getMechanics,
   createCategory, getCategories, deleteCategory,
   createBrand, getBrandsList, deleteBrand,
-  getAllEnquiries, updateEnquiry
+  getAllEnquiries, updateEnquiry,
+  getServiceTypes, getActiveServiceTypes, createServiceType, updateServiceType, deleteServiceType
 } = require('../controllers/adminController');
 const { protect } = require('../middleware/auth');
 const { adminOnly } = require('../middleware/admin');
 const { uploadCategoryMedia } = require('../middleware/upload');
+
+// Public route — no auth needed
+router.get('/service-types/active', getActiveServiceTypes);
 
 router.use(protect, adminOnly);
 
@@ -26,6 +30,12 @@ router.delete('/categories/:id', deleteCategory);
 // Enquiries
 router.get('/enquiries', getAllEnquiries);
 router.put('/enquiries/:id', updateEnquiry);
+
+// Service Types (admin CRUD)
+router.get('/service-types', getServiceTypes);
+router.post('/service-types', createServiceType);
+router.put('/service-types/:id', updateServiceType);
+router.delete('/service-types/:id', deleteServiceType);
 
 // Brands
 router.get('/brands-list', getBrandsList);

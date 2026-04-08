@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../context/AuthContext';
-import { createBooking, createServicePayment, verifyServicePayment } from '../api/serviceApi';
+import { getActiveServiceTypes, createBooking, createServicePayment, verifyServicePayment } from '../api/serviceApi';
 import toast from 'react-hot-toast';
 import { Wrench, Clock, MapPin, Calendar, ChevronRight, Loader, CreditCard } from 'lucide-react';
 
@@ -16,18 +16,11 @@ const loadRazorpay = () =>
     document.body.appendChild(s);
   });
 
-const SERVICE_TYPES = [
-  { value: 'regular_service', label: 'Regular Service', price: 'From ₹499', desc: 'Oil change, filter, complete check' },
-  { value: 'engine_repair', label: 'Engine Repair', price: 'From ₹999', desc: 'Engine diagnostics & repair' },
-  { value: 'puncture', label: 'Puncture Fix', price: 'From ₹149', desc: 'Quick tube & tubeless fix' },
-  { value: 'battery', label: 'Battery Service', price: 'From ₹299', desc: 'Battery check & replacement' },
-  { value: 'brake', label: 'Brake Service', price: 'From ₹349', desc: 'Brake pads, disc & fluid' },
-  { value: 'washing', label: 'Bike Washing', price: 'From ₹199', desc: 'Premium foam wash & wax' },
-];
-
 export default function Services() {
-  const [step, setStep] = useState(1); // 1: pick service, 2: fill form, 3: confirm
+  const [step, setStep] = useState(1);
   const [selectedService, setSelectedService] = useState(null);
+  const [serviceTypes, setServiceTypes] = useState([]);
+  const [typesLoading, setTypesLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [bookingId, setBookingId] = useState(null);
   const [paying, setPaying] = useState(false);
@@ -35,6 +28,13 @@ export default function Services() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { register, handleSubmit, formState: { errors } } = useForm();
+
+  useEffect(() => {
+    getActiveServiceTypes()
+      .then(({ data }) => setServiceTypes(data.serviceTypes || []))
+      .catch(() => {})
+      .finally(() => setTypesLoading(false));
+  }, []);
 
   const handleAdvancePayment = async () => {
     if (!bookingId) return;
@@ -149,8 +149,13 @@ export default function Services() {
               <span style={{ color: '#FB8C00', fontSize: '0.8rem', fontWeight: 700 }}>1-Hour Service Available — Mechanic at your doorstep!</span>
             </div>
  
+            {typesLoading ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '0.8rem' }}>
+                {[...Array(6)].map((_, i) => <div key={i} className="skeleton" style={{ height: 120, borderRadius: '12px' }} />)}
+              </div>
+            ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '0.8rem' }}>
-              {SERVICE_TYPES.map((service) => (
+              {serviceTypes.map((service) => (
                 <button key={service.value} onClick={() => handleServiceSelect(service)}
                   style={{ textAlign: 'left', background: '#FFF', border: '1px solid #EEE', borderRadius: '12px', padding: '1rem', cursor: 'pointer', transition: 'all 0.3s', width: '100%', boxShadow: '0 4px 10px rgba(0,0,0,0.02)' }}
                   onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#111'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
@@ -164,6 +169,7 @@ export default function Services() {
                 </button>
               ))}
             </div>
+            )}
           </div>
         )}
  

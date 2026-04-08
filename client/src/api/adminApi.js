@@ -33,6 +33,12 @@ export const deletePart = (id) => API.delete(`/store/parts/${id}`);
 export const getAllEnquiries = () => API.get('/admin/enquiries');
 export const updateEnquiry = (id, data) => API.put(`/admin/enquiries/${id}`, data);
 
+// Service Types
+export const getServiceTypes = () => API.get('/admin/service-types');
+export const createServiceType = (data) => API.post('/admin/service-types', data);
+export const updateServiceType = (id, data) => API.put(`/admin/service-types/${id}`, data);
+export const deleteServiceType = (id) => API.delete(`/admin/service-types/${id}`);
+
 // Categories
 export const getAdminCategories = () => API.get('/admin/categories');
 export const createCategory = (data) => API.post('/admin/categories', data, { headers: { 'Content-Type': 'multipart/form-data' } });

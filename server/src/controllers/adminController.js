@@ -7,6 +7,7 @@ const SellRequest = require('../models/SellRequest');
 const Order = require('../models/Order');
 const Category = require('../models/Category');
 const Brand = require('../models/Brand');
+const ServiceType = require('../models/ServiceType');
 
 // @desc  Dashboard stats
 // @route GET /api/admin/stats
@@ -133,9 +134,37 @@ const updateEnquiry = asyncHandler(async (req, res) => {
   res.json({ success: true, enquiry });
 });
 
+// ── Service Types CRUD ──
+const getServiceTypes = asyncHandler(async (req, res) => {
+  const types = await ServiceType.find().sort({ order: 1, createdAt: 1 });
+  res.json({ success: true, serviceTypes: types });
+});
+
+const getActiveServiceTypes = asyncHandler(async (req, res) => {
+  const types = await ServiceType.find({ isActive: true }).sort({ order: 1, createdAt: 1 });
+  res.json({ success: true, serviceTypes: types });
+});
+
+const createServiceType = asyncHandler(async (req, res) => {
+  const type = await ServiceType.create(req.body);
+  res.status(201).json({ success: true, serviceType: type });
+});
+
+const updateServiceType = asyncHandler(async (req, res) => {
+  const type = await ServiceType.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  if (!type) { res.status(404); throw new Error('Service type not found'); }
+  res.json({ success: true, serviceType: type });
+});
+
+const deleteServiceType = asyncHandler(async (req, res) => {
+  await ServiceType.findByIdAndDelete(req.params.id);
+  res.json({ success: true, message: 'Service type deleted' });
+});
+
 module.exports = {
   getDashboardStats, getUsers, updateUser, approveBike, getMechanics,
   createCategory, getCategories, deleteCategory,
   createBrand, getBrandsList, deleteBrand,
-  getAllEnquiries, updateEnquiry
+  getAllEnquiries, updateEnquiry,
+  getServiceTypes, getActiveServiceTypes, createServiceType, updateServiceType, deleteServiceType
 };

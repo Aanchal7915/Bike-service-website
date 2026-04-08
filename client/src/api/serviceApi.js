@@ -1,5 +1,6 @@
 import API from './axios';
 
+export const getActiveServiceTypes = () => API.get('/admin/service-types/active');
 export const createBooking = (data) => API.post('/services', data);
 export const getMyBookings = () => API.get('/services/my');
 export const getBooking = (id) => API.get(`/services/${id}`);

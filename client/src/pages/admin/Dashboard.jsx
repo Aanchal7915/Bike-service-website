@@ -86,13 +86,19 @@ const ServicesTab = () => {
   const [data, setData] = useState([]);
   const [mechanics, setMechanics] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [serviceTypes, setServiceTypes] = useState([]);
+  const [stLoading, setStLoading] = useState(true);
+  const [showStForm, setShowStForm] = useState(false);
+  const [editSt, setEditSt] = useState(null);
+  const [stForm, setStForm] = useState({ value: '', label: '', price: '', desc: '', order: 0, isActive: true });
 
   useEffect(() => {
-    Promise.all([adminApi.getServices(), adminApi.getMechanics()])
-      .then(([srvRes, mechRes]) => {
+    Promise.all([adminApi.getServices(), adminApi.getMechanics(), adminApi.getServiceTypes()])
+      .then(([srvRes, mechRes, stRes]) => {
         setData(srvRes.data.bookings || []);
         setMechanics(mechRes.data.mechanics || []);
-      }).finally(() => setLoading(false));
+        setServiceTypes(stRes.data.serviceTypes || []);
+      }).finally(() => { setLoading(false); setStLoading(false); });
   }, []);
 
   const handleStatus = async (id, status, mechanicId) => {
@@ -103,40 +109,154 @@ const ServicesTab = () => {
     } catch { toast.error('Error updating service'); }
   };
 
+  const resetStForm = () => { setShowStForm(false); setEditSt(null); setStForm({ value: '', label: '', price: '', desc: '', order: 0, isActive: true }); };
+
+  const handleStSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editSt) {
+        const { data } = await adminApi.updateServiceType(editSt, stForm);
+        if (data.serviceType) {
+          setServiceTypes(prev => prev.map(s => s._id === editSt ? data.serviceType : s));
+          toast.success('Service type updated!');
+        } else {
+          toast.error('Update failed: No data returned');
+        }
+      } else {
+        const { data } = await adminApi.createServiceType(stForm);
+        if (data.serviceType) {
+          setServiceTypes(prev => [...prev, data.serviceType]);
+          toast.success('Service type added!');
+        } else {
+          toast.error('Add failed: No data returned');
+        }
+      }
+      resetStForm();
+    } catch (err) { 
+      toast.error(err.response?.data?.message || 'Failed to save service type'); 
+    }
+  };
+
+  const handleStEdit = (st) => {
+    setEditSt(st._id);
+    setStForm({ value: st.value, label: st.label, price: st.price, desc: st.desc || '', order: st.order || 0, isActive: st.isActive });
+    setShowStForm(true);
+  };
+
+  const handleStDelete = async (id) => {
+    if (!window.confirm('Delete this service type?')) return;
+    try {
+      await adminApi.deleteServiceType(id);
+      setServiceTypes(serviceTypes.filter(s => s._id !== id));
+      toast.success('Service type deleted');
+    } catch { toast.error('Failed to delete'); }
+  };
+
   if(loading) return <div style={{textAlign:'center', padding:'3rem', color:'#888'}}><Loader style={{ animation: 'spin 1s linear infinite' }} size={24} /></div>;
 
   return (
-    <div className="admin-table-wrap" style={{ background: '#FFFFFF', border: '1.5px solid #EEE', borderRadius: '24px', padding: '1.5rem', overflowX: 'auto', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-        <thead>
-          <tr>
-            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Customer</th>
-            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Bike & Service</th>
-            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Date & Type</th>
-            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Status & Mechanic Assign</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((item) => (
-            <tr key={item._id} style={{ borderBottom: '1px solid #F5F5F5' }}>
-              <td style={{ padding: '1.2rem', color: '#111', fontWeight: 700 }}>{item.user?.name}<br/><span style={{color:'#888',fontSize:'0.82rem',fontWeight:600}}>{item.user?.phone}</span></td>
-              <td style={{ padding: '1.2rem', color: '#111', fontWeight: 700 }}>{item.bikeBrand} {item.bikeModel}<br/><span style={{color:'#888',fontSize:'0.82rem',fontWeight:600}}>{item.serviceLabel}</span></td>
-              <td style={{ padding: '1.2rem', color: '#111', fontWeight: 700 }}>{new Date(item.scheduledDate).toLocaleDateString('en-IN')}<br/><span style={{color:'#888',fontSize:'0.82rem',fontWeight:600}}>{item.serviceType.replace('_',' ').toUpperCase()}</span></td>
-              <td style={{ padding: '1rem' }}>
-                <div style={{ display: 'flex', gap: '0.6rem', flexDirection: 'column', maxWidth: '220px' }}>
-                  <select className="input-light" style={{ padding: '0.5rem', fontSize: '0.85rem', height: 'auto', background: '#F9F9F9', fontWeight: 700 }} value={item.status} onChange={(e) => handleStatus(item._id, e.target.value, item.mechanic?._id)}>
-                    <option value="requested">Requested</option><option value="accepted">Accepted</option><option value="in_progress">In Progress</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option>
-                  </select>
-                  <select className="input-light" style={{ padding: '0.5rem', fontSize: '0.85rem', height: 'auto', background: '#F9F9F9', fontWeight: 700 }} value={item.mechanic?._id || ''} onChange={(e) => handleStatus(item._id, item.status, e.target.value)}>
-                    <option value="">Assign Mechanic...</option>
-                    {mechanics.map(m => <option key={m._id} value={m._id}>{m.name}</option>)}
-                  </select>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      {/* ── Service Types Management ── */}
+      <div style={{ background: '#FFFFFF', border: '1.5px solid #EEE', borderRadius: '24px', padding: '1.5rem', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
+          <h3 style={{ color: '#111', fontWeight: 950, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.3rem', margin: 0, textTransform: 'uppercase' }}>SERVICE <span style={{ color: '#E53935' }}>TYPES</span></h3>
+          <button onClick={() => { resetStForm(); setShowStForm(!showStForm); }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: showStForm ? '#F5F5F5' : '#E53935', color: showStForm ? '#666' : 'white', border: 'none', borderRadius: '10px', padding: '0.5rem 1.2rem', cursor: 'pointer', fontWeight: 800, fontSize: '0.8rem' }}>
+            {showStForm ? <><X size={14} /> Cancel</> : <><Plus size={14} /> Add Service</>}
+          </button>
+        </div>
+
+        {showStForm && (
+          <form onSubmit={handleStSubmit} style={{ background: '#F9F9F9', border: '1px solid #EEE', borderRadius: '16px', padding: '1.2rem', marginBottom: '1.2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.8rem' }}>
+              <div>
+                <label style={{ color: '#666', fontSize: '0.72rem', fontWeight: 800, display: 'block', marginBottom: '0.3rem' }}>VALUE (unique key) *</label>
+                <input className="input-light" placeholder="e.g. engine_repair" value={stForm.value} onChange={e => setStForm({ ...stForm, value: e.target.value })} required style={{ height: 42, fontWeight: 600 }} />
+              </div>
+              <div>
+                <label style={{ color: '#666', fontSize: '0.72rem', fontWeight: 800, display: 'block', marginBottom: '0.3rem' }}>LABEL *</label>
+                <input className="input-light" placeholder="e.g. Engine Repair" value={stForm.label} onChange={e => setStForm({ ...stForm, label: e.target.value })} required style={{ height: 42, fontWeight: 600 }} />
+              </div>
+              <div>
+                <label style={{ color: '#666', fontSize: '0.72rem', fontWeight: 800, display: 'block', marginBottom: '0.3rem' }}>PRICE TEXT *</label>
+                <input className="input-light" placeholder="e.g. From ₹999" value={stForm.price} onChange={e => setStForm({ ...stForm, price: e.target.value })} required style={{ height: 42, fontWeight: 600 }} />
+              </div>
+              <div>
+                <label style={{ color: '#666', fontSize: '0.72rem', fontWeight: 800, display: 'block', marginBottom: '0.3rem' }}>DESCRIPTION</label>
+                <input className="input-light" placeholder="Short description" value={stForm.desc} onChange={e => setStForm({ ...stForm, desc: e.target.value })} style={{ height: 42, fontWeight: 600 }} />
+              </div>
+              <div>
+                <label style={{ color: '#666', fontSize: '0.72rem', fontWeight: 800, display: 'block', marginBottom: '0.3rem' }}>ORDER</label>
+                <input type="number" className="input-light" value={stForm.order} onChange={e => setStForm({ ...stForm, order: Number(e.target.value) })} style={{ height: 42, fontWeight: 600 }} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', color: '#111' }}>
+                  <input type="checkbox" checked={stForm.isActive} onChange={e => setStForm({ ...stForm, isActive: e.target.checked })} style={{ width: 18, height: 18, accentColor: '#E53935' }} /> Active
+                </label>
+                <button type="submit" style={{ background: '#E53935', color: 'white', border: 'none', borderRadius: '8px', padding: '0.5rem 1.5rem', cursor: 'pointer', fontWeight: 800, fontSize: '0.82rem' }}>
+                  {editSt ? 'Update' : 'Add'}
+                </button>
+              </div>
+            </div>
+          </form>
+        )}
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '0.8rem' }}>
+          {serviceTypes.map(st => (
+            <div key={st._id} style={{ background: st.isActive ? '#FFF' : '#F9F9F9', border: '1px solid #EEE', borderRadius: '12px', padding: '1rem', opacity: st.isActive ? 1 : 0.6 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.3rem' }}>
+                <h4 style={{ color: '#111', fontWeight: 800, fontSize: '0.95rem', margin: 0, fontFamily: 'Rajdhani, sans-serif' }}>{st.label.toUpperCase()}</h4>
+                <div style={{ display: 'flex', gap: '0.3rem' }}>
+                  <button onClick={() => handleStEdit(st)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#888', padding: '2px' }}><Edit2 size={14} /></button>
+                  <button onClick={() => handleStDelete(st._id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#E53935', padding: '2px' }}><Trash2 size={14} /></button>
                 </div>
-              </td>
-            </tr>
+              </div>
+              <p style={{ color: '#666', fontSize: '0.72rem', margin: '0.2rem 0 0.5rem' }}>{st.desc}</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: '#E53935', fontWeight: 800, fontFamily: 'Rajdhani, sans-serif', fontSize: '0.95rem' }}>{st.price}</span>
+                <span style={{ fontSize: '0.65rem', fontWeight: 700, color: st.isActive ? '#2E7D32' : '#888' }}>{st.isActive ? 'ACTIVE' : 'INACTIVE'}</span>
+              </div>
+            </div>
           ))}
-        </tbody>
-      </table>
+        </div>
+      </div>
+
+      {/* ── Service Bookings Table ── */}
+      <div className="admin-table-wrap" style={{ background: '#FFFFFF', border: '1.5px solid #EEE', borderRadius: '24px', padding: '1.5rem', overflowX: 'auto', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
+        <h3 style={{ color: '#111', fontWeight: 950, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.3rem', marginBottom: '1rem', textTransform: 'uppercase' }}>SERVICE <span style={{ color: '#E53935' }}>BOOKINGS</span></h3>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+          <thead>
+            <tr>
+              <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Customer</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Bike & Service</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Date & Type</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Status & Mechanic Assign</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.length > 0 ? data.map((item) => (
+              <tr key={item._id} style={{ borderBottom: '1px solid #F5F5F5' }}>
+                <td style={{ padding: '1.2rem', color: '#111', fontWeight: 700 }}>{item.user?.name}<br/><span style={{color:'#888',fontSize:'0.82rem',fontWeight:600}}>{item.user?.phone}</span></td>
+                <td style={{ padding: '1.2rem', color: '#111', fontWeight: 700 }}>{item.bikeBrand} {item.bikeModel}<br/><span style={{color:'#888',fontSize:'0.82rem',fontWeight:600}}>{item.serviceLabel}</span></td>
+                <td style={{ padding: '1.2rem', color: '#111', fontWeight: 700 }}>{new Date(item.scheduledDate).toLocaleDateString('en-IN')}<br/><span style={{color:'#888',fontSize:'0.82rem',fontWeight:600}}>{item.serviceType.replace('_',' ').toUpperCase()}</span></td>
+                <td style={{ padding: '1rem' }}>
+                  <div style={{ display: 'flex', gap: '0.6rem', flexDirection: 'column', maxWidth: '220px' }}>
+                    <select className="input-light" style={{ padding: '0.5rem', fontSize: '0.85rem', height: 'auto', background: '#F9F9F9', fontWeight: 700 }} value={item.status} onChange={(e) => handleStatus(item._id, e.target.value, item.mechanic?._id)}>
+                      <option value="requested">Requested</option><option value="accepted">Accepted</option><option value="in_progress">In Progress</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option>
+                    </select>
+                    <select className="input-light" style={{ padding: '0.5rem', fontSize: '0.85rem', height: 'auto', background: '#F9F9F9', fontWeight: 700 }} value={item.mechanic?._id || ''} onChange={(e) => handleStatus(item._id, item.status, e.target.value)}>
+                      <option value="">Assign Mechanic...</option>
+                      {mechanics.map(m => <option key={m._id} value={m._id}>{m.name}</option>)}
+                    </select>
+                  </div>
+                </td>
+              </tr>
+            )) : (
+              <tr><td colSpan={4} style={{ textAlign: 'center', padding: '3rem', color: '#AAA', fontWeight: 600 }}>No bookings yet</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
