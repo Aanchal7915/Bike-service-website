@@ -357,8 +357,8 @@ export default function Home() {
               </div>
             ) : (
               <div className="home-parts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.5rem' }}>
-                {featured.slice(0, 2).map((bike) => <BikeCard key={bike._id} bike={bike} />)}
-                {featuredParts.slice(0, 4).map((part) => <PartCard key={part._id} part={part} />)}
+                {featured.map((bike) => <BikeCard key={bike._id} bike={bike} />)}
+                {featuredParts.map((part) => <PartCard key={part._id} part={part} />)}
               </div>
             )}
           </div>
@@ -394,10 +394,10 @@ export default function Home() {
             </div>
           ) : (
             <div className="home-parts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.5rem' }}>
-              {bestsellerBikes.slice(0, 2).map((bike) => (
+              {bestsellerBikes.map((bike) => (
                 <BikeCard key={bike._id} bike={bike} />
               ))}
-              {bestsellerParts.slice(0, 4).map((part) => (
+              {bestsellerParts.map((part) => (
                 <PartCard key={part._id} part={part} />
               ))}
             </div>

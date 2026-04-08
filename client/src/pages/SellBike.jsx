@@ -14,6 +14,7 @@ export default function SellBike() {
   const [step, setStep] = useState(1);
   const [estimatedPrice, setEstimatedPrice] = useState(null);
   const [images, setImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const { register, handleSubmit, watch, formState: { errors } } = useForm();
 
@@ -43,7 +44,18 @@ export default function SellBike() {
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    setImages(files.slice(0, 10));
+    const newImages = [...images, ...files].slice(0, 10);
+    setImages(newImages);
+
+    const previews = newImages.map(file => URL.createObjectURL(file));
+    setImagePreviews(previews);
+  };
+
+  const removeImage = (index) => {
+    const newImages = images.filter((_, i) => i !== index);
+    const newPreviews = imagePreviews.filter((_, i) => i !== index);
+    setImages(newImages);
+    setImagePreviews(newPreviews);
   };
 
   const onSubmit = async (data) => {
@@ -188,8 +200,23 @@ export default function SellBike() {
                     <Camera size={18} />
                   </div>
                   <span style={{ color: '#111', fontSize: '0.85rem', fontWeight: 800 }}>Browse Photos</span>
-                  <input type="file" multiple accept="image/*,video/*" style={{ display: 'none' }} onChange={handleImageChange} />
+                  <input type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={handleImageChange} />
                 </label>
+
+                {/* Previews Display */}
+                {imagePreviews.length > 0 && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '0.6rem', marginTop: '1rem' }}>
+                    {imagePreviews.map((src, idx) => (
+                      <div key={idx} style={{ position: 'relative', width: '100%', paddingBottom: '100%', borderRadius: '12px', overflow: 'hidden', border: '1.5px solid #EEE' }}>
+                        <img src={src} alt="" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <button type="button" onClick={() => removeImage(idx)}
+                          style={{ position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: '50%', background: 'rgba(229,57,53,0.9)', color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '10px' }}>
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Pickup Address */}

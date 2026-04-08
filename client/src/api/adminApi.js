@@ -29,6 +29,10 @@ export const updatePart = (id, data) => API.put(`/store/parts/${id}`, data);
 export const updatePartMultipart = (id, data) => API.put(`/store/parts/${id}`, data);
 export const deletePart = (id) => API.delete(`/store/parts/${id}`);
 
+// Enquiries
+export const getAllEnquiries = () => API.get('/admin/enquiries');
+export const updateEnquiry = (id, data) => API.put(`/admin/enquiries/${id}`, data);
+
 // Categories
 export const getAdminCategories = () => API.get('/admin/categories');
 export const createCategory = (data) => API.post('/admin/categories', data, { headers: { 'Content-Type': 'multipart/form-data' } });

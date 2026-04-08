@@ -1014,16 +1014,21 @@ const SellsTab = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {sells.map(s => (
           <div key={s._id} style={{ background: '#F9F9F9', border: '1.5px solid #EEE', borderRadius: '20px', padding: '1.5rem', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-              <div>
-                <h4 style={{ color: '#111', fontWeight: 900, fontSize: '1.2rem', margin: 0, fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>{s.brand} {s.model} ({s.year})</h4>
-                <p style={{ color: '#666', fontSize: '0.85rem', fontWeight: 700, margin: '0.4rem 0' }}>{s.condition.toUpperCase()} • {s.kmDriven?.toLocaleString()} KM • {s.engineCC}CC</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginTop: '0.8rem' }}>
-                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#E5393510', color: '#E53935', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.8rem' }}>{s.user?.name?.charAt(0).toUpperCase()}</div>
-                  <p style={{ color: '#111', fontSize: '0.85rem', fontWeight: 800, margin: 0 }}>{s.user?.name || 'N/A'} <span style={{ color: '#888', fontWeight: 600 }}>• {s.user?.phone || ''}</span></p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1.2rem' }}>
+              <div style={{ display: 'flex', gap: '1.2rem' }}>
+                {s.images && s.images.length > 0 && (
+                  <img src={s.images[0]} alt="" style={{ width: 120, height: 90, borderRadius: '12px', objectFit: 'cover', border: '1.5px solid #EEE' }} />
+                )}
+                <div>
+                  <h4 style={{ color: '#111', fontWeight: 900, fontSize: '1.2rem', margin: 0, fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>{s.brand} {s.model} ({s.year})</h4>
+                  <p style={{ color: '#666', fontSize: '0.85rem', fontWeight: 700, margin: '0.4rem 0' }}>{s.condition.toUpperCase()} • {s.kmDriven?.toLocaleString()} KM • {s.engineCC}CC</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginTop: '0.8rem' }}>
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#E5393510', color: '#E53935', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.8rem' }}>{s.user?.name?.charAt(0).toUpperCase()}</div>
+                    <p style={{ color: '#111', fontSize: '0.85rem', fontWeight: 800, margin: 0 }}>{s.user?.name || 'N/A'} <span style={{ color: '#888', fontWeight: 600 }}>• {s.user?.phone || ''}</span></p>
+                  </div>
+                  {s.pickupAddress?.city && <p style={{ color: '#0052CC', fontSize: '0.8rem', fontWeight: 800, marginTop: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>📍 {[s.pickupAddress.street, s.pickupAddress.city].filter(Boolean).join(', ').toUpperCase()}</p>}
+                  {s.isOneHourSell && <span style={{ display: 'inline-block', marginTop: '0.8rem', background: '#FFF7E6', color: '#D46B08', border: '1.5px solid rgba(212,107,8,0.1)', padding: '0.3rem 0.8rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 900 }}>⚡ EXPRESS SALE</span>}
                 </div>
-                {s.pickupAddress?.city && <p style={{ color: '#0052CC', fontSize: '0.8rem', fontWeight: 800, marginTop: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>📍 {[s.pickupAddress.street, s.pickupAddress.city].filter(Boolean).join(', ').toUpperCase()}</p>}
-                {s.isOneHourSell && <span style={{ display: 'inline-block', marginTop: '0.8rem', background: '#FFF7E6', color: '#D46B08', border: '1.5px solid rgba(212,107,8,0.1)', padding: '0.3rem 0.8rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 900 }}>⚡ EXPRESS SALE</span>}
               </div>
               <div style={{ textAlign: 'right' }}>
                 {s.estimatedPrice && <div style={{ color: '#888', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.2rem' }}>est. value</div>}
@@ -1108,47 +1113,94 @@ const OrdersTab = () => {
   );
 };
 
-// ── LEADS TAB (Bike Enquiries) ──
+// ── BUY BIKE REQUESTS TAB ──
 const LeadsTab = () => {
-  const [bikes, setBikes] = useState([]);
+  const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('');
 
   useEffect(() => {
     setLoading(true);
-    adminApi.getBikes(1).then(({ data }) => {
-      // Filter bikes that have enquiries
-      const withEnquiries = (data.bikes || []).filter(b => b.enquiries?.length > 0);
-      setBikes(withEnquiries);
-    }).finally(() => setLoading(false));
+    adminApi.getAllEnquiries().then(({ data }) => {
+      setEnquiries(data.enquiries || []);
+    }).catch(() => toast.error('Failed to load requests')).finally(() => setLoading(false));
   }, []);
+
+  const handleStatusUpdate = async (id, status) => {
+    try {
+      const { data } = await adminApi.updateEnquiry(id, { status });
+      setEnquiries(enquiries.map(e => e._id === id ? data.enquiry : e));
+      toast.success(`Status updated to ${status}`);
+    } catch { toast.error('Failed to update status'); }
+  };
+
+  const statusColor = { pending: '#FB8C00', contacted: '#1976D2', sold: '#2E7D32', rejected: '#E53935' };
+  const filtered = filter ? enquiries.filter(e => e.status === filter) : enquiries;
 
   if (loading) return <div style={{ textAlign: 'center', padding: '3rem', color: '#888' }}><Loader style={{ animation: 'spin 1s linear infinite' }} size={24} /></div>;
 
   return (
     <div style={{ background: '#FFFFFF', border: '1.5px solid #EEE', borderRadius: '24px', padding: '2rem', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
-      <h3 style={{ color: '#111', fontWeight: 950, marginBottom: '2rem', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>BUSINESS <span style={{ color: '#E53935' }}>LEADS</span></h3>
-      {bikes.length > 0 ? (
-        <div className="admin-leads-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '1.5rem' }}>
-          {bikes.map(b => (
-            <div key={b._id} style={{ background: '#F9F9F9', border: '1.5px solid #EEE', borderRadius: '20px', padding: '1.2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-              <div style={{ display: 'flex', gap: '1.2rem', alignItems: 'center' }}>
-                <img src={b.images?.[0] || 'https://via.placeholder.com/60'} alt="" style={{ width: 80, height: 60, borderRadius: '12px', objectFit: 'cover', border: '1.5px solid #EEE' }} />
-                <div style={{ flex: 1 }}>
-                  <h4 style={{ color: '#111', fontWeight: 900, fontSize: '1.1rem', margin: 0, fontFamily: 'Rajdhani, sans-serif' }}>{b.brand} {b.model} ({b.year})</h4>
-                  <p style={{ color: '#E53935', fontFamily: 'Rajdhani, sans-serif', fontWeight: 900, margin: '0.2rem 0', fontSize: '1.1rem' }}>₹{b.price?.toLocaleString('en-IN')}</p>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.4rem' }}>
-                    <span style={{ color: '#888', fontSize: '0.75rem', fontWeight: 700 }}>👁 {b.views || 0} TOTAL VIEWS</span>
-                    <span style={{ background: '#E53935', color: '#FFFFFF', borderRadius: '30px', padding: '0.2rem 0.8rem', fontSize: '0.75rem', fontWeight: 950, fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.05em' }}>
-                      {b.enquiries.length} ENQUIRIES
-                    </span>
-                  </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <h3 style={{ color: '#111', fontWeight: 950, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', textTransform: 'uppercase', letterSpacing: '-0.02em', margin: 0 }}>BUY BIKE <span style={{ color: '#E53935' }}>REQUESTS</span></h3>
+        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+          {['', 'pending', 'contacted', 'sold', 'rejected'].map(s => (
+            <button key={s} onClick={() => setFilter(s)}
+              style={{ padding: '0.35rem 0.9rem', borderRadius: '999px', border: '1px solid', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', borderColor: filter === s ? '#E53935' : '#EEE', background: filter === s ? 'rgba(229,57,53,0.05)' : '#FFF', color: filter === s ? '#E53935' : '#666' }}>
+              {s === '' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {filtered.length > 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {filtered.map(enq => (
+            <div key={enq._id} style={{ background: '#F9F9F9', border: '1.5px solid #EEE', borderRadius: '16px', padding: '1.2rem', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+              <div className="admin-leads-grid" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr auto', gap: '1rem', alignItems: 'center' }}>
+                {/* Bike Image */}
+                <img src={enq.bike?.images?.[0] || 'https://via.placeholder.com/80'} alt="" style={{ width: 80, height: 60, borderRadius: '10px', objectFit: 'cover', border: '1px solid #EEE' }} />
+
+                {/* Bike Info */}
+                <div>
+                  <h4 style={{ color: '#111', fontWeight: 900, fontSize: '1rem', margin: 0, fontFamily: 'Rajdhani, sans-serif' }}>
+                    {enq.bike?.brand} {enq.bike?.model} ({enq.bike?.year})
+                  </h4>
+                  <p style={{ color: '#E53935', fontFamily: 'Rajdhani, sans-serif', fontWeight: 900, margin: '0.15rem 0', fontSize: '1rem' }}>₹{enq.bike?.price?.toLocaleString('en-IN')}</p>
+                  {enq.bike?.location?.city && <p style={{ color: '#888', fontSize: '0.72rem', fontWeight: 600, margin: 0 }}>📍 {enq.bike.location.city}</p>}
+                </div>
+
+                {/* Customer Info */}
+                <div>
+                  <p style={{ color: '#111', fontWeight: 800, fontSize: '0.9rem', margin: 0 }}>{enq.user?.name || 'Unknown'}</p>
+                  <p style={{ color: '#666', fontSize: '0.78rem', margin: '0.15rem 0', fontWeight: 600 }}>{enq.user?.email}</p>
+                  <p style={{ color: '#E53935', fontSize: '0.82rem', fontWeight: 800, margin: 0 }}>{enq.phone || enq.user?.phone || '-'}</p>
+                  {enq.message && <p style={{ color: '#888', fontSize: '0.72rem', fontStyle: 'italic', margin: '0.3rem 0 0', fontWeight: 500 }}>"{enq.message}"</p>}
+                </div>
+
+                {/* Status & Actions */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end', minWidth: 130 }}>
+                  <span style={{ background: `${statusColor[enq.status]}15`, color: statusColor[enq.status], border: `1px solid ${statusColor[enq.status]}30`, padding: '0.25rem 0.8rem', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 900, textTransform: 'uppercase' }}>
+                    {enq.status}
+                  </span>
+                  <select
+                    value={enq.status}
+                    onChange={e => handleStatusUpdate(enq._id, e.target.value)}
+                    className="input-light"
+                    style={{ padding: '0.3rem 0.5rem', fontSize: '0.75rem', height: 'auto', fontWeight: 700, width: 130, borderRadius: '8px' }}>
+                    <option value="pending">Pending</option>
+                    <option value="contacted">Contacted</option>
+                    <option value="sold">Sold</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                  <span style={{ color: '#AAA', fontSize: '0.65rem', fontWeight: 600 }}>{new Date(enq.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                 </div>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div style={{ textAlign: 'center', padding: '5rem 2rem', color: '#AAA', fontWeight: 800, fontSize: '1.1rem', background: '#F9F9F9', borderRadius: '24px', border: '1.5px dashed #EEE' }}>No new leads found.</div>
+        <div style={{ textAlign: 'center', padding: '5rem 2rem', color: '#AAA', fontWeight: 800, fontSize: '1.1rem', background: '#F9F9F9', borderRadius: '24px', border: '1.5px dashed #EEE' }}>No buy bike requests found.</div>
       )}
     </div>
   );
@@ -1176,7 +1228,7 @@ export default function AdminDashboard() {
     { id: 'sells', icon: TrendingUp, label: 'Sell Requests' },
     { id: 'orders', icon: ShoppingBag, label: 'Orders' },
     { id: 'parts', icon: Package, label: 'Parts' },
-    { id: 'leads', icon: List, label: 'Leads' },
+    { id: 'leads', icon: List, label: 'Buy Requests' },
   ];
 
   const statusBadge = (status) => {
@@ -1203,7 +1255,7 @@ export default function AdminDashboard() {
           .admin-sell-actions { flex-direction: column !important; }
           .admin-sell-actions > * { width: 100% !important; flex: unset !important; min-width: unset !important; }
           .admin-sell-actions select, .admin-sell-actions input { width: 100% !important; }
-          .admin-leads-grid { grid-template-columns: 1fr !important; }
+          .admin-leads-grid { grid-template-columns: 1fr !important; gap: 0.6rem !important; }
         }
         @media (max-width: 480px) {
           .admin-form-4col { grid-template-columns: 1fr !important; }

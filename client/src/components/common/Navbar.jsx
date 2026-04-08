@@ -192,15 +192,21 @@ export default function Navbar() {
                     cursor: 'pointer', fontSize: '0.8rem',
                   }}
                 >
-                  {user.avatar ? (
-                    <img src={user.avatar} alt={user.name} style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
+                  {dropdownOpen ? (
+                    <X size={18} style={{ color: '#E53935' }} />
                   ) : (
-                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#E53935', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700 }}>
-                      {user.name?.charAt(0).toUpperCase()}
-                    </div>
+                    <>
+                      {user.avatar ? (
+                        <img src={user.avatar} alt={user.name} style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#E53935', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700 }}>
+                          {user.name?.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <span className="hidden sm:block">{user.name?.split(' ')[0]}</span>
+                      <ChevronDown size={14} />
+                    </>
                   )}
-                  <span className="hidden sm:block">{user.name?.split(' ')[0]}</span>
-                  <ChevronDown size={14} />
                 </button>
 
                 {dropdownOpen && (

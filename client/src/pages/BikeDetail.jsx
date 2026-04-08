@@ -18,7 +18,7 @@ export default function BikeDetail() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [wishlisted, setWishlisted] = useState(false);
   const [enquiryMsg, setEnquiryMsg] = useState('');
-  const [enquiryPhone, setEnquiryPhone] = useState(user?.phone || '');
+  const [enquiryPhone, setEnquiryPhone] = useState('');
   const [enquirySending, setEnquirySending] = useState(false);
 
   const [selectedPincode, setSelectedPincode] = useState(

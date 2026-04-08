@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { 
+const {
   getDashboardStats, getUsers, updateUser, approveBike, getMechanics,
   createCategory, getCategories, deleteCategory,
-  createBrand, getBrandsList, deleteBrand
+  createBrand, getBrandsList, deleteBrand,
+  getAllEnquiries, updateEnquiry
 } = require('../controllers/adminController');
 const { protect } = require('../middleware/auth');
 const { adminOnly } = require('../middleware/admin');
@@ -21,6 +22,10 @@ router.get('/mechanics', getMechanics);
 router.get('/categories', getCategories);
 router.post('/categories', uploadCategoryMedia.single('image'), createCategory);
 router.delete('/categories/:id', deleteCategory);
+
+// Enquiries
+router.get('/enquiries', getAllEnquiries);
+router.put('/enquiries/:id', updateEnquiry);
 
 // Brands
 router.get('/brands-list', getBrandsList);

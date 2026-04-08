@@ -1,6 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
 const Bike = require('../models/Bike');
+const Enquiry = require('../models/Enquiry');
 const ServiceBooking = require('../models/ServiceBooking');
 const SellRequest = require('../models/SellRequest');
 const Order = require('../models/Order');
@@ -112,8 +113,29 @@ const deleteBrand = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Brand deleted' });
 });
 
-module.exports = { 
+// @desc  Get all enquiries (admin)
+// @route GET /api/admin/enquiries
+const getAllEnquiries = asyncHandler(async (req, res) => {
+  const enquiries = await Enquiry.find()
+    .populate('user', 'name email phone')
+    .populate({ path: 'bike', select: 'title brand model year price images location' })
+    .sort({ createdAt: -1 });
+  res.json({ success: true, enquiries });
+});
+
+// @desc  Update enquiry status (admin)
+// @route PUT /api/admin/enquiries/:id
+const updateEnquiry = asyncHandler(async (req, res) => {
+  const enquiry = await Enquiry.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    .populate('user', 'name email phone')
+    .populate({ path: 'bike', select: 'title brand model year price images location' });
+  if (!enquiry) { res.status(404); throw new Error('Enquiry not found'); }
+  res.json({ success: true, enquiry });
+});
+
+module.exports = {
   getDashboardStats, getUsers, updateUser, approveBike, getMechanics,
   createCategory, getCategories, deleteCategory,
-  createBrand, getBrandsList, deleteBrand
+  createBrand, getBrandsList, deleteBrand,
+  getAllEnquiries, updateEnquiry
 };

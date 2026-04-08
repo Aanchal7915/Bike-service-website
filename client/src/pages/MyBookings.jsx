@@ -176,8 +176,14 @@ export default function MyBookings() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.8rem' }}>
-                      <div style={{ background: 'rgba(46,125,50,0.05)', width: 44, height: 44, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(46,125,50,0.1)' }}>
-                        <TrendingUp size={20} style={{ color: '#2E7D32' }} />
+                      <div style={{ position: 'relative' }}>
+                        {req.images && req.images.length > 0 ? (
+                          <img src={req.images[0]} alt={req.model} style={{ width: 80, height: 60, borderRadius: '12px', objectFit: 'cover', border: '1px solid #EEE' }} />
+                        ) : (
+                          <div style={{ background: 'rgba(46,125,50,0.05)', width: 44, height: 44, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(46,125,50,0.1)' }}>
+                            <TrendingUp size={20} style={{ color: '#2E7D32' }} />
+                          </div>
+                        )}
                       </div>
                       <div>
                         <h3 style={{ color: '#111', fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.3rem', lineHeight: 1 }}>{req.brand} {req.model}</h3>
