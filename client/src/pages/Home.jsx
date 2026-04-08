@@ -39,7 +39,7 @@ export default function Home() {
     Promise.all([
       getFeaturedBikes().then(({ data }) => setFeatured(data.bikes)),
       getFeaturedParts().then(({ data }) => setFeaturedParts(data.parts || [])),
-      getBestsellerParts({ limit: 4 }).then(({ data }) => setBestsellerParts(data.parts || [])),
+      getBestsellerParts({ limit: 8 }).then(({ data }) => setBestsellerParts(data.parts || [])),
       getBestsellerBikes().then(({ data }) => setBestsellerBikes(data.bikes || [])),
       getActiveServiceTypes().then(({ data }) => setServiceTypes(data.serviceTypes || []))
     ])

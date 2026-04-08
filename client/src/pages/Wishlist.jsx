@@ -277,10 +277,17 @@ export default function Wishlist() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '3rem' }}>
           <button onClick={() => navigate('/')}
-            style={{ background: '#111', border: 'none', borderRadius: '12px', padding: '0.8rem 1.5rem', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.9rem', fontWeight: 800, transition: 'all 0.3s', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.05em' }}
+            style={{ 
+              background: '#111', border: 'none', borderRadius: '10px', 
+              padding: '0.6rem 1.2rem', color: 'white', cursor: 'pointer', 
+              display: 'flex', alignItems: 'center', gap: '0.5rem', 
+              fontSize: '0.8rem', fontWeight: 800, transition: 'all 0.3s', 
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontFamily: 'Rajdhani, sans-serif', 
+              letterSpacing: '0.05em' 
+            }}
             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.2)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'; }}>
-            <ArrowLeft size={16} /> BACK TO STORE
+            <ArrowLeft size={14} /> BACK
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
             <div style={{ width: 4, height: 32, background: '#E53935', borderRadius: '4px' }} />
