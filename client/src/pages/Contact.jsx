@@ -7,14 +7,14 @@ export default function Contact() {
     name: '',
     email: '',
     phone: '',
-    serviceType: 'Regular Service',
+    serviceType: 'Engine Repair',
     message: ''
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     toast.success("Thank you! Your request has been sent. We'll contact you soon.");
-    setFormData({ name: '', email: '', phone: '', serviceType: 'Regular Service', message: '' });
+    setFormData({ name: '', email: '', phone: '', serviceType: 'Engine Repair', message: '' });
   };
 
   return (
@@ -157,7 +157,6 @@ export default function Contact() {
                   className="input-light" 
                   style={{ paddingLeft: '3.2rem', height: '52px', appearance: 'none', cursor: 'pointer' }}
                 >
-                  <option value="Regular Service">Periodic Service</option>
                   <option value="Engine Repair">Engine & Mechanical</option>
                   <option value="Bike Buy Inquiry">Interested in Buying</option>
                   <option value="Bike Sell Valuation">Instant Bike Valuation</option>
