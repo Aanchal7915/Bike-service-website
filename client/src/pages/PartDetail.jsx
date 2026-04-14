@@ -171,7 +171,8 @@ export default function PartDetail() {
     </div>
   );
 
-  const images = part.images?.length ? part.images : ['https://via.placeholder.com/800x800/F9F9F9/E53935?text=No+Preview'];
+  const imagesList = (part.images || []).filter(url => url && typeof url === 'string' && url.trim() !== '');
+  const images = imagesList.length ? imagesList : ['https://via.placeholder.com/800x800/F9F9F9/E53935?text=No+Preview'];
 
   return (
     <div style={{ minHeight: '100vh', background: '#FFFFFF' }}>
@@ -182,20 +183,15 @@ export default function PartDetail() {
           .main-detail-img { height: 400px !important; object-fit: contain !important; padding: 1rem !important; width: 100% !important; }
           .part-thumb-row { gap: 0.5rem !important; }
           .part-thumb-row button { width: 60px !important; height: 60px !important; border-radius: 10px !important; }
-          .part-nav-right { right: 12px !important; }
         }
+        .action-btn-zoom { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
+        .action-btn-zoom:hover { transform: scale(1.02) translateY(-2px) !important; box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important; }
+        .action-btn-zoom:active { transform: scale(0.98) !important; }
+        
+        .size-btn { transition: all 0.2s; border: 1.5px solid #EEE; background: #FFF; cursor: pointer; }
+        .size-btn:hover:not(:disabled) { border-color: #111; background: #F9F9F9; }
+        .size-btn.active { border-color: #3B82F6; background: rgba(59,130,246,0.05); color: #3B82F6; }
       `}</style>
-
-      {/* Fullscreen Zoom Modal */}
-      {fullScreenZoom && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backdropFilter: 'blur(10px)' }}
-          onClick={() => setFullScreenZoom(false)}>
-          <img src={images[activeImg]} alt={part.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-          <button style={{ position: 'absolute', top: 20, right: 20, background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-            <X size={24} />
-          </button>
-        </div>
-      )}
 
       {/* Breadcrumb */}
       <div style={{ background: '#F9F9F9', borderBottom: '1px solid #EEE', padding: '0.8rem 0' }}>
@@ -206,24 +202,23 @@ export default function PartDetail() {
             <ArrowRight size={16} style={{ transform: 'rotate(180deg)' }} /> Back to Store
           </button>
           <span>/</span>
-          <span style={{ color: '#E53935', fontWeight: 800 }}>{part.name}</span>
+          <span style={{ color: '#E53935', fontWeight: 800, textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '0.02em' }}>{part.name}</span>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-4">
-        <div className="animate-fadeInUp part-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '1.5rem', alignItems: 'start' }}>
+      <div className="max-w-6xl mx-auto px-4 py-6">
+        <div className="animate-fadeInUp part-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '2rem', alignItems: 'start' }}>
 
-          {/* Left: Media & Details */}
+          {/* Left: Media & Description */}
           <div>
-            {/* Main Image/Video */}
-            <div style={{ position: 'relative', background: '#F5F5F5', borderRadius: '20px', overflow: 'hidden', marginBottom: '1rem', border: '1px solid #EEE', boxShadow: '0 8px 30px rgba(0,0,0,0.03)', minHeight: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isVideoUrl(images[activeImg]) ? 'default' : 'crosshair' }}
+            <div style={{ position: 'relative', background: '#F5F5F5', borderRadius: '24px', overflow: 'hidden', marginBottom: '1.5rem', border: '1px solid #EEE', boxShadow: '0 8px 30px rgba(0,0,0,0.03)', minHeight: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isVideoUrl(images[activeImg]) ? 'default' : 'crosshair' }}
               onMouseMove={handleMouseMove}
               onMouseLeave={() => setZoomed(false)}
               onClick={() => isMobile && !isVideoUrl(images[activeImg]) && setFullScreenZoom(true)}>
 
               {/* Wishlist Floating Button */}
               <button onClick={(e) => { e.stopPropagation(); toggleWishlist?.(id); }}
-                style={{ position: 'absolute', top: '15px', right: '15px', width: '42px', height: '42px', borderRadius: '50%', background: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10, boxShadow: '0 4px 15px rgba(0,0,0,0.1)', transition: 'transform 0.2s' }}
+                style={{ position: 'absolute', top: '20px', right: '20px', width: '44px', height: '44px', borderRadius: '50%', background: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10, boxShadow: '0 4px 15px rgba(0,0,0,0.1)', transition: 'transform 0.2s' }}
                 onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
                 onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
                 <Heart size={20} fill={isWishlisted ? '#E53935' : 'none'} color={isWishlisted ? '#E53935' : '#111'} strokeWidth={2.5} />
@@ -231,83 +226,44 @@ export default function PartDetail() {
 
               {/* Discount badge */}
               {discount > 0 && (
-                <div style={{ position: 'absolute', top: 15, left: 15, zIndex: 10 }}>
-                  <span style={{ background: '#111', color: 'white', fontSize: '0.65rem', fontWeight: 900, padding: '4px 10px', borderRadius: '8px', letterSpacing: '0.04em' }}>{discount}% OFF</span>
+                <div style={{ position: 'absolute', top: 20, left: 20, zIndex: 10 }}>
+                  <span style={{ background: '#2E7D32', color: 'white', fontSize: '0.7rem', fontWeight: 900, padding: '5px 12px', borderRadius: '10px', letterSpacing: '0.04em', boxShadow: '0 4px 12px rgba(46,125,50,0.2)' }}>{discount}% OFF</span>
                 </div>
               )}
 
               {isVideoUrl(images[activeImg]) ? (
-                <video
-                  key={images[activeImg]}
-                  src={images[activeImg]}
-                  controls autoPlay muted playsInline
-                  className="main-detail-img"
-                  style={{ width: '100%', height: 420, objectFit: 'contain', background: '#000' }}
-                />
+                <video key={images[activeImg]} src={images[activeImg]} controls autoPlay muted playsInline className="main-detail-img" style={{ width: '100%', height: 480, objectFit: 'contain', background: '#000' }} />
               ) : (
-                <img src={images[activeImg]} alt={part.name}
-                  className="main-detail-img"
-                  style={{
-                    width: '100%', height: 420, objectFit: 'contain', padding: isMobile ? '1.5rem' : '0.5rem',
-                    transition: 'transform 0.5s ease-out',
-                    transform: zoomed && !isMobile ? 'scale(2)' : 'scale(1)',
-                    transformOrigin: zoomed && !isMobile ? `${mousePos.x}% ${mousePos.y}%` : 'center',
-                  }} />
-              )}
-
-              {/* Zoom button (desktop) */}
-              {!isVideoUrl(images[activeImg]) && !isMobile && (
-                <button onClick={(e) => { e.stopPropagation(); setZoomed(!zoomed); }}
-                  style={{ position: 'absolute', bottom: 15, right: 15, background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '14px', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', backdropFilter: 'blur(8px)', zIndex: 10 }}>
-                  {zoomed ? <ZoomOut size={18} /> : <ZoomIn size={18} />}
-                </button>
-              )}
-
-              {/* Fullscreen button (mobile) */}
-              {isMobile && !isVideoUrl(images[activeImg]) && (
-                <button onClick={() => setFullScreenZoom(true)}
-                  style={{ position: 'absolute', bottom: 15, right: 15, background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '14px', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', zIndex: 10 }}>
-                  <Maximize2 size={18} />
-                </button>
+                <img src={images[activeImg]} alt={part.name} className="main-detail-img"
+                  style={{ width: '100%', height: 480, objectFit: 'contain', padding: isMobile ? '1.5rem' : '1rem', transition: 'transform 0.5s ease-out', transform: zoomed && !isMobile ? 'scale(2)' : 'scale(1)', transformOrigin: zoomed && !isMobile ? `${mousePos.x}% ${mousePos.y}%` : 'center' }} />
               )}
 
               {/* Navigation Arrows */}
               {images.length > 1 && (
                 <>
                   <button onClick={(e) => { e.stopPropagation(); setActiveImg((activeImg - 1 + images.length) % images.length); setZoomed(false); }}
-                    style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '50%', width: 38, height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', opacity: 0.6, transition: 'opacity 0.2s', zIndex: 10 }}
-                    onMouseEnter={e => e.currentTarget.style.opacity = '1'} onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}>
-                    <ChevronLeft size={20} />
+                    style={{ position: 'absolute', left: 15, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.95)', border: 'none', borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 10 }}>
+                    <ChevronLeft size={22} />
                   </button>
-                  <button className="part-nav-right" onClick={(e) => { e.stopPropagation(); setActiveImg((activeImg + 1) % images.length); setZoomed(false); }}
-                    style={{ position: 'absolute', right: 60, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '50%', width: 38, height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', opacity: 0.6, transition: 'opacity 0.2s', zIndex: 10 }}
-                    onMouseEnter={e => e.currentTarget.style.opacity = '1'} onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}>
-                    <ChevronRight size={20} />
+                  <button onClick={(e) => { e.stopPropagation(); setActiveImg((activeImg + 1) % images.length); setZoomed(false); }}
+                    style={{ position: 'absolute', right: 15, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.95)', border: 'none', borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 10 }}>
+                    <ChevronRight size={22} />
                   </button>
                 </>
-              )}
-
-              {/* Sold Out Overlay */}
-              {effectiveStock === 0 && !isCheckingPincode && (
-                <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
-                  <span style={{ background: '#E53935', color: 'white', fontWeight: 900, padding: '0.6rem 2rem', borderRadius: '12px', fontSize: '0.9rem', transform: 'rotate(-12deg)', border: '3px solid white', boxShadow: '0 8px 25px rgba(0,0,0,0.2)' }}>
-                    {selectedPincode.length === 6 && isUnavailable ? 'NOT AVAILABLE' : 'OUT OF STOCK'}
-                  </span>
-                </div>
               )}
             </div>
 
             {/* Thumbnails */}
             {images.length > 1 && (
-              <div className="hide-scrollbar part-thumb-row" style={{ display: 'flex', gap: '0.8rem', overflowX: 'auto', paddingBottom: '0.8rem', marginBottom: '2rem' }}>
+              <div className="hide-scrollbar" style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '1rem', marginBottom: '2rem' }}>
                 {images.map((src, i) => (
                   <button key={i} onClick={() => { setActiveImg(i); setZoomed(false); }}
-                    style={{ flexShrink: 0, width: 80, height: 80, borderRadius: '16px', overflow: 'hidden', border: '2.5px solid', borderColor: activeImg === i ? '#E53935' : 'transparent', cursor: 'pointer', padding: 0, position: 'relative', transition: 'all 0.2s', background: '#F5F5F5', opacity: activeImg === i ? 1 : 0.6, boxShadow: activeImg === i ? '0 4px 12px rgba(229,57,53,0.2)' : 'none' }}
-                    onMouseEnter={e => { if (activeImg !== i) e.currentTarget.style.opacity = '1'; }}
-                    onMouseLeave={e => { if (activeImg !== i) e.currentTarget.style.opacity = '0.6'; }}>
+                    style={{ flexShrink: 0, width: 90, height: 90, borderRadius: '18px', overflow: 'hidden', border: '2.5px solid', borderColor: activeImg === i ? '#E53935' : 'transparent', cursor: 'pointer', background: '#F5F5F5', opacity: activeImg === i ? 1 : 0.7, transition: 'all 0.2s' }}>
                     {isVideoUrl(src) ? (
                       <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111' }}>
-                        <span style={{ color: 'white', fontSize: '1.5rem' }}>▶</span>
+                        <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+                          <Play size={16} fill="white" color="white" />
+                        </div>
                       </div>
                     ) : (
                       <img src={src} alt={`Thumb ${i}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -318,155 +274,189 @@ export default function PartDetail() {
             )}
 
             {/* Description */}
-            {part.description && (
-              <div style={{ marginTop: '0.8rem', background: '#FFF', border: '1px solid #EEE', borderRadius: '20px', padding: '1.2rem', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-                <h3 style={{ color: '#111', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.2rem', fontWeight: 900, marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: 6, height: 20, background: '#E53935', borderRadius: '4px' }} />
-                  Product Details
-                </h3>
-                <p style={{ color: '#555', lineHeight: 1.6, fontSize: '0.95rem', fontWeight: 500 }}>{part.description}</p>
+            <div style={{ background: '#FFF', border: '1px solid #EEE', borderRadius: '24px', padding: '1.5rem', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+              <h3 style={{ color: '#111', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.4rem', fontWeight: 900, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <div style={{ width: 6, height: 24, background: '#E53935', borderRadius: '4px' }} />
+                Product Overview
+              </h3>
+              <p style={{ color: '#555', lineHeight: 1.7, fontSize: '1.05rem', fontWeight: 500 }}>{part.description}</p>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginTop: '1.5rem' }}>
+                <div style={{ padding: '1rem', background: '#F9F9F9', borderRadius: '16px', border: '1px solid #EEE' }}>
+                  <div style={{ color: '#888', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.3rem' }}>Category</div>
+                  <div style={{ color: '#111', fontWeight: 800, fontSize: '0.95rem' }}>{part.category?.replace('_', ' ').toUpperCase()}</div>
+                </div>
+                <div style={{ padding: '1rem', background: '#F9F9F9', borderRadius: '16px', border: '1px solid #EEE' }}>
+                  <div style={{ color: '#888', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.3rem' }}>Availability</div>
+                  <div style={{ color: effectiveStock > 0 ? '#2E7D32' : '#E53935', fontWeight: 800, fontSize: '0.95rem' }}>
+                    {effectiveStock > 0 ? `In Stock (${effectiveStock} units)` : 'Out of Stock'}
+                  </div>
+                </div>
               </div>
-            )}
+            </div>
           </div>
 
-          {/* Right: Product Details */}
+          {/* Right: Info & CTA */}
           <div style={{ position: 'sticky', top: 100 }}>
-            <div style={{ background: '#FFF', border: '1px solid #EEE', borderRadius: '20px', padding: '1.2rem', marginBottom: '1.2rem', boxShadow: '0 10px 40px rgba(0,0,0,0.03)' }}>
-            
-            {/* Header */}
-            <div style={{ marginBottom: '0.3rem' }}>
-              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+            <div style={{ background: '#FFF', border: '1px solid #EEE', borderRadius: '24px', padding: '1.5rem', boxShadow: '0 10px 40px rgba(0,0,0,0.04)' }}>
+              {/* Badge */}
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                <span style={{ background: 'rgba(229,57,53,0.1)', color: '#E53935', fontSize: '0.65rem', fontWeight: 900, padding: '4px 10px', borderRadius: '8px', letterSpacing: '0.05em' }}>
+                  GENUINE PART
+                </span>
+                {part.condition === 'new' && (
+                  <span style={{ background: 'rgba(46,125,50,0.1)', color: '#2E7D32', fontSize: '0.65rem', fontWeight: 900, padding: '4px 10px', borderRadius: '8px', letterSpacing: '0.05em' }}>
+                    NEW ARRIVAL
+                  </span>
+                )}
+              </div>
+
+              <h1 style={{ color: '#111', fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', fontWeight: 900, marginBottom: '0.4rem', lineHeight: 1.1 }}>
                 {part.name}
               </h1>
-            </div>
-            <div className="text-gray-500 font-medium mb-3">{part.brand || 'Original Equipment'}</div>
+              <p style={{ color: '#888', fontSize: '0.95rem', fontWeight: 600, marginBottom: '1.2rem' }}>{part.brand || 'Original MotoXpress Equipment'}</p>
 
-            {/* Ratings Section */}
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex items-center gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={18} className={i < Math.floor(part.ratings || 4.5) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200'} />
-                ))}
-              </div>
-              <span className="text-sm text-gray-400 font-medium ml-1">({part.numReviews || 12} Reviews)</span>
-            </div>
-
-            {/* Pricing Section */}
-            <div className="mb-6">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl font-bold text-gray-900">
-                  ₹{effectivePrice?.toLocaleString('en-IN')}
-                </span>
-                {effectiveOriginal > effectivePrice && (
-                  <span className="text-lg text-gray-400 line-through font-medium">MRP: ₹{effectiveOriginal?.toLocaleString('en-IN')}</span>
-                )}
-              </div>
-              {effectiveOriginal > effectivePrice && (
-                 <div className="mt-1">
-                   <span className="text-emerald-600 text-xs font-bold bg-emerald-50 px-2 py-1 rounded">
-                     SAVE ₹{(effectiveOriginal - effectivePrice).toLocaleString('en-IN')} ({discount}% OFF)
-                   </span>
-                 </div>
-              )}
-            </div>
-
-            {/* Pincode Check */}
-            <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-900 mb-2">
-                Pincode <span className="text-red-500">*</span>:
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={selectedPincode}
-                  onChange={(e) => handlePincodeChange(e.target.value)}
-                  placeholder="Enter Pincode"
-                  maxLength={6}
-                  className="w-full h-12 bg-white border border-gray-300 rounded-lg px-4 font-medium transition-all focus:outline-none focus:border-emerald-500"
-                />
-                <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                   {selectedPincode.length === 6 && (
-                     !isUnavailable ? <div className="p-1 bg-emerald-500 rounded-full text-white"><Check size={14} /></div> : <AlertCircle size={20} className="text-red-500" />
-                   )}
+              {/* Ratings */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid #EEE' }}>
+                <div style={{ display: 'flex', gap: '2px' }}>
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <Star key={i} size={16} fill={i <= 4 ? "#FFB400" : "none"} color="#FFB400" />
+                  ))}
                 </div>
+                <span style={{ color: '#AAA', fontSize: '0.85rem', fontWeight: 700 }}>({part.numReviews || 12} Verified Reviews)</span>
               </div>
-              
-              {/* Feedback messages */}
-              <div className="mt-2 text-xs space-y-1">
-                {selectedPincode.length === 6 && !isUnavailable && (
-                  <>
-                    <p className="text-gray-900 font-medium">Location: <span className="text-gray-500">{pincodeRule?.location || 'Your Area'}</span></p>
-                    <p className="text-emerald-600 font-bold">Availability: <span className="font-bold">Available (Qty {effectiveStock})</span></p>
-                  </>
-                )}
-                {isUnavailable && <p className="text-red-500 font-bold uppercase tracking-tight">Service unavailable for this Pincode</p>}
-                {isCheckingPincode && <p className="text-amber-600 font-medium flex items-center gap-1"><Clock size={12} className="animate-spin" /> Checking service...</p>}
-              </div>
-            </div>
 
-            {/* Pack Size / Variants */}
-            {availableSizes.length > 0 && (
-              <div className="mb-8">
-                <label className="block text-sm font-bold text-gray-900 mb-3 uppercase tracking-tight">
-                  Select Pack Size:
-                </label>
-                <div className="flex flex-wrap gap-3">
-                  {availableSizes.map((variant, index) => {
-                    const isSelected = selectedSize && normalizeSize(selectedSize.size) === normalizeSize(variant.size);
-                    const oos = variant.inventory <= 0 && !isCheckingPincode;
-                    
-                    return (
-                      <button
-                        key={index}
-                        disabled={oos}
-                        onClick={() => { userPickedSize.current = true; setSelectedSize(variant); }}
-                        style={{ height: 36, padding: '0 1rem', borderRadius: '8px', border: '1px solid', fontWeight: 700, fontSize: '0.7rem', transition: 'all 0.2s', cursor: oos ? 'not-allowed' : 'pointer', opacity: oos ? 0.4 : 1, background: isSelected ? '#EFF6FF' : '#FFF', borderColor: isSelected ? '#3B82F6' : '#D1D5DB', color: isSelected ? '#1D4ED8' : '#111' }}
-                      >
-                        {variant.size}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* CTA Action Bar */}
-            <div style={{ marginBottom: '1.5rem' }}>
-              {cartItem ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: '#F9F9F9', padding: '0.8rem', borderRadius: '12px', border: '1px solid #EEE' }}>
-                  <button onClick={() => updateQty(id, cartItem.quantity - 1)}
-                    style={{ width: 44, height: 44, borderRadius: '10px', border: 'none', background: '#111', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 900 }}>-</button>
-                  <div style={{ flex: 1, textAlign: 'center' }}>
-                    <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#888', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '0.2rem' }}>Qty in Cart</span>
-                    <span style={{ fontSize: '1.5rem', fontWeight: 950, color: '#111', fontFamily: 'Rajdhani, sans-serif' }}>{cartItem.quantity}</span>
+              {/* Pricing */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
+                  <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2.5rem', fontWeight: 950, color: '#111', lineHeight: 1 }}>
+                    ₹{effectivePrice?.toLocaleString('en-IN')}
                   </div>
-                  <button onClick={() => updateQty(id, cartItem.quantity + 1)}
-                    style={{ width: 44, height: 44, borderRadius: '10px', border: 'none', background: '#111', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 900 }}>+</button>
+                  {effectiveOriginal > effectivePrice && (
+                    <div style={{ color: '#AAA', fontSize: '1.1rem', textDecoration: 'line-through', fontWeight: 700 }}>
+                      ₹{effectiveOriginal?.toLocaleString('en-IN')}
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <button disabled={isUnavailable || effectiveStock === 0} onClick={handleAddToCart}
-                  className="btn-primary" style={{ width: '100%', height: '52px', borderRadius: '12px', fontSize: '1rem', fontWeight: 900, background: isUnavailable || effectiveStock === 0 ? '#EEE' : '#111', color: isUnavailable || effectiveStock === 0 ? '#AAA' : 'white', cursor: isUnavailable || effectiveStock === 0 ? 'not-allowed' : 'pointer', justifyContent: 'center' }}>
-                  <ShoppingCart size={20} /> {effectiveStock === 0 ? 'OUT OF STOCK' : 'ADD TO CART'}
-                </button>
+                {effectiveOriginal > effectivePrice && (
+                  <div style={{ marginTop: '0.6rem' }}>
+                    <span style={{ background: 'rgba(46,125,50,0.1)', color: '#2E7D32', fontSize: '0.8rem', fontWeight: 900, padding: '4px 10px', borderRadius: '8px', fontFamily: 'Rajdhani, sans-serif' }}>
+                      YOU SAVE ₹{(effectiveOriginal - effectivePrice).toLocaleString('en-IN')} ({discount}%)
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Pincode Section */}
+              <div style={{ background: '#F9F9F9', borderRadius: '18px', padding: '1.2rem', marginBottom: '1.5rem', border: '1px solid #EEE' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.8rem' }}>
+                  <MapPin size={16} color="#E53935" />
+                  <span style={{ color: '#111', fontSize: '0.85rem', fontWeight: 900, fontFamily: 'Rajdhani, sans-serif' }}>CHECK DELIVERY STATUS</span>
+                </div>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    value={selectedPincode}
+                    onChange={(e) => handlePincodeChange(e.target.value)}
+                    placeholder="Enter 6-digit Pincode"
+                    maxLength={6}
+                    style={{ width: '100%', height: '48px', background: 'white', border: '1.5px solid #EEE', borderRadius: '12px', padding: '0 1rem', fontSize: '0.9rem', fontWeight: 700, outline: 'none', transition: 'border-color 0.2s' }}
+                    onFocus={e => e.target.style.borderColor = '#111'}
+                    onBlur={e => e.target.style.borderColor = '#EEE'}
+                  />
+                  {selectedPincode.length === 6 && (
+                    <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)' }}>
+                      {!isUnavailable ? <CheckCircle size={20} color="#2E7D32" /> : <AlertCircle size={20} color="#E53935" />}
+                    </div>
+                  )}
+                </div>
+                {selectedPincode.length === 6 && !isUnavailable && (
+                  <div style={{ marginTop: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                    <div style={{ color: '#666', fontSize: '0.75rem', fontWeight: 600 }}>Location: <span style={{ color: '#111', fontWeight: 800 }}>{pincodeRule?.location || 'Verified Area'}</span></div>
+                    <div style={{ color: '#2E7D32', fontSize: '0.75rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '4px' }}><Check size={12} /> Delivery available to your doorstep</div>
+                  </div>
+                )}
+                {isUnavailable && <div style={{ marginTop: '0.8rem', color: '#E53935', fontSize: '0.75rem', fontWeight: 800 }}>Sorry, we don't deliver to this area yet.</div>}
+              </div>
+
+              {/* Variants */}
+              {availableSizes.length > 0 && (
+                <div style={{ marginBottom: '2rem' }}>
+                  <div style={{ color: '#111', fontSize: '0.85rem', fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', marginBottom: '0.8rem', textTransform: 'uppercase' }}>Available Sizes</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
+                    {availableSizes.map((variant, index) => {
+                      const isSelected = selectedSize && normalizeSize(selectedSize.size) === normalizeSize(variant.size);
+                      const oos = variant.inventory <= 0 && !isCheckingPincode;
+                      return (
+                        <button key={index} disabled={oos} onClick={() => { userPickedSize.current = true; setSelectedSize(variant); }}
+                          className={`size-btn ${isSelected ? 'active' : ''}`}
+                          style={{ padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.72rem', fontWeight: 800, opacity: oos ? 0.4 : 1, cursor: oos ? 'not-allowed' : 'pointer' }}>
+                          {variant.size}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
+
+              {/* Action */}
+              <div>
+                {cartItem ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: '#F9F9F9', padding: '0.8rem', borderRadius: '16px', border: '1px solid #EEE' }}>
+                    <button onClick={() => updateQty(id, cartItem.quantity - 1)} className="action-btn-zoom"
+                      style={{ width: 44, height: 44, borderRadius: '12px', border: 'none', background: '#111', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 900 }}>-</button>
+                    <div style={{ flex: 1, textAlign: 'center' }}>
+                      <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#888', textTransform: 'uppercase', display: 'block' }}>In Cart</span>
+                      <span style={{ fontSize: '1.4rem', fontWeight: 950, color: '#111', fontFamily: 'Rajdhani, sans-serif' }}>{cartItem.quantity}</span>
+                    </div>
+                    <button onClick={() => updateQty(id, cartItem.quantity + 1)} className="action-btn-zoom"
+                      style={{ width: 44, height: 44, borderRadius: '12px', border: 'none', background: '#111', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 900 }}>+</button>
+                  </div>
+                ) : (
+                  <button disabled={isUnavailable || effectiveStock === 0} onClick={handleAddToCart}
+                    className="action-btn-zoom" 
+                    style={{ width: '100%', height: '56px', borderRadius: '16px', fontSize: '1.1rem', fontWeight: 900, background: isUnavailable || effectiveStock === 0 ? '#EEE' : '#E53935', color: isUnavailable || effectiveStock === 0 ? '#AAA' : 'white', cursor: isUnavailable || effectiveStock === 0 ? 'not-allowed' : 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.8rem', fontFamily: 'Rajdhani, sans-serif' }}>
+                    <ShoppingCart size={22} /> {effectiveStock === 0 ? 'OUT OF STOCK' : 'ADD TO CART'}
+                  </button>
+                )}
+                
+                <button onClick={handleShare} style={{ width: '100%', marginTop: '1rem', background: 'none', border: 'none', color: '#888', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#111'} onMouseLeave={e => e.currentTarget.style.color = '#888'}>
+                  <Share2 size={16} /> Share with Friends
+                </button>
+              </div>
             </div>
-            </div>{/* close card div */}
-          </div>{/* close sticky right div */}
-        </div>{/* close grid */}
+          </div>
+        </div>
 
         {/* Similar Products */}
         {similar.length > 0 && (
-          <div style={{ marginTop: '4rem', marginBottom: '4rem', borderTop: '1px solid #EEE', paddingTop: '3rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-              <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', fontWeight: 900, color: '#111' }}>Recommended <span style={{ color: '#E53935' }}>Items</span></h3>
-              <Link to="/parts" style={{ color: '#E53935', fontWeight: 800, fontSize: '0.9rem', textDecoration: 'none' }}>View All</Link>
+          <div style={{ marginTop: '5rem', marginBottom: '4rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: '2.5rem' }}>
+              <div>
+                <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2rem', fontWeight: 900, color: '#111', lineHeight: 1 }}>RECOMMENDED <span style={{ color: '#E53935' }}>SPARE PARTS</span></h3>
+                <div style={{ width: 60, height: 4, background: '#E53935', marginTop: '0.8rem', borderRadius: '4px' }} />
+              </div>
+              <Link to="/parts" style={{ color: '#E53935', fontWeight: 800, fontSize: '0.9rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                VIEW ALL STORE <ArrowRight size={16} />
+              </Link>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' }}>
               {similar.map(p => <PartCard key={p._id || p.id} part={p} />)}
             </div>
           </div>
         )}
       </div>
+
+      {/* Fullscreen Zoom Root Portal-like (keeping it simple) */}
+      {fullScreenZoom && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', backdropFilter: 'blur(10px)' }} onClick={() => setFullScreenZoom(false)}>
+          <img src={images[activeImg]} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+          <button style={{ position: 'absolute', top: 30, right: 30, background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: 50, height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <X size={30} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -14,6 +14,7 @@ const navLinks = [
   { label: 'Parts', href: '/parts' },
   { label: 'Featured', href: '/featured' },
   { label: 'Bestseller', href: '/bestseller' },
+  { label: 'About', href: '/about' },
   { label: 'Contact', href: '/contact' },
 ];
 
@@ -121,33 +122,39 @@ export default function Navbar() {
 
           {/* Right side */}
           <div className="flex items-center gap-3">
-            {/* Search */}
-            <div className="hidden md:block" style={{ position: 'relative' }}>
+            {/* Search Toggle */}
+            <div style={{ position: 'relative' }}>
               {!searchOpen ? (
-                <button onClick={() => { setSearchOpen(true); setTimeout(() => document.getElementById('nav-search-input')?.focus(), 100); }}
+                <button onClick={() => { setSearchOpen(true); setTimeout(() => document.getElementById(window.innerWidth < 768 ? 'nav-search-input-mobile' : 'nav-search-input')?.focus(), 100); }}
                   style={{ color: '#ccc', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
                   <Search size={20} />
                 </button>
               ) : (
-                <form onSubmit={handleSearchSubmit} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: '8px', padding: '0.3rem 0.7rem' }}>
-                  <Search size={14} style={{ color: '#E53935', flexShrink: 0 }} />
-                  <input
-                    id="nav-search-input"
-                    type="text"
-                    placeholder="Search bikes, parts..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onBlur={() => { if (!searchQuery) setSearchOpen(false); }}
-                    style={{ background: 'none', border: 'none', outline: 'none', color: 'white', width: 160, fontSize: '0.82rem' }}
-                  />
-                  {searchQuery && (
-                    <button type="button" onClick={() => { setSearchQuery(''); setSearchOpen(false); }} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '1rem', lineHeight: 1 }}>×</button>
-                  )}
-                </form>
+                <>
+                  {/* Desktop Only Inline Search */}
+                  <form onSubmit={handleSearchSubmit} 
+                    className="hidden md:flex items-center gap-2 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg px-3 py-1.5 absolute right-0 top-1/2 -translate-y-1/2 z-50 transition-all duration-300"
+                    style={{ width: '200px' }}>
+                    <Search size={14} style={{ color: '#E53935', flexShrink: 0 }} />
+                    <input
+                      id="nav-search-input"
+                      type="text"
+                      placeholder="Search..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onBlur={() => { if (!searchQuery) setSearchOpen(false); }}
+                      style={{ background: 'none', border: 'none', outline: 'none', color: 'white', flex: 1, fontSize: '0.82rem' }}
+                    />
+                    <button type="button" onClick={() => { setSearchQuery(''); setSearchOpen(false); }} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer' }}>
+                      <X size={14} />
+                    </button>
+                  </form>
+                  {/* Mobile Search is handled below the main row */}
+                </>
               )}
             </div>
 
-            {/* Pincode Input */}
+            {/* Pincode Input - Desktop only */}
             <div className="hidden md:flex items-center gap-1.5" style={{ background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: '8px', padding: '0.3rem 0.7rem' }}>
               <MapPin size={13} style={{ color: '#E53935', flexShrink: 0 }} />
               <input
@@ -263,23 +270,29 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Nav */}
-        {mobileOpen && (
-          <div style={{ borderTop: '1px solid #1e1e1e', padding: '1rem 0' }}>
-            {/* Search in mobile */}
-            <form onSubmit={handleSearchSubmit} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: '8px', padding: '0.5rem 0.8rem', marginBottom: '0.75rem' }}>
+        {/* Mobile Search Bar - Directly Below Navbar Row */}
+        {searchOpen && (
+          <div className="md:hidden" style={{ background: '#111111', padding: '0.75rem 1rem', borderTop: '1px solid #1e1e1e' }}>
+            <form onSubmit={handleSearchSubmit} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: '8px', padding: '0.5rem 0.8rem' }}>
               <Search size={14} style={{ color: '#E53935', flexShrink: 0 }} />
               <input
+                id="nav-search-input-mobile"
                 type="text"
                 placeholder="Search bikes, parts..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ background: 'none', border: 'none', outline: 'none', color: 'white', flex: 1, fontSize: '0.9rem', minWidth: 0 }}
+                style={{ background: 'none', border: 'none', outline: 'none', color: 'white', flex: 1, fontSize: '0.9rem' }}
               />
-              {searchQuery && (
-                <button type="button" onClick={() => setSearchQuery('')} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer' }}>×</button>
-              )}
+              <button type="button" onClick={() => { setSearchQuery(''); setSearchOpen(false); }} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer' }}>
+                <X size={16} />
+              </button>
             </form>
+          </div>
+        )}
+
+        {/* Mobile Nav Menu */}
+        {mobileOpen && (
+          <div style={{ borderTop: '1px solid #1e1e1e', padding: '1rem 0' }}>
             {/* Pincode in mobile */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: '8px', padding: '0.5rem 0.8rem', marginBottom: '0.75rem' }}>
               <MapPin size={14} style={{ color: '#E53935', flexShrink: 0 }} />

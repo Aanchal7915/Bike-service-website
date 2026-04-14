@@ -7,7 +7,6 @@ import BikeCard from '../components/bikes/BikeCard';
 import PartCard from '../components/parts/PartCard';
 import { getActiveServiceTypes } from '../api/serviceApi';
 import { PageLoader } from '../components/common/LoadingSpinner';
-import heroBikeVideo from '../assets/bike-hero.mp4';
 import heroBike from '../assets/hero-bike.png';
 import heroBikeMobile from '../assets/hero-bike (2).png';
 import instantQuote from '../assets/instant-quote.png';
@@ -35,12 +34,6 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [serviceTypes, setServiceTypes] = useState([]);
   const [servicesLoading, setServicesLoading] = useState(true);
-  const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
-
-  useEffect(() => {
-    const reviewTimer = setInterval(() => setCurrentReviewIndex(i => (i + 1) % 3), 6000);
-    return () => clearInterval(reviewTimer);
-  }, []);
 
   useEffect(() => {
     Promise.all([
@@ -175,51 +168,29 @@ export default function Home() {
           {/* Decorative background circle */}
           <div style={{ position: 'absolute', width: '120%', height: '120%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(229,57,53,0.05) 0%, transparent 70%)', zIndex: 0 }} />
 
-          {/* Bike media wrapper with floating animation */}
+          {/* Bike image wrapper with floating animation */}
           <div style={{ position: 'relative', zIndex: 1, width: '100%', height: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
-            <style>{`
-              @media (min-width: 769px) {
-                .hero-video-laptop { display: block !important; }
-                .hero-img-mobile { display: none !important; }
-              }
-              @media (max-width: 768px) {
-                .hero-video-laptop { display: none !important; }
-                .hero-img-mobile { display: block !important; }
-              }
-            `}</style>
-            
-            <video
-              src={heroBikeVideo}
-              autoPlay
-              muted
-              loop
-              playsInline
-              className="hero-video-laptop"
-              style={{
-                display: 'none',
-                maxWidth: '115%',
-                maxHeight: '95%',
-                objectFit: 'contain',
-                filter: 'drop-shadow(0 30px 60px rgba(0,0,0,0.6))',
-                transform: 'translate(-5%, -80%)',
-                objectPosition: 'top',
-                animation: 'float 6s ease-in-out infinite'
-              }}
-            />
-
-            <img
-              src={heroBikeMobile}
-              alt="Hero Bike"
-              className="hero-img-mobile"
-              style={{
-                display: 'none',
-                maxWidth: '100%',
-                maxHeight: '100%',
-                objectFit: 'contain',
-                filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.4))'
-              }}
-            />
-            {/* Pulsing glow under media */}
+            <picture>
+              <source media="(max-width: 768px)" srcSet={heroBikeMobile} />
+              <img
+                src={heroBike}
+                alt="Hero Bike"
+                style={{
+                  background:"black",
+                  maxWidth: '115%',
+                  maxHeight: '95%',
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 30px 60px rgba(0,0,0,0.6))',
+                  transition: 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                  animation: 'float 6s ease-in-out infinite',
+                  transform: 'translate(-5%, -80%)',
+                  objectPosition: 'top'
+                }}
+                onMouseEnter={e => e.target.style.transform = 'scale(1.08) rotate(-2deg)'}
+                onMouseLeave={e => e.target.style.transform = 'scale(1) rotate(0deg)'}
+              />
+            </picture>
+            {/* Pulsing glow under image */}
             <div style={{ position: 'absolute', bottom: '20%', width: '60%', height: '20px', background: 'rgba(229,57,53,0.15)', borderRadius: '50%', filter: 'blur(20px)', animation: 'pulse 4s infinite' }} />
           </div>
 
@@ -278,17 +249,18 @@ export default function Home() {
         </section>
       )}
 
-      <section style={{ background: '#000', padding: '6rem 0' }}>
+      {/* SERVICE CATEGORIES */}
+      <section style={{ background: '#FFFFFF', padding: '6rem 0' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '4rem', flexWrap: 'wrap', gap: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3.5rem', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
-              <p style={{ color: '#E53935', fontWeight: 800, fontSize: '0.9rem', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: '0.8rem' }}>Professional Care</p>
-              <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '3.5rem', fontWeight: 900, color: 'white', lineHeight: 1 }}>
+              <p style={{ color: '#E53935', fontWeight: 800, fontSize: '0.85rem', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Professional Care</p>
+              <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2.8rem', fontWeight: 900, color: '#111', lineHeight: 1.1 }}>
                 Our Expert <span style={{ color: '#E53935' }}>Services</span>
               </h2>
             </div>
             <Link to="/services" style={{ 
-              background: '#E53935', 
+              background: '#000', 
               color: 'white', 
               padding: '0.75rem 2rem', 
               fontSize: '0.9rem', 
@@ -299,10 +271,10 @@ export default function Home() {
               alignItems: 'center', 
               gap: '0.6rem', 
               transition: 'all 0.2s',
-              boxShadow: '0 4px 15px rgba(229,57,53,0.3)'
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
             }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#C62828'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#E53935'; e.currentTarget.style.transform = 'translateY(0)'; }}>
+              onMouseEnter={e => { e.currentTarget.style.background = '#222'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#000'; e.currentTarget.style.transform = 'translateY(0)'; }}>
               Explore All <ArrowRight size={17} />
             </Link>
           </div>
@@ -312,56 +284,26 @@ export default function Home() {
               {[...Array(4)].map((_, i) => <div key={i} className="skeleton" style={{ height: 160, borderRadius: '10px' }} />)}
             </div>
           ) : (
-          <div className="home-services-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.6rem' }}>
-            {serviceTypes.map((service, idx) => (
+          <div className="home-services-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1rem' }}>
+            {serviceTypes.map((service) => (
               <div key={service.value} style={{ 
                 background: 'white', 
-                border: '2px solid transparent',
+                border: '1px solid #F0F0F0',
                 borderLeft: '4px solid #E53935',
                 borderRadius: '10px', 
-                padding: '0.8rem', 
+                padding: '1.2rem', 
                 textAlign: 'left', 
-                boxShadow: '0 4px 15px rgba(0,0,0,0.1)', 
+                boxShadow: '0 4px 15px rgba(0,0,0,0.02)', 
                 transition: 'all 0.3s ease',
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'space-between',
-                position: 'relative',
-                overflow: 'hidden'
+                justifyContent: 'space-between'
               }}
-                onMouseEnter={(e) => { 
-                  e.currentTarget.style.transform = 'translateY(-5px)'; 
-                  e.currentTarget.style.borderColor = '#E53935';
-                  e.currentTarget.style.boxShadow = '0 12px 25px rgba(229,57,53,0.15)'; 
-                  e.currentTarget.style.background = '#FFF5F5'; 
-                  e.currentTarget.querySelector('h3').style.color = '#E53935'; 
-                  e.currentTarget.querySelector('p').style.color = '#000'; 
-                }}
-                onMouseLeave={(e) => { 
-                  e.currentTarget.style.transform = 'translateY(0)'; 
-                  e.currentTarget.style.borderColor = 'transparent';
-                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
-                  e.currentTarget.style.background = '#fff'; 
-                  e.currentTarget.querySelector('h3').style.color = '#111'; 
-                  e.currentTarget.querySelector('p').style.color = '#666'; 
-                }}>
-                <div style={{ position: 'absolute', top: '0.4rem', right: '0.6rem', fontSize: '1.8rem', fontWeight: 900, color: 'rgba(0,0,0,0.04)', fontFamily: 'Rajdhani, sans-serif', pointerEvents: 'none' }}>
-                  {String(idx + 1).padStart(2, '0')}
-                </div>
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 12px 25px rgba(229,57,53,0.08)'; e.currentTarget.style.background = '#000'; e.currentTarget.querySelector('h3').style.color = '#fff'; e.currentTarget.querySelector('p').style.color = '#aaa'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.02)'; e.currentTarget.style.background = '#fff'; e.currentTarget.querySelector('h3').style.color = '#111'; e.currentTarget.querySelector('p').style.color = '#666'; }}>
                 <div>
-                  <div style={{ color: '#E53935', marginBottom: '0.4rem', transition: 'all 0.3s' }}>
-                    {service.label.toLowerCase().includes('engine') ? <Zap size={22} /> :
-                     service.label.toLowerCase().includes('oil') ? <Wrench size={22} /> :
-                     service.label.toLowerCase().includes('brake') ? <Shield size={22} /> :
-                     service.label.toLowerCase().includes('tyre') || service.label.toLowerCase().includes('wheel') ? <TrendingUp size={22} /> :
-                     service.label.toLowerCase().includes('clean') || service.label.toLowerCase().includes('wash') ? <Star size={22} /> :
-                     service.label.toLowerCase().includes('express') ? <Clock size={22} /> :
-                     service.label.toLowerCase().includes('battery') ? <Zap size={22} /> :
-                     service.label.toLowerCase().includes('pick') || service.label.toLowerCase().includes('door') ? <MapPin size={22} /> :
-                     <Wrench size={22} />}
-                  </div>
-                  <h3 style={{ color: '#111', fontWeight: 800, fontSize: '0.95rem', marginBottom: '0.5rem', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase', transition: 'color 0.2s' }}>{service.label}</h3>
-                  <p style={{ color: '#666', fontSize: '0.75rem', lineHeight: 1.5, marginBottom: '1.2rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', transition: 'color 0.2s' }}>{service.desc}</p>
+                  <h3 style={{ color: '#111', fontWeight: 800, fontSize: '0.95rem', marginBottom: '0.5rem', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>{service.label}</h3>
+                  <p style={{ color: '#666', fontSize: '0.75rem', lineHeight: 1.5, marginBottom: '1.2rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{service.desc}</p>
                 </div>
                 <Link to="/services" style={{ 
                   display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
@@ -378,7 +320,7 @@ export default function Home() {
           )}
           <style>{`
             @media (min-width: 1024px) {
-              .home-why-grid, .home-services-grid { grid-template-columns: repeat(6, 1fr) !important; gap: 0.8rem !important; }
+              .home-why-grid { grid-template-columns: repeat(6, 1fr) !important; gap: 0.8rem !important; }
             }
             @media (max-width: 768px) {
               .home-why-grid, .home-services-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.6rem !important; }
@@ -501,115 +443,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TESTIMONIALS SECTION */}
-      <section className="testimonial-section" style={{ background: '#F9F9F9', padding: '4rem 0', overflow: 'hidden' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <p style={{ color: '#E53935', fontWeight: 800, fontSize: '0.9rem', letterSpacing: '0.3em', textTransform: 'uppercase', marginBottom: '1rem' }}>Testimonials</p>
-            <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '3.2rem', fontWeight: 900, color: '#111', lineHeight: 1 }}>
-              What Our <span style={{ color: '#E53935' }}>Riders</span> Say
-            </h2>
-            <div style={{ width: 60, height: 4, background: '#E53935', margin: '1.5rem auto 0', borderRadius: '2px' }} />
-          </div>
-
-          <style>{`
-            .testimonial-track {
-              display: flex;
-              gap: 4rem;
-              width: max-content;
-              animation: slide-testimonials 35s linear infinite;
-              padding: 2.5rem 0;
-            }
-            .testimonial-track:hover {
-              animation-play-state: paused;
-            }
-            @keyframes slide-testimonials {
-              0% { transform: translateX(0); }
-              100% { transform: translateX(calc(-380px * 5 - 20rem)); }
-            }
-            .slide-dots {
-              display: flex;
-              justify-content: center;
-              gap: 1rem;
-              margin-top: 1rem;
-            }
-            .slide-dot {
-              width: 10px;
-              height: 10px;
-              border-radius: 5px;
-              background: #DDD;
-              transition: all 0.3s ease;
-            }
-            .slide-dot.active {
-              width: 30px;
-              background: #E53935;
-            }
-            @media (max-width: 768px) {
-              .testimonial-section { padding: 2.5rem 0 !important; }
-              .testimonial-section h2 { font-size: 2.2rem !important; }
-              .testimonial-track { gap: 2rem; padding: 1.5rem 0; }
-            }
-          `}</style>
-
-          <div style={{ overflow: 'hidden' }}>
-            <div className="testimonial-track">
-              {[
-                { name: "Rahul Sharma", role: "Royal Enfield Rider", review: "Selling my Classic 350 was incredibly smooth. Got the quote in seconds and the inspection was done within 45 minutes. Truly professional!", color: "#E53935", img: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200" },
-                { name: "Priya Patel", role: "Honda Activa Owner", review: "The doorstep service is a life saver. Dedicated mechanic, genuine parts, and zero hassle. My scooty feels brand new again.", color: "#111", img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200" },
-                { name: "Aman Singh", role: "KTM RC 390 Rider", review: "Finally a platform that understands superbikes. Found rare spares easily and the performance tuning service is excellent.", color: "#E53935", img: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=200" },
-                { name: "Suresh Kumar", role: "Bajaj Dominar Rider", review: "Extensive parts collection! Found a rare silencer for my bike that wasn't available anywhere else in the city.", color: "#111", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200" },
-                { name: "Anjali Singh", role: "Adventure Rider", review: "Booked my 50k km service online. The pickup and drop were exactly on time. Very professional automotive service.", color: "#E53935", img: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=200" },
-                // Loop copies
-                { name: "Rahul Sharma", role: "Royal Enfield Rider", review: "Selling my Classic 350 was incredibly smooth. Got the quote in seconds and the inspection was done within 45 minutes. Truly professional!", color: "#E53935", img: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200" },
-                { name: "Priya Patel", role: "Honda Activa Owner", review: "The doorstep service is a life saver. Dedicated mechanic, genuine parts, and zero hassle. My scooty feels brand new again.", color: "#111", img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200" },
-              ].map((item, i) => (
-                <div key={i} style={{ position: 'relative', width: '380px', flexShrink: 0 }}>
-                  <div style={{
-                    position: 'absolute',
-                    left: '-45px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    width: '90px',
-                    height: '90px',
-                    borderRadius: '50%',
-                    border: `4px solid ${item.color}`,
-                    overflow: 'hidden',
-                    background: '#fff',
-                    boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
-                    zIndex: 2
-                  }}>
-                    <img src={item.img} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={item.name} />
-                  </div>
-                  <div style={{
-                    background: '#fff',
-                    padding: '2.5rem 2rem 2.5rem 3.5rem',
-                    borderRadius: '24px',
-                    border: `1px solid ${item.color === '#111' ? '#111' : '#EEE'}`,
-                    boxShadow: '0 15px 35px rgba(0,0,0,0.05)',
-                    position: 'relative'
-                  }}>
-                    <div style={{ position: 'absolute', top: '15px', right: '25px', color: '#EEE', fontSize: '4rem', fontFamily: 'serif', lineHeight: 1, opacity: 0.5 }}>"</div>
-                    <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, fontSize: '1.4rem', color: '#111', marginBottom: '0.2rem' }}>{item.name}</h3>
-                    <p style={{ fontSize: '0.8rem', color: '#E53935', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1.2rem' }}>{item.role}</p>
-                    <div style={{ display: 'flex', gap: '2px', marginBottom: '1.2rem' }}>
-                      {[...Array(5)].map((_, j) => <Star key={j} size={12} fill="#FFB400" color="#FFB400" />)}
-                    </div>
-                    <p style={{ color: '#555', fontSize: '0.92rem', lineHeight: 1.6, fontStyle: 'italic' }}>"{item.review}"</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Pagination Dots */}
-            <div className="slide-dots">
-              {[0, 1, 2].map((dot) => (
-                <div key={dot} className={`slide-dot ${dot === 0 ? 'active' : ''}`} />
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA BANNER */}
       <section style={{
         background: 'linear-gradient(135deg, #C62828 0%, #E53935 50%, #FF5252 100%)',
@@ -631,9 +464,7 @@ export default function Home() {
             Sell My Bike Now <ArrowRight size={18} />
           </Link>
         </div>
-      
       </section>
     </div>
   );
 }
-

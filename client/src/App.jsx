@@ -25,6 +25,7 @@ import FeaturedParts from './pages/FeaturedParts';
 import BestsellerParts from './pages/BestsellerParts';
 import FeaturedBikes from './pages/FeaturedBikes';
 import BestsellerBikes from './pages/BestsellerBikes';
+import About from './pages/About';
 import Contact from './pages/Contact';
 
 const Layout = ({ children, hideNav = false }) => (
@@ -74,6 +75,7 @@ function App() {
             <Route path="/my-orders" element={<Layout><MyBookings /></Layout>} />
             <Route path="/profile" element={<Layout><Profile /></Layout>} />
             <Route path="/wishlist" element={<Layout><Wishlist /></Layout>} />
+            <Route path="/about" element={<Layout><About /></Layout>} />
             <Route path="/contact" element={<Layout><Contact /></Layout>} />
 
             {/* 404 */}

@@ -97,7 +97,9 @@ export default function BikeDetail() {
           .bike-price-text { font-size: 2rem !important; }
           .bike-thumb-row { gap: 0.4rem !important; flex-wrap: wrap !important; }
           .bike-thumb-row button { width: 50px !important; height: 50px !important; border-radius: 8px !important; }
-          .bike-nav-right { right: 12px !important; }
+          .action-btn-zoom { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; }
+          .action-btn-zoom:hover { transform: scale(1.03) translateY(-2px) !important; box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important; }
+          .action-btn-zoom:active { transform: scale(0.98) !important; }
         }
       `}</style>
       {/* Breadcrumb */}
@@ -145,7 +147,7 @@ export default function BikeDetail() {
               {/* Discount badge */}
               {discount > 0 && (
                 <div style={{ position: 'absolute', top: 15, left: 15, zIndex: 10 }}>
-                  <span style={{ background: '#111', color: 'white', fontSize: '0.65rem', fontWeight: 900, padding: '4px 10px', borderRadius: '8px', letterSpacing: '0.04em' }}>{discount}% OFF</span>
+                  <span style={{ background: '#2E7D32', color: 'white', fontSize: '0.65rem', fontWeight: 900, padding: '4px 10px', borderRadius: '8px', letterSpacing: '0.04em' }}>{discount}% OFF</span>
                 </div>
               )}
 
@@ -343,12 +345,51 @@ export default function BikeDetail() {
               )}
  
               {/* Action Buttons */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-                <button onClick={handleEnquire} disabled={enquirySending} className="btn-primary" style={{ height: '52px', borderRadius: '12px', fontSize: '1rem', fontWeight: 900, background: '#111' }}>
-                  <MessageCircle size={20} /> {enquirySending ? 'SENDING...' : 'ENQUIRE NOW'}
+              <div style={{ display: 'flex', flexDirection: 'row', gap: '0.8rem', marginTop: '1.5rem' }}>
+                <button 
+                  onClick={handleEnquire} 
+                  disabled={enquirySending} 
+                  className="action-btn-zoom"
+                  style={{ 
+                    flex: 1, 
+                    height: '52px', 
+                    borderRadius: '12px', 
+                    fontSize: '0.9rem', 
+                    fontWeight: 900, 
+                    background: '#E53935', 
+                    color: 'white', 
+                    border: 'none', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: '0.4rem', 
+                    cursor: enquirySending ? 'not-allowed' : 'pointer',
+                    fontFamily: 'Rajdhani, sans-serif'
+                  }}
+                >
+                  <MessageCircle size={18} /> {enquirySending ? '...' : 'ENQUIRE NOW'}
                 </button>
                 {bike.seller?.phone && (
-                  <a href={`tel:${bike.seller.phone}`} className="btn-outline" style={{ height: '52px', borderRadius: '12px', fontSize: '1rem', fontWeight: 800, background: '#FFF', color: '#111', border: '2px solid #111', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <a 
+                    href={`tel:${bike.seller.phone}`} 
+                    className="action-btn-zoom"
+                    style={{ 
+                      flex: 1, 
+                      height: '52px', 
+                      borderRadius: '12px', 
+                      fontSize: '0.9rem', 
+                      fontWeight: 900, 
+                      background: '#111', 
+                      color: 'white', 
+                      border: 'none', 
+                      textDecoration: 'none', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      gap: '0.4rem',
+                      fontFamily: 'Rajdhani, sans-serif'
+                    }}
+                  >
                     <Phone size={18} /> CALL SELLER
                   </a>
                 )}

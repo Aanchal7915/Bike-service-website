@@ -77,28 +77,31 @@ export default function BikeCard({ bike, hideBadges = false }) {
           <button
             onClick={handleWishlist}
             style={{
-              position: 'absolute', top: 12, right: 12,
-              width: 34, height: 34, borderRadius: '50%',
-              background: isWishlisted ? '#E53935' : 'rgba(17,17,17,0.85)',
+              position: 'absolute', top: 10, right: 10,
+              width: 28, height: 28, borderRadius: '50%',
+              background: isWishlisted ? '#E53935' : 'rgba(255,255,255,0.9)',
               border: 'none',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', backdropFilter: 'blur(10px)',
+              cursor: 'pointer', backdropFilter: 'blur(4px)',
               transform: isWishlisted ? 'scale(1.1)' : 'scale(1)',
-              transition: 'all 0.25s',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              transition: 'all 0.2s',
+              boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
               zIndex: 10
             }}
           >
-            <Heart size={14} fill={isWishlisted ? 'white' : 'none'} color="white" />
+            <Heart size={12} fill={isWishlisted ? 'white' : 'none'} color={isWishlisted ? 'white' : '#E53935'} strokeWidth={2.5} />
           </button>
 
           {/* Top-left: Type Badge */}
-          <div style={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: '0.5rem' }}>
+          <div style={{ position: 'absolute', top: 10, left: 10 }}>
             <span style={{
-              background: bike.type === 'new' ? '#2E7D32' : '#111', color: 'white',
-              fontSize: '0.65rem', fontWeight: 950,
-              padding: '3px 12px', borderRadius: '30px',
-              letterSpacing: '0.04em', textTransform: 'uppercase'
+              background: bike.type === 'new' ? 'rgba(46,125,50,0.9)' : 'rgba(17,17,17,0.8)', 
+              color: 'white',
+              fontSize: '0.55rem', fontWeight: 800,
+              padding: '2px 8px', borderRadius: '4px',
+              letterSpacing: '0.05em', textTransform: 'uppercase',
+              backdropFilter: 'blur(4px)',
+              border: '1px solid rgba(255,255,255,0.1)'
             }}>
               {bike.type === 'new' ? 'NEW' : 'USED'}
             </span>
