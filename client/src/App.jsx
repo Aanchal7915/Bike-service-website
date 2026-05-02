@@ -27,6 +27,8 @@ import FeaturedBikes from './pages/FeaturedBikes';
 import BestsellerBikes from './pages/BestsellerBikes';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import Rentals from './pages/Rentals';
+import RentalDetail from './pages/RentalDetail';
 
 const Layout = ({ children, hideNav = false }) => (
   <>
@@ -71,6 +73,8 @@ function App() {
             <Route path="/bestseller" element={<Layout><BestsellerParts /></Layout>} />
             <Route path="/parts/:id" element={<Layout><PartDetail /></Layout>} />
             <Route path="/cart" element={<Layout><Cart /></Layout>} />
+            <Route path="/rentals" element={<Layout><Rentals /></Layout>} />
+            <Route path="/rentals/:id" element={<Layout><RentalDetail /></Layout>} />
             <Route path="/my-bookings" element={<Layout><MyBookings /></Layout>} />
             <Route path="/my-orders" element={<Layout><MyBookings /></Layout>} />
             <Route path="/profile" element={<Layout><Profile /></Layout>} />

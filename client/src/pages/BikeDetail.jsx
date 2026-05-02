@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getBike, enquireBike } from '../api/bikeApi';
-import { toggleWishlist } from '../api/authApi';
 import { useAuth } from '../context/AuthContext';
 import { PageLoader } from '../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
@@ -11,12 +10,12 @@ const isVideo = (url = '') => /\.(mp4|mov|webm|ogg|m4v)(\?.*)?$/i.test(url) || u
 
 export default function BikeDetail() {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, wishlist = [], toggleWishlist } = useAuth();
   const navigate = useNavigate();
   const [bike, setBike] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [wishlisted, setWishlisted] = useState(false);
+  const wishlisted = Array.isArray(wishlist) && wishlist.includes(id);
   const [enquiryMsg, setEnquiryMsg] = useState('');
   const [enquiryPhone, setEnquiryPhone] = useState('');
   const [zoomed, setZoomed] = useState(false);
@@ -40,18 +39,14 @@ export default function BikeDetail() {
   useEffect(() => {
     getBike(id).then(({ data }) => {
       setBike(data.bike);
-      setWishlisted(user?.wishlist?.includes(data.bike._id));
     }).catch(() => navigate('/bikes'))
       .finally(() => setLoading(false));
   }, [id]);
 
   const handleWishlist = async () => {
     if (!user) { toast.error('Please login'); navigate('/login'); return; }
-    try {
-      await toggleWishlist(id);
-      setWishlisted(!wishlisted);
-      toast.success(wishlisted ? 'Removed from wishlist' : 'Added to wishlist');
-    } catch { toast.error('Failed'); }
+    toggleWishlist(id);
+    toast.success(wishlisted ? 'Removed from wishlist' : 'Added to wishlist');
   };
 
   const handleEnquire = async () => {

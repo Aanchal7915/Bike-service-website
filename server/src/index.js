@@ -15,6 +15,7 @@ const serviceRoutes = require('./routes/serviceRoutes');
 const sellRoutes = require('./routes/sellRoutes');
 const partRoutes = require('./routes/partRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const rentalRoutes = require('./routes/rentalRoutes');
 
 // Connect to MongoDB
 connectDB();
@@ -24,7 +25,14 @@ const app = express();
 // Security & Parsing Middleware
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    const allowed = [process.env.CLIENT_URL, 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'].filter(Boolean);
+    if (!origin || allowed.includes(origin) || origin.startsWith('http://localhost')) {
+      callback(null, true);
+    } else {
+      callback(null, true);
+    }
+  },
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -47,6 +55,7 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/sell', sellRoutes);
 app.use('/api/store', partRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/rentals', rentalRoutes);
 
 // 404 Handler
 app.use((req, res) => {

@@ -46,14 +46,7 @@ function WishlistItemLoader({ partId, pincode, toggleWishlist, addToCart }) {
     </div>
   );
  
-  if (!item) return (
-    <div style={{ background: '#FFF', border: '1px solid #EEE', borderRadius: '24px', height: 220, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-      <p style={{ color: '#888', fontSize: '0.9rem', fontWeight: 600 }}>This item is no longer available</p>
-      <button onClick={() => toggleWishlist(partId)} style={{ background: '#F9F9F9', border: '1.5px solid #EEE', borderRadius: '12px', color: '#666', cursor: 'pointer', fontSize: '0.8rem', padding: '0.6rem 1.2rem', fontWeight: 800 }}>
-        Remove from List
-      </button>
-    </div>
-  );
+  if (!item) return null;
 
   const isBike = item.itemType === 'bike';
   const detailUrl = isBike ? `/bikes/${item._id}` : `/parts/${item._id}`;

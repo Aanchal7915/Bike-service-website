@@ -11,6 +11,7 @@ const navLinks = [
   { label: 'Buy Bikes', href: '/bikes' },
   { label: 'Sell Bike', href: '/sell' },
   { label: 'Service', href: '/services' },
+  { label: 'Rentals', href: '/rentals' },
   { label: 'Parts', href: '/parts' },
   { label: 'Featured', href: '/featured' },
   { label: 'Bestseller', href: '/bestseller' },
@@ -111,6 +112,7 @@ export default function Navbar() {
                   fontWeight: 500,
                   textDecoration: 'none',
                   transition: 'color 0.2s',
+                  whiteSpace: 'nowrap',
                 }}
                 onMouseEnter={(e) => { if (!location.pathname.startsWith(link.href)) e.target.style.color = 'white'; }}
                 onMouseLeave={(e) => { if (!location.pathname.startsWith(link.href)) e.target.style.color = '#ccc'; }}
@@ -155,7 +157,7 @@ export default function Navbar() {
             </div>
 
             {/* Pincode Input - Desktop only */}
-            <div className="hidden md:flex items-center gap-1.5" style={{ background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: '8px', padding: '0.3rem 0.7rem' }}>
+            <div className="hidden md:flex items-center gap-1.5" style={{ background: '#1A1A1A', border: '1px solid #2A2A2A', borderRadius: '8px', padding: '0.3rem 0.7rem', marginLeft: '12px' }}>
               <MapPin size={13} style={{ color: '#E53935', flexShrink: 0 }} />
               <input
                 type="text"
@@ -258,10 +260,11 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="flex items-center gap-1.5">
-                <Link to="/login" className="btn-outline hidden sm:inline-flex" style={{ padding: '0.4rem 0.9rem', fontSize: '0.78rem' }}>Login</Link>
-                <Link to="/register" className="btn-primary" style={{ padding: '0.4rem 0.9rem', fontSize: '0.78rem' }}>Sign Up</Link>
+                <Link to="/login" className="btn-outline hidden sm:inline-flex" style={{ padding: '0.4rem 0.9rem', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>Login</Link>
+                <Link to="/register" className="btn-primary" style={{ padding: '0.4rem 0.9rem', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>Sign Up</Link>
               </div>
             )}
+
 
             {/* Mobile hamburger */}
             <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden" style={{ color: 'white', background: 'none', border: 'none', cursor: 'pointer' }}>

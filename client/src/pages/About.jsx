@@ -122,7 +122,7 @@ export default function About() {
           <div className="values-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
             {[
               { title: 'Transparency', icon: Shield, desc: 'No hidden costs, no fake promises. Just honest deals and certified machines.', num: '01', bg: 'https://images.unsplash.com/photo-1558981359-219d6364c9c8?q=80&w=400&auto=format&fit=crop' },
-              { title: 'Innovation', icon: Zap, desc: 'Using tech to make door-step servicing and instant valuation a reality.', num: '02', bg: 'https://images.unsplash.com/photo-1547038577-da80abbc4f19?q=80&w=400&auto=format&fit=crop' },
+              { title: 'Innovation', icon: Zap, desc: 'Using tech to make door-step servicing and instant valuation a reality.', num: '02', bg: 'https://images.unsplash.com/photo-1558981285-6f0c94958bb6?q=80&w=400&auto=format&fit=crop' },
               { title: 'Customer First', icon: Heart, desc: 'From pickup to delivery, your convenience is our highest priority.', num: '03', bg: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=400&auto=format&fit=crop' },
             ].map((value, i) => (
               <div key={i} style={{ 

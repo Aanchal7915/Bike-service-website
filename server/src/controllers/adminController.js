@@ -8,16 +8,20 @@ const Order = require('../models/Order');
 const Category = require('../models/Category');
 const Brand = require('../models/Brand');
 const ServiceType = require('../models/ServiceType');
+const RentalCar = require('../models/RentalCar');
+const RentalBooking = require('../models/RentalBooking');
 
 // @desc  Dashboard stats
 // @route GET /api/admin/stats
 const getDashboardStats = asyncHandler(async (req, res) => {
-  const [users, bikes, services, sells, orders] = await Promise.all([
+  const [users, bikes, services, sells, orders, rentalCars, rentalBookings] = await Promise.all([
     User.countDocuments({ role: 'user' }),
     Bike.countDocuments(),
     ServiceBooking.countDocuments(),
     SellRequest.countDocuments(),
     Order.countDocuments(),
+    RentalCar.countDocuments(),
+    RentalBooking.countDocuments(),
   ]);
 
   const pendingServices = await ServiceBooking.countDocuments({ status: 'requested' });
@@ -30,7 +34,7 @@ const getDashboardStats = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     stats: {
-      users, bikes, services, sells, orders,
+      users, bikes, services, sells, orders, rentalCars, rentalBookings,
       pendingServices, pendingSells,
       revenue: revenue[0]?.total || 0,
     },
