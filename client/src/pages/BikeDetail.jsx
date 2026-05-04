@@ -15,7 +15,7 @@ export default function BikeDetail() {
   const [bike, setBike] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
-  const wishlisted = Array.isArray(wishlist) && wishlist.includes(id);
+  const wishlisted = user && Array.isArray(wishlist) && wishlist.includes(id);
   const [enquiryMsg, setEnquiryMsg] = useState('');
   const [enquiryPhone, setEnquiryPhone] = useState('');
   const [zoomed, setZoomed] = useState(false);
@@ -44,7 +44,7 @@ export default function BikeDetail() {
   }, [id]);
 
   const handleWishlist = async () => {
-    if (!user) { toast.error('Please login'); navigate('/login'); return; }
+    if (!user) { toast.error('Please login first to wishlist this item'); return; }
     toggleWishlist(id);
     toast.success(wishlisted ? 'Removed from wishlist' : 'Added to wishlist');
   };

@@ -59,8 +59,6 @@ function App() {
 
             {/* Admin - no footer */}
             <Route path="/admin" element={<Layout hideNav={true}><AdminDashboard /></Layout>} />
-
-            {/* Public pages */}
             <Route path="/" element={<Layout><Home /></Layout>} />
             <Route path="/bikes" element={<Layout><BuyBikes /></Layout>} />
             <Route path="/bikes/featured" element={<Layout><FeaturedBikes /></Layout>} />

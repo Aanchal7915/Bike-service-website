@@ -36,7 +36,7 @@ export default function PartDetail() {
   const userPickedSize = useRef(false);
 
   const isMobile = window.matchMedia("(pointer: coarse)").matches;
-  const isWishlisted = Array.isArray(wishlist) && (wishlist.includes(id) || wishlist.some(i => i._id === id));
+  const isWishlisted = user && Array.isArray(wishlist) && (wishlist.includes(id) || wishlist.some(i => i._id === id));
 
   useEffect(() => {
     setLoading(true);
@@ -217,7 +217,14 @@ export default function PartDetail() {
               onClick={() => isMobile && !isVideoUrl(images[activeImg]) && setFullScreenZoom(true)}>
 
               {/* Wishlist Floating Button */}
-              <button onClick={(e) => { e.stopPropagation(); toggleWishlist?.(id); }}
+              <button onClick={(e) => {
+                e.stopPropagation();
+                if (!user) {
+                  toast.error('Please login first to wishlist this item');
+                  return;
+                }
+                toggleWishlist?.(id);
+              }}
                 style={{ position: 'absolute', top: '20px', right: '20px', width: '44px', height: '44px', borderRadius: '50%', background: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10, boxShadow: '0 4px 15px rgba(0,0,0,0.1)', transition: 'transform 0.2s' }}
                 onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
                 onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
