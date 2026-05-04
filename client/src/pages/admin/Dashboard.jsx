@@ -398,9 +398,19 @@ const PartsTab = () => {
       const newLocMap = { ...pincodeLocationMap };
       part.pincodePricing.forEach(p => {
         if (p.pincode && p.location) newLocMap[p.pincode] = p.location;
-        const key = `${p.size}|${p.price}|${p.originalPrice}|${p.discount}|${p.inventory}`;
-        if (!rowMap[key]) rowMap[key] = { pincodes: p.pincode, size: p.size || '', originalPrice: String(p.originalPrice || ''), discount: String(p.discount || ''), price: String(p.price || ''), inventory: String(p.inventory || '') };
-        else rowMap[key].pincodes += ', ' + p.pincode;
+        const key = `${p.size || ''}|${p.price || 0}|${p.originalPrice || 0}|${p.discount || 0}|${p.inventory || 0}`;
+        if (!rowMap[key]) {
+          rowMap[key] = {
+            pincodes: p.pincode,
+            size: p.size || '',
+            originalPrice: p.originalPrice !== undefined && p.originalPrice !== null ? String(p.originalPrice) : '',
+            discount: p.discount !== undefined && p.discount !== null ? String(p.discount) : '',
+            price: p.price !== undefined && p.price !== null ? String(p.price) : '',
+            inventory: p.inventory !== undefined && p.inventory !== null ? String(p.inventory) : ''
+          };
+        } else {
+          rowMap[key].pincodes += ', ' + p.pincode;
+        }
       });
       setPincodeLocationMap(newLocMap);
       setPincodePricingRows(Object.values(rowMap));
@@ -808,9 +818,19 @@ const BikesTab = () => {
       const newLocMap = { ...bikePincodeMap };
       bike.pincodePricing.forEach(p => {
         if (p.pincode && p.location) newLocMap[p.pincode] = p.location;
-        const key = `${p.size}|${p.price}|${p.originalPrice}|${p.discount}|${p.inventory}`;
-        if (!rowMap[key]) rowMap[key] = { pincodes: p.pincode, size: p.size || '', originalPrice: String(p.originalPrice || ''), discount: String(p.discount || ''), price: String(p.price || ''), inventory: String(p.inventory || '') };
-        else rowMap[key].pincodes += ', ' + p.pincode;
+        const key = `${p.size || ''}|${p.price || 0}|${p.originalPrice || 0}|${p.discount || 0}|${p.inventory || 0}`;
+        if (!rowMap[key]) {
+          rowMap[key] = {
+            pincodes: p.pincode,
+            size: p.size || '',
+            originalPrice: p.originalPrice !== undefined && p.originalPrice !== null ? String(p.originalPrice) : '',
+            discount: p.discount !== undefined && p.discount !== null ? String(p.discount) : '',
+            price: p.price !== undefined && p.price !== null ? String(p.price) : '',
+            inventory: p.inventory !== undefined && p.inventory !== null ? String(p.inventory) : ''
+          };
+        } else {
+          rowMap[key].pincodes += ', ' + p.pincode;
+        }
       });
       setBikePincodeMap(newLocMap);
       setBikePincodeRows(Object.values(rowMap));
