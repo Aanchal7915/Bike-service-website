@@ -1740,7 +1740,7 @@ export default function AdminDashboard() {
     { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
     { id: 'users', icon: Users, label: 'Users' },
     { id: 'bikes', icon: Bike, label: 'Bikes' },
-    { id: 'rentals', icon: Car, label: 'Rental Bikes' },
+    { id: 'rentals', icon: Bike, label: 'Rental Bikes' },
     { id: 'rental-bookings', icon: Calendar, label: 'Rental Bookings' },
     { id: 'services', icon: Wrench, label: 'Services' },
     { id: 'sells', icon: TrendingUp, label: 'Sell Requests' },
