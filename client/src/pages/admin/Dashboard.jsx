@@ -393,11 +393,14 @@ const PartsTab = () => {
     });
     if (Array.isArray(part.pincodePricing) && part.pincodePricing.length > 0) {
       const rowMap = {};
+      const newLocMap = { ...pincodeLocationMap };
       part.pincodePricing.forEach(p => {
+        if (p.pincode && p.location) newLocMap[p.pincode] = p.location;
         const key = `${p.size}|${p.price}|${p.originalPrice}|${p.discount}|${p.inventory}`;
         if (!rowMap[key]) rowMap[key] = { pincodes: p.pincode, size: p.size || '', originalPrice: String(p.originalPrice || ''), discount: String(p.discount || ''), price: String(p.price || ''), inventory: String(p.inventory || '') };
         else rowMap[key].pincodes += ', ' + p.pincode;
       });
+      setPincodeLocationMap(newLocMap);
       setPincodePricingRows(Object.values(rowMap));
     } else {
       setPincodePricingRows([{ pincodes: '', size: '', originalPrice: '', discount: '', price: '', inventory: '' }]);
@@ -799,11 +802,14 @@ const BikesTab = () => {
     });
     if (Array.isArray(bike.pincodePricing) && bike.pincodePricing.length > 0) {
       const rowMap = {};
+      const newLocMap = { ...bikePincodeMap };
       bike.pincodePricing.forEach(p => {
+        if (p.pincode && p.location) newLocMap[p.pincode] = p.location;
         const key = `${p.size}|${p.price}|${p.originalPrice}|${p.discount}|${p.inventory}`;
         if (!rowMap[key]) rowMap[key] = { pincodes: p.pincode, size: p.size || '', originalPrice: String(p.originalPrice || ''), discount: String(p.discount || ''), price: String(p.price || ''), inventory: String(p.inventory || '') };
         else rowMap[key].pincodes += ', ' + p.pincode;
       });
+      setBikePincodeMap(newLocMap);
       setBikePincodeRows(Object.values(rowMap));
     } else { setBikePincodeRows([{ pincodes: '', size: '', originalPrice: '', discount: '', price: '', inventory: '' }]); }
     const allMedia = [...(bike.images || []), ...(bike.videos || [])];

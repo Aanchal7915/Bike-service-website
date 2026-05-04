@@ -58,8 +58,7 @@ export default function PartCard({ part }) {
       }}
     >
       <Link to={`/parts/${part._id}`} style={{ textDecoration: 'none', height: '100%', display: 'flex', flexDirection: 'column' }}>
-        {/* Top Image Section (Light background, rounded corners) */}
-        <div style={{ position: 'relative', height: '180px', background: '#F5F5F5', overflow: 'hidden' }}>
+        <div style={{ position: 'relative', height: '180px', background: '#F5F5F5', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <img
             src={part.images?.[0] || 'https://via.placeholder.com/400x300/F5F5F5/E53935?text=No+Image'}
             alt={part.name}
