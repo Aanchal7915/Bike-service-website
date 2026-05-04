@@ -285,7 +285,7 @@ const PartsTab = () => {
     featured: false, bestSeller: false, comingSoon: false,
     itemType: '', subCategory: '',
     farmerName: '', farmerPhone: '', farmerLocation: '', farmerEmail: '',
-    videoUrl: ''
+    videoUrl: '', price: '', discountedPrice: ''
   });
   const [pincodePricingRows, setPincodePricingRows] = useState([
     { pincodes: '', size: '', originalPrice: '', discount: '', price: '', inventory: '' }
@@ -389,7 +389,9 @@ const PartsTab = () => {
       farmerPhone: part.farmerDetails?.phone || '',
       farmerLocation: part.farmerDetails?.location || '',
       farmerEmail: part.farmerDetails?.email || '',
-      videoUrl: part.videoUrl || ''
+      videoUrl: part.videoUrl || '',
+      price: part.price || '',
+      discountedPrice: part.discountedPrice || ''
     });
     if (Array.isArray(part.pincodePricing) && part.pincodePricing.length > 0) {
       const rowMap = {};
@@ -458,8 +460,8 @@ const PartsTab = () => {
       fd.append('subCategory', formData.subCategory);
       fd.append('farmerDetails', JSON.stringify({ name: formData.farmerName, phone: formData.farmerPhone, location: formData.farmerLocation, email: formData.farmerEmail }));
       fd.append('pincodePricing', JSON.stringify(pricing));
-      fd.append('price', String(pricing[0]?.originalPrice || 0));
-      fd.append('discountedPrice', String(pricing[0]?.price || 0));
+      fd.append('price', String(pricing[0]?.originalPrice || formData.price || 0));
+      fd.append('discountedPrice', String(pricing[0]?.price || formData.discountedPrice || 0));
       fd.append('stock', String(pricing.reduce((s, p) => s + (p.inventory || 0), 0)));
       for (const img of images) fd.append('images', img);
       for (const url of existingImages) fd.append('existingImages', url);
@@ -713,7 +715,7 @@ const BikesTab = () => {
   const [editId, setEditId] = useState(null);
   const [formData, setFormData] = useState({
     title: '', brand: '', model: '', year: '', type: 'used', condition: 'good',
-    price: '', kmDriven: '', engineCC: '', fuelType: 'petrol', description: '',
+    price: '', discountedPrice: '', kmDriven: '', engineCC: '', fuelType: 'petrol', description: '',
     city: '', state: '', pincode: '', isFeatured: false, bestSeller: false,
     power: '', torque: '', transmission: '', brakes: '', tyres: '', weight: '', fuelTank: '', mileage: '',
     sellerName: '', sellerPhone: '', sellerLocation: '', sellerEmail: '',
@@ -790,6 +792,7 @@ const BikesTab = () => {
     setFormData({
       title: bike.title || '', brand: bike.brand || '', model: bike.model || '', year: bike.year || '',
       type: bike.type || 'used', condition: bike.condition || 'good', price: bike.price || '',
+      discountedPrice: bike.discountedPrice || '',
       kmDriven: bike.kmDriven || '', engineCC: bike.engineCC || '', fuelType: bike.fuelType || 'petrol',
       description: bike.description || '', city: bike.location?.city || '', state: bike.location?.state || '',
       pincode: bike.location?.pincode || '', isFeatured: bike.isFeatured || false, bestSeller: bike.bestSeller || false,
@@ -846,7 +849,7 @@ const BikesTab = () => {
       fd.append('title', formData.title || `${formData.brand} ${formData.model} ${formData.year}`);
       fd.append('brand', formData.brand); fd.append('model', formData.model); fd.append('year', formData.year);
       fd.append('type', formData.type); fd.append('condition', formData.condition);
-      fd.append('price', pricing[0]?.originalPrice || formData.price); fd.append('discountedPrice', pricing[0]?.price || '');
+      fd.append('price', pricing[0]?.originalPrice || formData.price); fd.append('discountedPrice', pricing[0]?.price || formData.discountedPrice || '');
       fd.append('kmDriven', formData.kmDriven); fd.append('engineCC', formData.engineCC); fd.append('fuelType', formData.fuelType);
       fd.append('description', formData.description); fd.append('isFeatured', formData.isFeatured); fd.append('bestSeller', formData.bestSeller);
       fd.append('stock', String(pricing.reduce((s, p) => s + (p.inventory || 0), 0)));
