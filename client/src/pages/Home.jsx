@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Shield, Clock, MapPin, Star, Zap, Wrench, ShoppingBag, TrendingUp } from 'lucide-react';
 import { getFeaturedParts, getBestsellerParts } from '../api/storeApi';
 import { getFeaturedBikes, getBestsellerBikes } from '../api/bikeApi';
+import { getRentalCars } from '../api/rentalApi';
 import BikeCard from '../components/bikes/BikeCard';
 import PartCard from '../components/parts/PartCard';
+import RentalCard from '../components/bikes/RentalCard';
 import { getActiveServiceTypes } from '../api/serviceApi';
 import { PageLoader } from '../components/common/LoadingSpinner';
 import heroBikeVideo from '../assets/bike-hero.mp4';
@@ -30,6 +32,8 @@ export default function Home() {
   const [featuredParts, setFeaturedParts] = useState([]);
   const [bestsellerParts, setBestsellerParts] = useState([]);
   const [bestsellerBikes, setBestsellerBikes] = useState([]);
+  const [rentalCars, setRentalCars] = useState([]);
+  const [rentalLoading, setRentalLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [partsLoading, setPartsLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -48,13 +52,15 @@ export default function Home() {
       getFeaturedParts().then(({ data }) => setFeaturedParts(data.parts || [])),
       getBestsellerParts({ limit: 8 }).then(({ data }) => setBestsellerParts(data.parts || [])),
       getBestsellerBikes().then(({ data }) => setBestsellerBikes(data.bikes || [])),
-      getActiveServiceTypes().then(({ data }) => setServiceTypes(data.serviceTypes || []))
+      getActiveServiceTypes().then(({ data }) => setServiceTypes(data.serviceTypes || [])),
+      getRentalCars({ limit: 8 }).then(({ data }) => setRentalCars(data.cars || []))
     ])
       .catch(() => {})
       .finally(() => {
         setLoading(false);
         setPartsLoading(false);
         setServicesLoading(false);
+        setRentalLoading(false);
       });
 
     const timer = setInterval(() => setCurrentSlide((s) => (s + 1) % heroSlides.length), 5000);
@@ -389,6 +395,44 @@ export default function Home() {
           `}</style>
         </div>
       </section>
+
+      {/* RENT BIKES section — Hide if empty (after loading) */}
+      {(rentalLoading || rentalCars.length > 0) && (
+        <section style={{ background: '#F5F5F5', padding: '5rem 0' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <p style={{ color: '#E53935', fontWeight: 800, fontSize: '0.85rem', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Premium Rentals</p>
+                <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2.3rem', fontWeight: 800, color: '#111' }}>
+                  Rent <span className="gradient-text">Bikes</span>
+                </h2>
+                <p style={{ color: '#555', marginTop: '0.3rem' }}>Choose your ride, pay by the day or hour</p>
+              </div>
+              <Link to="/rentals" className="btn-outline-dark" style={{ padding: '0.6rem 1.4rem', fontSize: '0.9rem' }}>
+                View All <ArrowRight size={16} />
+              </Link>
+            </div>
+
+            {rentalLoading ? (
+              <div className="home-bikes-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' }}>
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="card-dark" style={{ height: 320 }}>
+                    <div className="skeleton" style={{ height: 200 }} />
+                    <div style={{ padding: '1rem' }}>
+                      <div className="skeleton" style={{ height: 18, width: '60%', marginBottom: '0.5rem' }} />
+                      <div className="skeleton" style={{ height: 14, width: '40%' }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="home-bikes-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' }}>
+                {rentalCars.map((car) => <RentalCard key={car._id} car={car} />)}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* FEATURED PRODUCTS section — Hide if empty (after loading) */}
       {(partsLoading || featuredParts.length > 0 || featured.length > 0) && (

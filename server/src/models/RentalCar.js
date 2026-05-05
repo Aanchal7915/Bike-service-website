@@ -37,6 +37,8 @@ const rentalCarSchema = new mongoose.Schema(
     isFeatured: { type: Boolean, default: false },
     minRentalDays: { type: Number, default: 1 },
     maxRentalDays: { type: Number, default: 30 },
+    minRentalHours: { type: Number, default: 1 },
+    maxRentalHours: { type: Number, default: 24 },
     views: { type: Number, default: 0 },
   },
   { timestamps: true }

@@ -33,6 +33,7 @@ export default function RentalDetail() {
     returnDate: tomorrow,
     pickupTime: '10:00',
     returnTime: '10:00',
+    rentalType: 'day',
     contactPhone: '',
     driverLicense: '',
     notes: '',
@@ -53,7 +54,20 @@ export default function RentalDetail() {
     return Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)));
   }, [form.pickupDate, form.returnDate]);
 
-  const subtotal = (car?.pricePerDay || 0) * totalDays;
+  const totalHours = useMemo(() => {
+    if (!form.pickupDate || !form.returnDate) return 0;
+    const start = new Date(form.pickupDate);
+    const end = new Date(form.returnDate);
+    if (form.pickupTime) { const [h, m] = form.pickupTime.split(':').map(Number); start.setHours(h, m || 0, 0, 0); }
+    if (form.returnTime) { const [h, m] = form.returnTime.split(':').map(Number); end.setHours(h, m || 0, 0, 0); }
+    const ms = end.getTime() - start.getTime();
+    return Math.max(1, Math.ceil(ms / (1000 * 60 * 60)));
+  }, [form.pickupDate, form.returnDate, form.pickupTime, form.returnTime]);
+
+  const isHourly = form.rentalType === 'hour' && (car?.pricePerHour || 0) > 0;
+  const subtotal = isHourly
+    ? (car?.pricePerHour || 0) * totalHours
+    : (car?.pricePerDay || 0) * totalDays;
   const totalAmount = subtotal + (car?.securityDeposit || 0);
 
   const handleSubmit = async (e) => {
@@ -63,14 +77,27 @@ export default function RentalDetail() {
       return navigate('/login');
     }
     if (!form.contactPhone) return toast.error('Contact phone is required');
-    if (new Date(form.returnDate) <= new Date(form.pickupDate)) {
-      return toast.error('Return date must be after pickup date');
+    if (isHourly) {
+      if (form.pickupDate !== form.returnDate) {
+        return toast.error('Hourly rentals must be on the same day');
+      }
+      if (totalHours <= 0) return toast.error('Return time must be after pickup time');
+    } else {
+      if (new Date(form.returnDate) <= new Date(form.pickupDate)) {
+        return toast.error('Return date must be after pickup date');
+      }
     }
 
     setSubmitting(true);
     try {
       const { data: res } = await createRentalBooking({ rentalCar: id, ...form });
-      
+
+      if (!res.order) {
+        toast.success('Rental booked successfully!');
+        navigate('/my-bookings');
+        return;
+      }
+
       const loaded = await loadRazorpay();
       if (!loaded) {
         toast.error('Razorpay SDK failed to load. Are you online?');
@@ -78,9 +105,16 @@ export default function RentalDetail() {
         return;
       }
 
+      const rzpKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+      if (!rzpKey) {
+        toast.error('Payment gateway key is missing. Contact admin.');
+        setSubmitting(false);
+        return;
+      }
+
       const order = res.order;
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        key: rzpKey,
         amount: order.amount,
         currency: order.currency,
         name: 'MotoXpress Rental',
@@ -95,7 +129,7 @@ export default function RentalDetail() {
             toast.success('Rental booked and paid successfully!');
             navigate('/my-bookings');
           } catch (err) {
-            toast.error('Payment verification failed');
+            toast.error(err.response?.data?.message || 'Payment verification failed');
           }
         },
         prefill: {
@@ -113,9 +147,13 @@ export default function RentalDetail() {
       };
 
       const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', (resp) => {
+        toast.error(resp.error?.description || 'Payment failed');
+        setSubmitting(false);
+      });
       rzp.open();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Booking failed');
+      toast.error(err.response?.data?.message || err.message || 'Booking failed');
       setSubmitting(false);
     }
   };
@@ -160,16 +198,21 @@ export default function RentalDetail() {
               </h1>
               <p style={{ color: '#64748B', fontSize: '0.9rem', fontWeight: 600, marginTop: '0.4rem' }}>{car.year} • {car.title}</p>
 
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', margin: '1.2rem 0' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.6rem', margin: '1.2rem 0', flexWrap: 'wrap' }}>
                 <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2.1rem', fontWeight: 950, color: '#E53935' }}>₹{car.pricePerDay?.toLocaleString('en-IN')}</span>
                 <span style={{ color: '#64748B', fontWeight: 700, fontSize: '0.9rem' }}>/ day</span>
+                {car.pricePerHour > 0 && (
+                  <span style={{ color: '#64748B', fontWeight: 700, fontSize: '0.9rem' }}>
+                    or <span style={{ color: '#E53935', fontWeight: 900 }}>₹{car.pricePerHour?.toLocaleString('en-IN')}</span> / hour
+                  </span>
+                )}
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.8rem', marginTop: '1.5rem' }}>
                 {[
                   { icon: Settings, label: 'Transmission', value: car.transmission?.toUpperCase() },
                   { icon: Fuel, label: 'Fuel', value: car.fuelType?.toUpperCase() },
-                  { icon: Shield, label: 'Deposit', value: `₹${(car.securityDeposit || 0).toLocaleString('en-IN')}` },
+                  { icon: Shield, label: 'Deposit (Refundable)', value: `₹${(car.securityDeposit || 0).toLocaleString('en-IN')}` },
                 ].map(({ icon: Icon, label, value }) => (
                   <div key={label} style={{ background: '#F8FAFC', padding: '1rem', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#64748B', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -214,6 +257,30 @@ export default function RentalDetail() {
             <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.3rem', fontWeight: 950, color: '#0F172A', marginBottom: '1.2rem', letterSpacing: '0.01em' }}>
               BOOK THIS LISTING
             </h2>
+
+            {car.pricePerHour > 0 && (
+              <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '1rem', background: '#F1F5F9', padding: '0.3rem', borderRadius: '10px' }}>
+                {[
+                  { value: 'day', label: 'PER DAY' },
+                  { value: 'hour', label: 'PER HOUR' },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setForm({ ...form, rentalType: opt.value })}
+                    style={{
+                      flex: 1, padding: '0.5rem', border: 'none', cursor: 'pointer',
+                      background: form.rentalType === opt.value ? '#E53935' : 'transparent',
+                      color: form.rentalType === opt.value ? 'white' : '#64748B',
+                      borderRadius: '8px', fontSize: '0.7rem', fontWeight: 800,
+                      fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.05em',
+                      transition: 'all 0.2s'
+                    }}>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', marginBottom: '0.8rem' }}>
               <div>
@@ -267,12 +334,21 @@ export default function RentalDetail() {
             {/* Price Summary */}
             <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '14px', padding: '1rem', marginBottom: '1rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 700, color: '#475569', marginBottom: '0.4rem' }}>
-                <span>₹{car.pricePerDay?.toLocaleString('en-IN')} × {totalDays} day(s)</span>
-                <span>₹{subtotal.toLocaleString('en-IN')}</span>
+                {isHourly ? (
+                  <>
+                    <span>₹{car.pricePerHour?.toLocaleString('en-IN')} × {totalHours} hour(s)</span>
+                    <span>₹{subtotal.toLocaleString('en-IN')}</span>
+                  </>
+                ) : (
+                  <>
+                    <span>₹{car.pricePerDay?.toLocaleString('en-IN')} × {totalDays} day(s)</span>
+                    <span>₹{subtotal.toLocaleString('en-IN')}</span>
+                  </>
+                )}
               </div>
               {car.securityDeposit > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 700, color: '#475569', marginBottom: '0.4rem' }}>
-                  <span>Security deposit</span>
+                  <span>Security deposit (refundable)</span>
                   <span>₹{car.securityDeposit.toLocaleString('en-IN')}</span>
                 </div>
               )}

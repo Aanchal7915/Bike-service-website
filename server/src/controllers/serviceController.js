@@ -39,13 +39,25 @@ const updateBookingStatus = asyncHandler(async (req, res) => {
   const booking = await ServiceBooking.findById(req.params.id);
   if (!booking) { res.status(404); throw new Error('Booking not found'); }
 
-  booking.status = status;
-  booking.statusHistory.push({ status, note });
-  if (mechanic) booking.mechanic = mechanic;
+  const statusChanged = status && status !== booking.status;
+  if (status) booking.status = status;
+  if (statusChanged) booking.statusHistory.push({ status, note });
+
+  if (mechanic !== undefined) {
+    if (mechanic) {
+      booking.mechanic = mechanic;
+      if (!statusChanged) booking.statusHistory.push({ status: booking.status, note: 'Mechanic assigned' });
+    } else {
+      booking.mechanic = undefined;
+      if (!statusChanged) booking.statusHistory.push({ status: booking.status, note: 'Mechanic unassigned' });
+    }
+  }
   if (estimatedCost) booking.estimatedCost = estimatedCost;
   if (finalCost) booking.finalCost = finalCost;
 
   await booking.save();
+  await booking.populate('mechanic', 'name phone email');
+  await booking.populate('user', 'name phone email');
   res.json({ success: true, booking });
 });
 

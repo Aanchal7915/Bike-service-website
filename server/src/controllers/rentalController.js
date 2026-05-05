@@ -14,6 +14,24 @@ const dayDiff = (start, end) => {
   return Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)));
 };
 
+const combineDateTime = (date, time) => {
+  if (!date) return null;
+  const d = new Date(date);
+  if (time) {
+    const [h, m] = String(time).split(':').map(Number);
+    if (!isNaN(h)) d.setHours(h, m || 0, 0, 0);
+  }
+  return d;
+};
+
+const hourDiff = (startDate, startTime, endDate, endTime) => {
+  const s = combineDateTime(startDate, startTime);
+  const e = combineDateTime(endDate, endTime);
+  if (!s || !e) return 0;
+  const ms = e.getTime() - s.getTime();
+  return Math.max(1, Math.ceil(ms / (1000 * 60 * 60)));
+};
+
 // ── RENTAL CARS ───────────────────────────────────────────────
 
 // @desc  Get all rental cars (with filters)
@@ -123,20 +141,40 @@ const createRentalBooking = asyncHandler(async (req, res) => {
   const {
     rentalCar, pickupDate, returnDate, pickupTime, returnTime,
     pickupAddress, driverLicense, contactPhone, notes, paymentMethod,
+    rentalType,
   } = req.body;
 
   const car = await RentalCar.findById(rentalCar);
   if (!car) { res.status(404); throw new Error('Rental car not found'); }
   if (car.status === 'inactive') { res.status(400); throw new Error('This car is not available for rent'); }
 
-  const totalDays = dayDiff(pickupDate, returnDate);
-  if (totalDays < (car.minRentalDays || 1)) {
-    res.status(400);
-    throw new Error(`Minimum rental period is ${car.minRentalDays} day(s)`);
-  }
-  if (car.maxRentalDays && totalDays > car.maxRentalDays) {
-    res.status(400);
-    throw new Error(`Maximum rental period is ${car.maxRentalDays} day(s)`);
+  const useHours = rentalType === 'hour' && car.pricePerHour > 0;
+  let totalDays = 0;
+  let totalHours = 0;
+  let subtotal = 0;
+
+  if (useHours) {
+    totalHours = hourDiff(pickupDate, pickupTime, returnDate, returnTime);
+    if (totalHours < (car.minRentalHours || 1)) {
+      res.status(400);
+      throw new Error(`Minimum rental period is ${car.minRentalHours} hour(s)`);
+    }
+    if (car.maxRentalHours && totalHours > car.maxRentalHours) {
+      res.status(400);
+      throw new Error(`Maximum rental period is ${car.maxRentalHours} hour(s)`);
+    }
+    subtotal = totalHours * car.pricePerHour;
+  } else {
+    totalDays = dayDiff(pickupDate, returnDate);
+    if (totalDays < (car.minRentalDays || 1)) {
+      res.status(400);
+      throw new Error(`Minimum rental period is ${car.minRentalDays} day(s)`);
+    }
+    if (car.maxRentalDays && totalDays > car.maxRentalDays) {
+      res.status(400);
+      throw new Error(`Maximum rental period is ${car.maxRentalDays} day(s)`);
+    }
+    subtotal = totalDays * car.pricePerDay;
   }
 
   // Conflict check
@@ -151,7 +189,6 @@ const createRentalBooking = asyncHandler(async (req, res) => {
     throw new Error('Car is already booked for the selected dates');
   }
 
-  const subtotal = totalDays * car.pricePerDay;
   const totalAmount = subtotal + (car.securityDeposit || 0);
 
   const booking = await RentalBooking.create({
@@ -166,7 +203,10 @@ const createRentalBooking = asyncHandler(async (req, res) => {
       pricePerDay: car.pricePerDay,
     },
     pickupDate, returnDate, pickupTime, returnTime,
-    totalDays, pricePerDay: car.pricePerDay,
+    rentalType: useHours ? 'hour' : 'day',
+    totalDays, totalHours,
+    pricePerDay: car.pricePerDay || 0,
+    pricePerHour: car.pricePerHour || 0,
     securityDeposit: car.securityDeposit || 0,
     subtotal, totalAmount,
     pickupAddress, driverLicense, contactPhone, notes,
@@ -175,15 +215,25 @@ const createRentalBooking = asyncHandler(async (req, res) => {
   });
 
   if (paymentMethod === 'online') {
-    const options = {
-      amount: Math.round(totalAmount * 100),
-      currency: 'INR',
-      receipt: `rental_${booking._id}`,
-    };
-    const order = await razorpay.orders.create(options);
-    booking.payment.razorpayOrderId = order.id;
-    await booking.save();
-    return res.status(201).json({ success: true, booking, order });
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      res.status(500);
+      throw new Error('Payment gateway is not configured');
+    }
+    try {
+      const options = {
+        amount: Math.round(totalAmount * 100),
+        currency: 'INR',
+        receipt: `rental_${booking._id}`.slice(0, 40),
+      };
+      const order = await razorpay.orders.create(options);
+      booking.payment.razorpayOrderId = order.id;
+      await booking.save();
+      return res.status(201).json({ success: true, booking, order });
+    } catch (err) {
+      await RentalBooking.findByIdAndDelete(booking._id);
+      res.status(500);
+      throw new Error(err?.error?.description || err.message || 'Failed to create payment order');
+    }
   }
 
   res.status(201).json({ success: true, booking });

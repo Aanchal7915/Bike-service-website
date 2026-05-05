@@ -92,6 +92,29 @@ const ServicesTab = () => {
   const [showStForm, setShowStForm] = useState(false);
   const [editSt, setEditSt] = useState(null);
   const [stForm, setStForm] = useState({ value: '', label: '', price: '', desc: '', order: 0, isActive: true });
+  const [showMechForm, setShowMechForm] = useState(false);
+  const [mechForm, setMechForm] = useState({ name: '', email: '', phone: '', password: '' });
+  const [savingMech, setSavingMech] = useState(false);
+
+  const handleAddMechanic = async (e) => {
+    e.preventDefault();
+    if (!mechForm.name || !mechForm.password || (!mechForm.email && !mechForm.phone)) {
+      toast.error('Name, password, and email or phone are required');
+      return;
+    }
+    setSavingMech(true);
+    try {
+      const { data } = await adminApi.createMechanic(mechForm);
+      setMechanics(prev => [...prev, data.mechanic]);
+      setMechForm({ name: '', email: '', phone: '', password: '' });
+      setShowMechForm(false);
+      toast.success('Mechanic added successfully!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to add mechanic');
+    } finally {
+      setSavingMech(false);
+    }
+  };
 
   useEffect(() => {
     Promise.all([adminApi.getServices(), adminApi.getMechanics(), adminApi.getServiceTypes()])
@@ -104,10 +127,16 @@ const ServicesTab = () => {
 
   const handleStatus = async (id, status, mechanicId) => {
     try {
-      await adminApi.updateServiceStatus(id, { status, mechanic: mechanicId });
-      toast.success('Booking updated!');
-      setData(data.map(d => d._id === id ? { ...d, status, mechanic: mechanics.find(m => m._id === mechanicId) || d.mechanic } : d));
-    } catch { toast.error('Error updating service'); }
+      const { data: res } = await adminApi.updateServiceStatus(id, { status, mechanic: mechanicId });
+      const updated = res.booking || {};
+      const mechObj = updated.mechanic || mechanics.find(m => m._id === mechanicId) || null;
+      setData(prev => prev.map(d => d._id === id
+        ? { ...d, status: updated.status || status, mechanic: mechanicId ? mechObj : null }
+        : d));
+      toast.success(mechanicId ? 'Mechanic assigned!' : 'Booking updated!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Error updating service');
+    }
   };
 
   const resetStForm = () => { setShowStForm(false); setEditSt(null); setStForm({ value: '', label: '', price: '', desc: '', order: 0, isActive: true }); };
@@ -228,6 +257,64 @@ const ServicesTab = () => {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* ── Mechanics Management ── */}
+      <div style={{ background: '#FFFFFF', border: '1.5px solid #EEE', borderRadius: '24px', padding: '1.5rem', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem', flexWrap: 'wrap', gap: '0.6rem' }}>
+          <h3 style={{ color: '#111', fontWeight: 950, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.3rem', margin: 0, textTransform: 'uppercase' }}>MECHANICS <span style={{ color: '#E53935' }}>({mechanics.length})</span></h3>
+          <button onClick={() => setShowMechForm(!showMechForm)}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: showMechForm ? '#F5F5F5' : '#E53935', color: showMechForm ? '#666' : 'white', border: 'none', borderRadius: '10px', padding: '0.5rem 1.2rem', cursor: 'pointer', fontWeight: 800, fontSize: '0.8rem' }}>
+            {showMechForm ? <><X size={14} /> Cancel</> : <><Plus size={14} /> Add Mechanic</>}
+          </button>
+        </div>
+
+        {showMechForm && (
+          <form onSubmit={handleAddMechanic} style={{ background: '#F9F9F9', border: '1px solid #EEE', borderRadius: '16px', padding: '1.2rem', marginBottom: '1.2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.8rem' }}>
+              <div>
+                <label style={{ color: '#666', fontSize: '0.72rem', fontWeight: 800, display: 'block', marginBottom: '0.3rem' }}>NAME *</label>
+                <input className="input-light" placeholder="Mechanic name" value={mechForm.name} onChange={e => setMechForm({ ...mechForm, name: e.target.value })} required style={{ height: 42, fontWeight: 600 }} />
+              </div>
+              <div>
+                <label style={{ color: '#666', fontSize: '0.72rem', fontWeight: 800, display: 'block', marginBottom: '0.3rem' }}>EMAIL</label>
+                <input type="email" className="input-light" placeholder="email@example.com" value={mechForm.email} onChange={e => setMechForm({ ...mechForm, email: e.target.value })} style={{ height: 42, fontWeight: 600 }} />
+              </div>
+              <div>
+                <label style={{ color: '#666', fontSize: '0.72rem', fontWeight: 800, display: 'block', marginBottom: '0.3rem' }}>PHONE</label>
+                <input type="tel" className="input-light" placeholder="10-digit mobile" value={mechForm.phone} onChange={e => setMechForm({ ...mechForm, phone: e.target.value })} style={{ height: 42, fontWeight: 600 }} />
+              </div>
+              <div>
+                <label style={{ color: '#666', fontSize: '0.72rem', fontWeight: 800, display: 'block', marginBottom: '0.3rem' }}>PASSWORD *</label>
+                <input type="password" className="input-light" placeholder="Min 6 characters" value={mechForm.password} onChange={e => setMechForm({ ...mechForm, password: e.target.value })} required minLength={6} style={{ height: 42, fontWeight: 600 }} />
+              </div>
+            </div>
+            <div style={{ marginTop: '0.8rem', display: 'flex', justifyContent: 'flex-end' }}>
+              <button type="submit" disabled={savingMech} style={{ background: '#E53935', color: 'white', border: 'none', borderRadius: '8px', padding: '0.6rem 1.5rem', cursor: savingMech ? 'not-allowed' : 'pointer', fontWeight: 800, fontSize: '0.82rem' }}>
+                {savingMech ? 'Saving...' : 'Add Mechanic'}
+              </button>
+            </div>
+            <p style={{ color: '#888', fontSize: '0.7rem', marginTop: '0.6rem', fontWeight: 600 }}>Provide email or phone (at least one). Mechanic can use these credentials to log in.</p>
+          </form>
+        )}
+
+        {mechanics.length > 0 ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.8rem' }}>
+            {mechanics.map(m => (
+              <div key={m._id} style={{ background: '#FFF', border: '1px solid #EEE', borderRadius: '12px', padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                <div style={{ width: 40, height: 40, borderRadius: '12px', background: '#FEE2E2', color: '#E53935', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '1rem' }}>{m.name?.charAt(0).toUpperCase()}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ margin: 0, color: '#111', fontWeight: 800, fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.name}</p>
+                  <p style={{ margin: 0, color: '#888', fontSize: '0.72rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.phone || m.email}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style={{ color: '#888', fontSize: '0.85rem', textAlign: 'center', padding: '1.5rem', background: '#F9F9F9', borderRadius: '12px', fontWeight: 600 }}>
+            No mechanics yet. Click "Add Mechanic" to add one — they'll appear in the assignment dropdown below.
+          </p>
+        )}
       </div>
 
       {/* ── Service Bookings Table ── */}
@@ -1449,7 +1536,9 @@ const RentalsTab = () => {
     title: '', brand: '', model: '', year: '', pricePerDay: '', pricePerHour: '',
     securityDeposit: '', fuelType: 'petrol', transmission: 'manual', seats: 2,
     mileage: '', description: '', city: '', state: '', pincode: '',
-    minRentalDays: 1, maxRentalDays: 30, isFeatured: false, status: 'available',
+    minRentalDays: 1, maxRentalDays: 30,
+    minRentalHours: 1, maxRentalHours: 24,
+    isFeatured: false, status: 'available',
     features: '',
   });
 
@@ -1466,7 +1555,9 @@ const RentalsTab = () => {
       title: '', brand: '', model: '', year: '', pricePerDay: '', pricePerHour: '',
       securityDeposit: '', fuelType: 'petrol', transmission: 'manual', seats: 2,
       mileage: '', description: '', city: '', state: '', pincode: '',
-      minRentalDays: 1, maxRentalDays: 30, isFeatured: false, status: 'available',
+      minRentalDays: 1, maxRentalDays: 30,
+      minRentalHours: 1, maxRentalHours: 24,
+      isFeatured: false, status: 'available',
       features: '',
     });
   };
@@ -1481,6 +1572,7 @@ const RentalsTab = () => {
       mileage: car.mileage || '', description: car.description || '',
       city: car.location?.city || '', state: car.location?.state || '', pincode: car.location?.pincode || '',
       minRentalDays: car.minRentalDays || 1, maxRentalDays: car.maxRentalDays || 30,
+      minRentalHours: car.minRentalHours || 1, maxRentalHours: car.maxRentalHours || 24,
       isFeatured: car.isFeatured || false, status: car.status || 'available',
       features: (car.features || []).join(', '),
     });
@@ -1491,8 +1583,8 @@ const RentalsTab = () => {
 
   const handleImagesChange = (e) => {
     const files = Array.from(e.target.files || []);
-    setImages(files);
-    setImagePreviews(files.map(f => URL.createObjectURL(f)));
+    setImages(prev => [...prev, ...files]);
+    setImagePreviews(prev => [...prev, ...files.map(f => URL.createObjectURL(f))]);
   };
 
   const handleSubmit = async (e) => {
@@ -1508,6 +1600,7 @@ const RentalsTab = () => {
       fd.append('description', form.description); fd.append('isFeatured', form.isFeatured);
       fd.append('status', form.status);
       fd.append('minRentalDays', form.minRentalDays); fd.append('maxRentalDays', form.maxRentalDays);
+      fd.append('minRentalHours', form.minRentalHours || 1); fd.append('maxRentalHours', form.maxRentalHours || 24);
       fd.append('location', JSON.stringify({ city: form.city, state: form.state, pincode: form.pincode }));
       fd.append('features', JSON.stringify(form.features.split(',').map(f => f.trim()).filter(Boolean)));
       for (const img of images) fd.append('images', img);
@@ -1553,7 +1646,7 @@ const RentalsTab = () => {
               <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>YEAR *</label><input type="number" className="input-light" required min={2000} max={new Date().getFullYear() + 1} value={form.year} onChange={e => setForm({ ...form, year: e.target.value })} style={{ height: 46 }} /></div>
               <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>PRICE / DAY (₹) *</label><input type="number" className="input-light" required value={form.pricePerDay} onChange={e => setForm({ ...form, pricePerDay: e.target.value })} style={{ height: 46 }} /></div>
               <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>PRICE / HOUR (₹)</label><input type="number" className="input-light" value={form.pricePerHour} onChange={e => setForm({ ...form, pricePerHour: e.target.value })} style={{ height: 46 }} /></div>
-              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>SECURITY DEPOSIT (₹)</label><input type="number" className="input-light" value={form.securityDeposit} onChange={e => setForm({ ...form, securityDeposit: e.target.value })} style={{ height: 46 }} /></div>
+              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>SECURITY DEPOSIT (REFUNDABLE) (₹)</label><input type="number" className="input-light" value={form.securityDeposit} onChange={e => setForm({ ...form, securityDeposit: e.target.value })} style={{ height: 46 }} /></div>
               <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>SEATS</label><input type="number" className="input-light" min={1} max={3} value={form.seats} onChange={e => setForm({ ...form, seats: e.target.value })} style={{ height: 46 }} /></div>
               <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>FUEL TYPE</label>
                 <select className="input-light" value={form.fuelType} onChange={e => setForm({ ...form, fuelType: e.target.value })} style={{ height: 46 }}>
@@ -1576,6 +1669,8 @@ const RentalsTab = () => {
               </div>
               <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>MIN RENTAL DAYS</label><input type="number" min={1} className="input-light" value={form.minRentalDays} onChange={e => setForm({ ...form, minRentalDays: e.target.value })} style={{ height: 46 }} /></div>
               <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>MAX RENTAL DAYS</label><input type="number" min={1} className="input-light" value={form.maxRentalDays} onChange={e => setForm({ ...form, maxRentalDays: e.target.value })} style={{ height: 46 }} /></div>
+              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>MIN RENTAL HOURS</label><input type="number" min={1} className="input-light" value={form.minRentalHours} onChange={e => setForm({ ...form, minRentalHours: e.target.value })} style={{ height: 46 }} /></div>
+              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>MAX RENTAL HOURS</label><input type="number" min={1} className="input-light" value={form.maxRentalHours} onChange={e => setForm({ ...form, maxRentalHours: e.target.value })} style={{ height: 46 }} /></div>
             </div>
           </div>
 
@@ -1591,19 +1686,27 @@ const RentalsTab = () => {
           </div>
 
           <div style={{ background: '#F9F9F9', padding: '1.5rem', borderRadius: '16px', marginBottom: '1.2rem', border: '1px solid #EEE' }}>
-            <h4 style={{ fontSize: '0.78rem', fontWeight: 900, marginBottom: '1rem', color: '#111', textTransform: 'uppercase', letterSpacing: '0.08em' }}>IMAGES</h4>
-            <input type="file" multiple accept="image/*" onChange={handleImagesChange} style={{ marginBottom: '0.8rem' }} />
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-              {existingImages.map((url, i) => (
-                <div key={`ex-${i}`} style={{ position: 'relative', width: 90, height: 70 }}>
-                  <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8, border: '1px solid #EEE' }} />
-                  <button type="button" onClick={() => setExistingImages(existingImages.filter((_, idx) => idx !== i))} style={{ position: 'absolute', top: -6, right: -6, background: '#E53935', color: 'white', border: 'none', borderRadius: '50%', width: 22, height: 22, cursor: 'pointer', fontSize: '0.7rem' }}>×</button>
-                </div>
-              ))}
-              {imagePreviews.map((url, i) => (
-                <img key={`new-${i}`} src={url} alt="" style={{ width: 90, height: 70, objectFit: 'cover', borderRadius: 8, border: '2px solid #E53935' }} />
-              ))}
+            <h4 style={{ fontSize: '0.78rem', fontWeight: 900, marginBottom: '0.4rem', color: '#111', textTransform: 'uppercase', letterSpacing: '0.08em' }}>IMAGES</h4>
+            <p style={{ color: '#888', fontSize: '0.75rem', marginBottom: '1rem' }}>Upload multiple images in the order you want them to appear on the listing page.</p>
+            <div className="input-light" style={{ borderStyle: 'dashed', minHeight: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
+              <input type="file" multiple accept="image/*" onChange={handleImagesChange} style={{ color: '#888', fontWeight: 600 }} />
             </div>
+            {(existingImages.length > 0 || imagePreviews.length > 0) && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+                {existingImages.map((url, i) => (
+                  <div key={`ex-${i}`} style={{ position: 'relative', width: 80, height: 80, borderRadius: '16px', overflow: 'hidden', border: '2px solid #2E7D32', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                    <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <button type="button" onClick={() => setExistingImages(existingImages.filter((_, idx) => idx !== i))} style={{ position: 'absolute', top: 4, right: 4, background: '#E53935', color: 'white', border: 'none', borderRadius: '50%', width: 20, height: 20, fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>✕</button>
+                  </div>
+                ))}
+                {imagePreviews.map((url, i) => (
+                  <div key={`new-${i}`} style={{ position: 'relative', width: 80, height: 80, borderRadius: '16px', overflow: 'hidden', border: '1.5px solid #EEE', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                    <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <button type="button" onClick={() => { setImages(prev => prev.filter((_, j) => j !== i)); setImagePreviews(prev => prev.filter((_, j) => j !== i)); }} style={{ position: 'absolute', top: 4, right: 4, background: '#E53935', color: 'white', border: 'none', borderRadius: '50%', width: 20, height: 20, fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div style={{ display: 'flex', gap: '0.8rem' }}>
@@ -1632,7 +1735,12 @@ const RentalsTab = () => {
             <h4 style={{ fontWeight: 900, color: '#111', margin: 0, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem' }}>{car.brand} {car.model}</h4>
             <p style={{ color: '#888', fontSize: '0.78rem', fontWeight: 600, marginTop: '0.2rem' }}>{car.year} • {car.transmission?.toUpperCase()} • {car.fuelType?.toUpperCase()}</p>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.8rem' }}>
-              <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 950, color: '#E53935', fontSize: '1.2rem' }}>₹{car.pricePerDay?.toLocaleString('en-IN')}/d</span>
+              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+                <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 950, color: '#E53935', fontSize: '1.2rem' }}>₹{car.pricePerDay?.toLocaleString('en-IN')}/d</span>
+                {car.pricePerHour > 0 && (
+                  <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, color: '#64748B', fontSize: '0.78rem' }}>or ₹{car.pricePerHour?.toLocaleString('en-IN')}/hr</span>
+                )}
+              </div>
               <span style={{ background: car.status === 'available' ? '#DCFCE7' : car.status === 'rented' ? '#FEF3C7' : '#FEE2E2', color: car.status === 'available' ? '#16A34A' : car.status === 'rented' ? '#CA8A04' : '#DC2626', padding: '0.2rem 0.6rem', borderRadius: '999px', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase' }}>{car.status}</span>
             </div>
             <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.8rem' }}>

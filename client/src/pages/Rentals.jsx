@@ -93,11 +93,15 @@ function RentalCard({ car, onClick }) {
 
         {/* Price + Action */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
-            <span className="product-card-price" style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.05rem', fontWeight: 950, color: '#E53935', lineHeight: 1 }}>
-              ₹{car.pricePerDay?.toLocaleString('en-IN')}
+          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+            <span className="product-card-price" style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.05rem', fontWeight: 950, color: '#E53935' }}>
+              ₹{car.pricePerDay?.toLocaleString('en-IN')}<span style={{ color: '#64748B', fontSize: '0.6rem', fontWeight: 800 }}>/day</span>
             </span>
-            <span style={{ color: '#64748B', fontSize: '0.6rem', fontWeight: 800 }}>/day</span>
+            {car.pricePerHour > 0 && (
+              <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '0.7rem', fontWeight: 800, color: '#64748B' }}>
+                or ₹{car.pricePerHour?.toLocaleString('en-IN')}<span style={{ fontSize: '0.55rem' }}>/hour</span>
+              </span>
+            )}
           </div>
           <div className="product-card-btn" style={{
             height: '28px', padding: '0 0.75rem',

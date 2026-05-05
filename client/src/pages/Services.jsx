@@ -92,8 +92,8 @@ export default function Services() {
         ...data,
         serviceType: selectedService.value,
         serviceLabel: selectedService.label,
-        isPickupDrop: data.isPickupDrop === 'true',
-        isOneHourRepair: data.isOneHourRepair === 'true',
+        isPickupDrop: !!data.isPickupDrop,
+        isOneHourRepair: !!data.isOneHourRepair,
       });
       setBookingId(res.data.booking?._id || res.data._id);
       setStep(3);
@@ -230,11 +230,11 @@ export default function Services() {
  
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
-                  <input type="checkbox" value="true" {...register('isPickupDrop')} style={{ accentColor: '#E53935', width: 16, height: 16 }} />
+                  <input type="checkbox" {...register('isPickupDrop')} style={{ accentColor: '#E53935', width: 16, height: 16 }} />
                   <span style={{ color: '#444', fontSize: '0.85rem', fontWeight: 600 }}>Pickup & Drop</span>
                 </label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer' }}>
-                  <input type="checkbox" value="true" {...register('isOneHourRepair')} style={{ accentColor: '#E53935', width: 16, height: 16 }} />
+                  <input type="checkbox" {...register('isOneHourRepair')} style={{ accentColor: '#E53935', width: 16, height: 16 }} />
                   <span style={{ color: '#444', fontSize: '0.85rem', fontWeight: 600 }}>1-Hour Repair</span>
                 </label>
               </div>
