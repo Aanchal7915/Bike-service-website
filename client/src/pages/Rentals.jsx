@@ -42,23 +42,20 @@ export default function Rentals() {
         }
       `}</style>
       {/* Hero */}
-      <div style={{ background: '#000000', padding: '4rem 1rem 5rem', color: 'white', position: 'relative', overflow: 'hidden' }}>
-        {/* Red glow accent */}
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(ellipse at 50% 50%, rgba(229,57,53,0.15) 0%, transparent 60%)', pointerEvents: 'none' }} />
-        
-        <div className="max-w-6xl mx-auto" style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(229,57,53,0.1)', border: '1px solid rgba(229,57,53,0.25)', padding: '0.4rem 1rem', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.1em', marginBottom: '1.2rem', color: '#E53935' }}>
+      <div style={{ background: 'linear-gradient(135deg, #111111 0%, #7f1d1d 50%, #E53935 100%)', padding: '4rem 1rem 5rem', color: 'white' }}>
+        <div className="max-w-6xl mx-auto">
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.25)', padding: '0.4rem 1rem', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.1em', marginBottom: '1.2rem', color: '#FFFFFF' }}>
             <Sparkles size={14} /> SELF-DRIVE RENTALS
           </div>
           <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: 'clamp(2.4rem, 6vw, 4rem)', fontWeight: 950, lineHeight: 1, letterSpacing: '-0.02em', marginBottom: '1rem' }}>
-            RENT A BIKE <span style={{ color: '#E53935' }}>YOUR WAY</span>
+            RENT A BIKE <span style={{ color: '#FFCDD2' }}>YOUR WAY</span>
           </h1>
-          <p style={{ color: '#CBD5E1', fontSize: '1.1rem', maxWidth: '560px', fontWeight: 500 }}>
+          <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '1.1rem', maxWidth: '560px', fontWeight: 500 }}>
             From sports bikes to cruisers and tourers — reserve in minutes, ride worry-free, pay by the day or hour.
           </p>
 
           {/* Search Bar */}
-          <form onSubmit={onFilter} style={{ marginTop: '2rem', background: 'white', borderRadius: '18px', padding: '0.6rem', display: 'flex', gap: '0.5rem', maxWidth: '720px', boxShadow: '0 20px 50px rgba(0,0,0,0.2)', flexWrap: 'wrap' }}>
+          <form onSubmit={onFilter} style={{ marginTop: '2rem', background: 'white', borderRadius: '18px', padding: '0.6rem', display: 'flex', gap: '0.5rem', maxWidth: '720px', boxShadow: '0 20px 50px rgba(229,57,53,0.2)', flexWrap: 'wrap' }}>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', minWidth: '200px' }}>
               <Search size={18} style={{ color: '#E53935' }} />
               <input
@@ -68,7 +65,7 @@ export default function Rentals() {
                 style={{ flex: 1, border: 'none', outline: 'none', fontSize: '0.82rem', fontWeight: 600, color: '#111111' }}
               />
             </div>
-            <button type="submit" style={{ background: '#E53935', color: 'white', border: 'none', borderRadius: '12px', padding: '0.7rem 1.6rem', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <button type="submit" style={{ background: '#111111', color: 'white', border: 'none', borderRadius: '12px', padding: '0.7rem 1.6rem', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               SEARCH <ArrowRight size={16} />
             </button>
           </form>
