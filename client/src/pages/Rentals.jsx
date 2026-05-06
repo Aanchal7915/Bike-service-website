@@ -1,123 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Calendar, Settings, MapPin, Search, Sparkles, ArrowRight, Bike } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Calendar, Search, Sparkles, ArrowRight } from 'lucide-react';
 import { PageLoader } from '../components/common/LoadingSpinner';
+import RentalCard from '../components/bikes/RentalCard';
 import { getRentalCars } from '../api/rentalApi';
 
 const TRANSMISSIONS = ['', 'manual', 'automatic'];
 const FUELS = ['', 'petrol', 'diesel', 'electric', 'hybrid', 'cng'];
-
-function RentalCard({ car, onClick }) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <div
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        position: 'relative',
-        borderRadius: '20px',
-        overflow: 'hidden',
-        background: '#FFF',
-        display: 'flex',
-        flexDirection: 'column',
-        cursor: 'pointer',
-        boxShadow: hovered ? '0 30px 60px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(229, 57, 53, 0.1)' : '0 10px 30px rgba(0,0,0,0.04)',
-        transform: hovered ? 'translateY(-12px)' : 'translateY(0)',
-        transition: 'all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)',
-        height: '100%',
-      }}
-    >
-      {/* Image Section */}
-      <div style={{ position: 'relative', height: '180px', background: '#F5F5F5', overflow: 'hidden' }}>
-        {car.images?.[0] ? (
-          <img
-            src={car.images[0]}
-            alt={car.title}
-            style={{
-              width: '100%', height: '100%', objectFit: 'contain', padding: '1.2rem',
-              transform: hovered ? 'scale(1.1) translateY(-8px)' : 'scale(1)',
-              transition: 'transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)',
-            }}
-          />
-        ) : (
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#CBD5E1' }}>
-            <Calendar size={40} />
-          </div>
-        )}
-
-        {car.status === 'rented' && (
-          <div style={{ position: 'absolute', top: 12, right: 12, background: '#EF4444', color: 'white', padding: '4px 14px', borderRadius: '30px', fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase' }}>BOOKED</div>
-        )}
-        {car.isFeatured && car.status === 'available' && (
-          <div style={{ position: 'absolute', top: 12, left: 12, background: '#F59E0B', color: 'white', padding: '4px 14px', borderRadius: '30px', fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase' }}>FEATURED</div>
-        )}
-      </div>
-
-      {/* Content Section */}
-      <div style={{ padding: '0.75rem', flex: 1, display: 'flex', flexDirection: 'column', background: '#FFFFFF', borderTop: '1px solid #EEE' }}>
-        {/* Metadata Row */}
-        <div style={{ marginBottom: '0.3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: '0.6rem' }}>
-            <span style={{ color: '#E53935', fontSize: '0.6rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '2px', fontFamily: 'Rajdhani, sans-serif' }}>
-              <Calendar size={11} /> {car.year}
-            </span>
-            <span style={{ color: '#64748B', fontSize: '0.65rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '2px', fontFamily: 'Rajdhani, sans-serif' }}>
-              <Settings size={11} /> {car.transmission?.toUpperCase()}
-            </span>
-          </div>
-        </div>
-
-        {/* Title */}
-        <h3 className="product-card-title" style={{
-          color: '#111', fontWeight: 900, fontSize: '0.85rem',
-          lineHeight: 1.2, marginBottom: '0.3rem',
-          fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.02em',
-          textTransform: 'uppercase',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
-        }}>
-          {car.brand} {car.model}
-        </h3>
-
-        {/* Subtitle */}
-        <p style={{ color: '#64748B', fontSize: '0.75rem', fontWeight: 700, marginBottom: '0.3rem' }}>
-          {car.fuelType?.toUpperCase()}
-        </p>
-
-        {/* Location */}
-        {car.location?.city && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginBottom: '0.4rem', color: '#94A3B8', fontSize: '0.65rem', fontWeight: 600 }}>
-            <MapPin size={10} /> {car.location.city}
-          </div>
-        )}
-
-        {/* Price + Action */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-            <span className="product-card-price" style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.05rem', fontWeight: 950, color: '#E53935' }}>
-              ₹{car.pricePerDay?.toLocaleString('en-IN')}<span style={{ color: '#64748B', fontSize: '0.6rem', fontWeight: 800 }}>/day</span>
-            </span>
-            {car.pricePerHour > 0 && (
-              <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '0.7rem', fontWeight: 800, color: '#64748B' }}>
-                or ₹{car.pricePerHour?.toLocaleString('en-IN')}<span style={{ fontSize: '0.55rem' }}>/hour</span>
-              </span>
-            )}
-          </div>
-          <div className="product-card-btn" style={{
-            height: '28px', padding: '0 0.75rem',
-            background: '#E53935', borderRadius: '6px', color: 'white',
-            display: 'flex', alignItems: 'center', gap: '0.3rem',
-            fontSize: '0.65rem', fontWeight: 800, fontFamily: 'Rajdhani, sans-serif',
-            letterSpacing: '0.05em', boxShadow: '0 4px 10px rgba(229, 57, 53, 0.15)',
-            transition: 'all 0.3s'
-          }}>
-            RENT NOW <ArrowRight size={12} />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function Rentals() {
   const navigate = useNavigate();
@@ -153,22 +42,22 @@ export default function Rentals() {
         }
       `}</style>
       {/* Hero */}
-      <div style={{ background: 'linear-gradient(135deg, #111 0%, #E53935 100%)', padding: '4rem 1rem 5rem', color: 'white' }}>
+      <div style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%)', padding: '4rem 1rem 5rem', color: 'white' }}>
         <div className="max-w-6xl mx-auto">
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', padding: '0.4rem 1rem', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.1em', marginBottom: '1.2rem' }}>
-            <Sparkles size={14} /> PREMIUM RENTALS
+            <Sparkles size={14} /> SELF-DRIVE RENTALS
           </div>
           <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: 'clamp(2.4rem, 6vw, 4rem)', fontWeight: 950, lineHeight: 1, letterSpacing: '-0.02em', marginBottom: '1rem' }}>
-            RENT A BIKE <span style={{ color: '#FFF' }}>YOUR WAY</span>
+            RENT A BIKE <span style={{ color: '#93C5FD' }}>YOUR WAY</span>
           </h1>
           <p style={{ color: '#CBD5E1', fontSize: '1.1rem', maxWidth: '560px', fontWeight: 500 }}>
-            Choose from the best sports bikes, cruisers, and tourers — reserve in minutes, drive worry-free, pay by the day.
+            From sports bikes to cruisers and tourers — reserve in minutes, ride worry-free, pay by the day or hour.
           </p>
 
           {/* Search Bar */}
           <form onSubmit={onFilter} style={{ marginTop: '2rem', background: 'white', borderRadius: '18px', padding: '0.6rem', display: 'flex', gap: '0.5rem', maxWidth: '720px', boxShadow: '0 20px 50px rgba(0,0,0,0.2)', flexWrap: 'wrap' }}>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', minWidth: '200px' }}>
-              <Search size={18} style={{ color: '#E53935' }} />
+              <Search size={18} style={{ color: '#1E3A8A' }} />
               <input
                 placeholder="Search by brand or model..."
                 value={filters.search}
@@ -176,7 +65,7 @@ export default function Rentals() {
                 style={{ flex: 1, border: 'none', outline: 'none', fontSize: '0.82rem', fontWeight: 600, color: '#0F172A' }}
               />
             </div>
-            <button type="submit" style={{ background: '#E53935', color: 'white', border: 'none', borderRadius: '12px', padding: '0.7rem 1.6rem', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <button type="submit" style={{ background: '#1E3A8A', color: 'white', border: 'none', borderRadius: '12px', padding: '0.7rem 1.6rem', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               SEARCH <ArrowRight size={16} />
             </button>
           </form>
@@ -209,7 +98,7 @@ export default function Rentals() {
         {loading ? <PageLoader /> : cars.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '5rem 2rem', background: '#F9F9F9', borderRadius: '24px', border: '1.5px dashed #EEE' }}>
             <Calendar size={48} style={{ color: '#CBD5E1', margin: '0 auto 1rem' }} />
-            <p style={{ color: '#64748B', fontWeight: 700 }}>No rental listings match your filters</p>
+            <p style={{ color: '#64748B', fontWeight: 700 }}>No rental bikes match your filters</p>
           </div>
         ) : (
           <div className="rentals-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem' }}>

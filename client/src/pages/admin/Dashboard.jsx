@@ -1523,7 +1523,7 @@ const LeadsTab = () => {
   );
 };
 
-// ── RENTAL BIKES TAB (Admin CRUD) ──
+// ── RENTAL CARS TAB (Admin CRUD) ──
 const RentalsTab = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1534,12 +1534,14 @@ const RentalsTab = () => {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [form, setForm] = useState({
     title: '', brand: '', model: '', year: '', pricePerDay: '', pricePerHour: '',
-    securityDeposit: '', fuelType: 'petrol', transmission: 'manual', seats: 2,
+    securityDeposit: '', securityDepositRefundable: true,
+    fuelType: 'petrol', transmission: 'manual', seats: 5,
     mileage: '', description: '', city: '', state: '', pincode: '',
     minRentalDays: 1, maxRentalDays: 30,
     minRentalHours: 1, maxRentalHours: 24,
     isFeatured: false, status: 'available',
     features: '',
+    allowDay: true, allowHour: false,
   });
 
   useEffect(() => {
@@ -1553,28 +1555,35 @@ const RentalsTab = () => {
     setShowForm(false); setEditId(null); setImages([]); setExistingImages([]); setImagePreviews([]);
     setForm({
       title: '', brand: '', model: '', year: '', pricePerDay: '', pricePerHour: '',
-      securityDeposit: '', fuelType: 'petrol', transmission: 'manual', seats: 2,
+      securityDeposit: '', securityDepositRefundable: true,
+      fuelType: 'petrol', transmission: 'manual', seats: 5,
       mileage: '', description: '', city: '', state: '', pincode: '',
       minRentalDays: 1, maxRentalDays: 30,
       minRentalHours: 1, maxRentalHours: 24,
       isFeatured: false, status: 'available',
       features: '',
+      allowDay: true, allowHour: false,
     });
   };
 
   const handleEdit = (car) => {
     setEditId(car._id);
+    const units = Array.isArray(car.rentalUnits) && car.rentalUnits.length ? car.rentalUnits : ['day'];
     setForm({
       title: car.title || '', brand: car.brand || '', model: car.model || '', year: car.year || '',
       pricePerDay: car.pricePerDay || '', pricePerHour: car.pricePerHour || '',
-      securityDeposit: car.securityDeposit || '', fuelType: car.fuelType || 'petrol',
-      transmission: car.transmission || 'manual', seats: car.seats || 2,
+      securityDeposit: car.securityDeposit || '',
+      securityDepositRefundable: car.securityDepositRefundable !== false,
+      fuelType: car.fuelType || 'petrol',
+      transmission: car.transmission || 'manual', seats: car.seats || 5,
       mileage: car.mileage || '', description: car.description || '',
       city: car.location?.city || '', state: car.location?.state || '', pincode: car.location?.pincode || '',
       minRentalDays: car.minRentalDays || 1, maxRentalDays: car.maxRentalDays || 30,
       minRentalHours: car.minRentalHours || 1, maxRentalHours: car.maxRentalHours || 24,
       isFeatured: car.isFeatured || false, status: car.status || 'available',
       features: (car.features || []).join(', '),
+      allowDay: units.includes('day'),
+      allowHour: units.includes('hour'),
     });
     setExistingImages(car.images || []);
     setImages([]); setImagePreviews([]);
@@ -1589,18 +1598,30 @@ const RentalsTab = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!form.allowDay && !form.allowHour) {
+      return toast.error('Please enable at least one rental unit (day or hour)');
+    }
+    if (form.allowHour && (!form.pricePerHour || Number(form.pricePerHour) <= 0)) {
+      return toast.error('Set a price per hour to enable hourly rentals');
+    }
     try {
+      const units = [];
+      if (form.allowDay) units.push('day');
+      if (form.allowHour) units.push('hour');
+
       const fd = new FormData();
       fd.append('title', form.title || `${form.brand} ${form.model} ${form.year}`);
       fd.append('brand', form.brand); fd.append('model', form.model); fd.append('year', form.year);
       fd.append('pricePerDay', form.pricePerDay); fd.append('pricePerHour', form.pricePerHour || 0);
       fd.append('securityDeposit', form.securityDeposit || 0);
+      fd.append('securityDepositRefundable', form.securityDepositRefundable);
       fd.append('fuelType', form.fuelType); fd.append('transmission', form.transmission);
       fd.append('seats', form.seats); fd.append('mileage', form.mileage);
       fd.append('description', form.description); fd.append('isFeatured', form.isFeatured);
       fd.append('status', form.status);
       fd.append('minRentalDays', form.minRentalDays); fd.append('maxRentalDays', form.maxRentalDays);
       fd.append('minRentalHours', form.minRentalHours || 1); fd.append('maxRentalHours', form.maxRentalHours || 24);
+      units.forEach(u => fd.append('rentalUnits[]', u));
       fd.append('location', JSON.stringify({ city: form.city, state: form.state, pincode: form.pincode }));
       fd.append('features', JSON.stringify(form.features.split(',').map(f => f.trim()).filter(Boolean)));
       for (const img of images) fd.append('images', img);
@@ -1646,7 +1667,13 @@ const RentalsTab = () => {
               <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>YEAR *</label><input type="number" className="input-light" required min={2000} max={new Date().getFullYear() + 1} value={form.year} onChange={e => setForm({ ...form, year: e.target.value })} style={{ height: 46 }} /></div>
               <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>PRICE / DAY (₹) *</label><input type="number" className="input-light" required value={form.pricePerDay} onChange={e => setForm({ ...form, pricePerDay: e.target.value })} style={{ height: 46 }} /></div>
               <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>PRICE / HOUR (₹)</label><input type="number" className="input-light" value={form.pricePerHour} onChange={e => setForm({ ...form, pricePerHour: e.target.value })} style={{ height: 46 }} /></div>
-              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>SECURITY DEPOSIT (REFUNDABLE) (₹)</label><input type="number" className="input-light" value={form.securityDeposit} onChange={e => setForm({ ...form, securityDeposit: e.target.value })} style={{ height: 46 }} /></div>
+              <div>
+                <label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>SECURITY DEPOSIT (₹)</label>
+                <input type="number" className="input-light" value={form.securityDeposit} onChange={e => setForm({ ...form, securityDeposit: e.target.value })} style={{ height: 46 }} />
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.4rem', fontSize: '0.72rem', color: '#475569', fontWeight: 700, cursor: 'pointer' }}>
+                  <input type="checkbox" checked={form.securityDepositRefundable} onChange={e => setForm({ ...form, securityDepositRefundable: e.target.checked })} style={{ accentColor: '#E53935' }} /> Refundable
+                </label>
+              </div>
               <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>SEATS</label><input type="number" className="input-light" min={1} max={3} value={form.seats} onChange={e => setForm({ ...form, seats: e.target.value })} style={{ height: 46 }} /></div>
               <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>FUEL TYPE</label>
                 <select className="input-light" value={form.fuelType} onChange={e => setForm({ ...form, fuelType: e.target.value })} style={{ height: 46 }}>
@@ -1667,10 +1694,19 @@ const RentalsTab = () => {
                   <option value="inactive">INACTIVE</option>
                 </select>
               </div>
-              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>MIN RENTAL DAYS</label><input type="number" min={1} className="input-light" value={form.minRentalDays} onChange={e => setForm({ ...form, minRentalDays: e.target.value })} style={{ height: 46 }} /></div>
-              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>MAX RENTAL DAYS</label><input type="number" min={1} className="input-light" value={form.maxRentalDays} onChange={e => setForm({ ...form, maxRentalDays: e.target.value })} style={{ height: 46 }} /></div>
-              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>MIN RENTAL HOURS</label><input type="number" min={1} className="input-light" value={form.minRentalHours} onChange={e => setForm({ ...form, minRentalHours: e.target.value })} style={{ height: 46 }} /></div>
-              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>MAX RENTAL HOURS</label><input type="number" min={1} className="input-light" value={form.maxRentalHours} onChange={e => setForm({ ...form, maxRentalHours: e.target.value })} style={{ height: 46 }} /></div>
+              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>MIN RENTAL DAYS</label><input type="number" min={1} className="input-light" value={form.minRentalDays} onChange={e => setForm({ ...form, minRentalDays: e.target.value })} style={{ height: 46 }} disabled={!form.allowDay} /></div>
+              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>MAX RENTAL DAYS</label><input type="number" min={1} className="input-light" value={form.maxRentalDays} onChange={e => setForm({ ...form, maxRentalDays: e.target.value })} style={{ height: 46 }} disabled={!form.allowDay} /></div>
+              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>MIN RENTAL HOURS</label><input type="number" min={1} className="input-light" value={form.minRentalHours} onChange={e => setForm({ ...form, minRentalHours: e.target.value })} style={{ height: 46 }} disabled={!form.allowHour} /></div>
+              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>MAX RENTAL HOURS</label><input type="number" min={1} className="input-light" value={form.maxRentalHours} onChange={e => setForm({ ...form, maxRentalHours: e.target.value })} style={{ height: 46 }} disabled={!form.allowHour} /></div>
+            </div>
+            <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1rem', padding: '0.8rem 1rem', background: '#FFF', border: '1px solid #E2E8F0', borderRadius: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rental Units:</span>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: '#0F172A', fontWeight: 700, cursor: 'pointer' }}>
+                <input type="checkbox" checked={form.allowDay} onChange={e => setForm({ ...form, allowDay: e.target.checked })} style={{ accentColor: '#E53935', width: 16, height: 16 }} /> By Day
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: '#0F172A', fontWeight: 700, cursor: 'pointer' }}>
+                <input type="checkbox" checked={form.allowHour} onChange={e => setForm({ ...form, allowHour: e.target.checked })} style={{ accentColor: '#E53935', width: 16, height: 16 }} /> By Hour
+              </label>
             </div>
           </div>
 
@@ -1749,7 +1785,7 @@ const RentalsTab = () => {
             </div>
           </div>
         ))}
-        {data.length === 0 && <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#AAA', padding: '3rem', fontWeight: 600 }}>No rental bikes yet</p>}
+        {data.length === 0 && <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#AAA', padding: '3rem', fontWeight: 600 }}>No rental cars yet</p>}
       </div>
     </div>
   );
