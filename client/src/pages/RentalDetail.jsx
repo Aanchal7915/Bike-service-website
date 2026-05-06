@@ -41,18 +41,41 @@ export default function RentalDetail() {
     pickupAddress: { street: '', city: '', state: '', pincode: '' },
   });
 
+  const [loadError, setLoadError] = useState('');
+  // Derive allowed rental units from the bike's configured units AND its actual prices —
+  // if pricePerHour > 0 the bike supports hourly even if the units array wasn't explicitly set.
+  const computeAllowedUnits = (c) => {
+    if (!c) return ['day'];
+    const fromConfig = Array.isArray(c.rentalUnits) ? [...c.rentalUnits] : [];
+    if (Number(c.pricePerHour) > 0 && !fromConfig.includes('hour')) fromConfig.push('hour');
+    if (Number(c.pricePerDay) > 0 && !fromConfig.includes('day')) fromConfig.push('day');
+    return fromConfig.length ? fromConfig : ['day'];
+  };
+
   useEffect(() => {
+    let cancelled = false;
+    setLoadError('');
     getRentalCar(id)
       .then(({ data }) => {
+        if (cancelled) return;
+        if (!data?.car) {
+          setLoadError('Rental bike not found');
+          return;
+        }
         setCar(data.car);
-        const allowedUnits = data.car?.rentalUnits?.length ? data.car.rentalUnits : ['day'];
+        const allowedUnits = computeAllowedUnits(data.car);
         setForm(prev => ({ ...prev, rentalUnit: allowedUnits[0] }));
       })
-      .catch(() => toast.error('Failed to load rental details'))
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        if (cancelled) return;
+        const msg = err.response?.data?.message || err.message || 'Failed to load rental details';
+        setLoadError(msg);
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [id]);
 
-  const allowedUnits = car?.rentalUnits?.length ? car.rentalUnits : ['day'];
+  const allowedUnits = computeAllowedUnits(car);
   const unit = allowedUnits.includes(form.rentalUnit) ? form.rentalUnit : allowedUnits[0];
 
   const totalDays = useMemo(() => {
@@ -162,7 +185,25 @@ export default function RentalDetail() {
   };
 
   if (loading) return <PageLoader />;
-  if (!car) return null;
+  if (!car) {
+    return (
+      <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+        <div style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: '20px', padding: '2.5rem', textAlign: 'center', maxWidth: 460 }}>
+          <Calendar size={48} style={{ color: '#CBD5E1', margin: '0 auto 1rem' }} />
+          <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 950, color: '#0F172A', fontSize: '1.4rem', marginBottom: '0.4rem' }}>
+            UNABLE TO LOAD BIKE
+          </h2>
+          <p style={{ color: '#64748B', fontWeight: 600, fontSize: '0.9rem', marginBottom: '1.4rem' }}>
+            {loadError || 'This rental bike could not be loaded. It may have been removed or is temporarily unavailable.'}
+          </p>
+          <button onClick={() => navigate('/rentals')}
+            style={{ background: '#E53935', color: 'white', border: 'none', borderRadius: '10px', padding: '0.7rem 1.6rem', fontWeight: 800, cursor: 'pointer', fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.06em' }}>
+            BACK TO RENTALS
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: '#F8FAFC' }}>
@@ -210,8 +251,8 @@ export default function RentalDetail() {
                 )}
                 {allowedUnits.includes('hour') && car.pricePerHour > 0 && (
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem' }}>
-                    <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.4rem', fontWeight: 900, color: '#475569' }}>₹{car.pricePerHour?.toLocaleString('en-IN')}</span>
-                    <span style={{ color: '#94A3B8', fontWeight: 700, fontSize: '0.85rem' }}>/ hour</span>
+                    <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.4rem', fontWeight: 900, color: '#E53935' }}>₹{car.pricePerHour?.toLocaleString('en-IN')}</span>
+                    <span style={{ color: '#64748B', fontWeight: 700, fontSize: '0.85rem' }}>/ hour</span>
                   </div>
                 )}
               </div>

@@ -1541,7 +1541,6 @@ const RentalsTab = () => {
     minRentalHours: 1, maxRentalHours: 24,
     isFeatured: false, status: 'available',
     features: '',
-    allowDay: true, allowHour: false,
   });
 
   useEffect(() => {
@@ -1562,13 +1561,11 @@ const RentalsTab = () => {
       minRentalHours: 1, maxRentalHours: 24,
       isFeatured: false, status: 'available',
       features: '',
-      allowDay: true, allowHour: false,
     });
   };
 
   const handleEdit = (car) => {
     setEditId(car._id);
-    const units = Array.isArray(car.rentalUnits) && car.rentalUnits.length ? car.rentalUnits : ['day'];
     setForm({
       title: car.title || '', brand: car.brand || '', model: car.model || '', year: car.year || '',
       pricePerDay: car.pricePerDay || '', pricePerHour: car.pricePerHour || '',
@@ -1582,8 +1579,6 @@ const RentalsTab = () => {
       minRentalHours: car.minRentalHours || 1, maxRentalHours: car.maxRentalHours || 24,
       isFeatured: car.isFeatured || false, status: car.status || 'available',
       features: (car.features || []).join(', '),
-      allowDay: units.includes('day'),
-      allowHour: units.includes('hour'),
     });
     setExistingImages(car.images || []);
     setImages([]); setImagePreviews([]);
@@ -1598,16 +1593,13 @@ const RentalsTab = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.allowDay && !form.allowHour) {
-      return toast.error('Please enable at least one rental unit (day or hour)');
-    }
-    if (form.allowHour && (!form.pricePerHour || Number(form.pricePerHour) <= 0)) {
-      return toast.error('Set a price per hour to enable hourly rentals');
+    if (!form.pricePerDay || Number(form.pricePerDay) <= 0) {
+      return toast.error('Price per day is required');
     }
     try {
-      const units = [];
-      if (form.allowDay) units.push('day');
-      if (form.allowHour) units.push('hour');
+      // Allowed rental units are derived from which prices the admin set.
+      const units = ['day'];
+      if (Number(form.pricePerHour) > 0) units.push('hour');
 
       const fd = new FormData();
       fd.append('title', form.title || `${form.brand} ${form.model} ${form.year}`);
@@ -1668,11 +1660,8 @@ const RentalsTab = () => {
               <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>PRICE / DAY (₹) *</label><input type="number" className="input-light" required value={form.pricePerDay} onChange={e => setForm({ ...form, pricePerDay: e.target.value })} style={{ height: 46 }} /></div>
               <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>PRICE / HOUR (₹)</label><input type="number" className="input-light" value={form.pricePerHour} onChange={e => setForm({ ...form, pricePerHour: e.target.value })} style={{ height: 46 }} /></div>
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>SECURITY DEPOSIT (₹)</label>
+                <label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>SECURITY DEPOSIT (REFUNDABLE) (₹)</label>
                 <input type="number" className="input-light" value={form.securityDeposit} onChange={e => setForm({ ...form, securityDeposit: e.target.value })} style={{ height: 46 }} />
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.4rem', fontSize: '0.72rem', color: '#475569', fontWeight: 700, cursor: 'pointer' }}>
-                  <input type="checkbox" checked={form.securityDepositRefundable} onChange={e => setForm({ ...form, securityDepositRefundable: e.target.checked })} style={{ accentColor: '#E53935' }} /> Refundable
-                </label>
               </div>
               <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>SEATS</label><input type="number" className="input-light" min={1} max={3} value={form.seats} onChange={e => setForm({ ...form, seats: e.target.value })} style={{ height: 46 }} /></div>
               <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>FUEL TYPE</label>
@@ -1694,19 +1683,10 @@ const RentalsTab = () => {
                   <option value="inactive">INACTIVE</option>
                 </select>
               </div>
-              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>MIN RENTAL DAYS</label><input type="number" min={1} className="input-light" value={form.minRentalDays} onChange={e => setForm({ ...form, minRentalDays: e.target.value })} style={{ height: 46 }} disabled={!form.allowDay} /></div>
-              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>MAX RENTAL DAYS</label><input type="number" min={1} className="input-light" value={form.maxRentalDays} onChange={e => setForm({ ...form, maxRentalDays: e.target.value })} style={{ height: 46 }} disabled={!form.allowDay} /></div>
-              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>MIN RENTAL HOURS</label><input type="number" min={1} className="input-light" value={form.minRentalHours} onChange={e => setForm({ ...form, minRentalHours: e.target.value })} style={{ height: 46 }} disabled={!form.allowHour} /></div>
-              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>MAX RENTAL HOURS</label><input type="number" min={1} className="input-light" value={form.maxRentalHours} onChange={e => setForm({ ...form, maxRentalHours: e.target.value })} style={{ height: 46 }} disabled={!form.allowHour} /></div>
-            </div>
-            <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1rem', padding: '0.8rem 1rem', background: '#FFF', border: '1px solid #E2E8F0', borderRadius: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rental Units:</span>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: '#0F172A', fontWeight: 700, cursor: 'pointer' }}>
-                <input type="checkbox" checked={form.allowDay} onChange={e => setForm({ ...form, allowDay: e.target.checked })} style={{ accentColor: '#E53935', width: 16, height: 16 }} /> By Day
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: '#0F172A', fontWeight: 700, cursor: 'pointer' }}>
-                <input type="checkbox" checked={form.allowHour} onChange={e => setForm({ ...form, allowHour: e.target.checked })} style={{ accentColor: '#E53935', width: 16, height: 16 }} /> By Hour
-              </label>
+              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>MIN RENTAL DAYS</label><input type="number" min={1} className="input-light" value={form.minRentalDays} onChange={e => setForm({ ...form, minRentalDays: e.target.value })} style={{ height: 46 }} /></div>
+              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>MAX RENTAL DAYS</label><input type="number" min={1} className="input-light" value={form.maxRentalDays} onChange={e => setForm({ ...form, maxRentalDays: e.target.value })} style={{ height: 46 }} /></div>
+              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>MIN RENTAL HOURS</label><input type="number" min={1} className="input-light" value={form.minRentalHours} onChange={e => setForm({ ...form, minRentalHours: e.target.value })} style={{ height: 46 }} /></div>
+              <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>MAX RENTAL HOURS</label><input type="number" min={1} className="input-light" value={form.maxRentalHours} onChange={e => setForm({ ...form, maxRentalHours: e.target.value })} style={{ height: 46 }} /></div>
             </div>
           </div>
 
@@ -1821,13 +1801,17 @@ const RentalBookingsTab = () => {
           <tr>
             <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Customer</th>
             <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Bike</th>
-            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Dates</th>
-            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Total</th>
+            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Schedule</th>
+            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Rate & Total</th>
             <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Status</th>
           </tr>
         </thead>
         <tbody>
-          {data.length > 0 ? data.map(b => (
+          {data.length > 0 ? data.map(b => {
+            const isHour = b.rentalUnit === 'hour';
+            const rate = isHour ? b.pricePerHour : b.pricePerDay;
+            const qty = isHour ? b.totalHours : b.totalDays;
+            return (
             <tr key={b._id} style={{ borderBottom: '1px solid #F5F5F5' }}>
               <td style={{ padding: '1rem', fontWeight: 700, color: '#111' }}>
                 {b.user?.name}<br />
@@ -1838,10 +1822,17 @@ const RentalBookingsTab = () => {
                 <span style={{ color: '#888', fontSize: '0.78rem', fontWeight: 600 }}>{b.carSnapshot?.year || b.rentalCar?.year}</span>
               </td>
               <td style={{ padding: '1rem', fontWeight: 700, color: '#111' }}>
-                {new Date(b.pickupDate).toLocaleDateString('en-IN')}<br />
-                <span style={{ color: '#888', fontSize: '0.78rem', fontWeight: 600 }}>→ {new Date(b.returnDate).toLocaleDateString('en-IN')} ({b.totalDays}d)</span>
+                <span style={{ display: 'inline-block', background: isHour ? '#FEF3C7' : '#DBEAFE', color: isHour ? '#92400E' : '#1E40AF', padding: '2px 8px', borderRadius: '6px', fontSize: '0.65rem', fontWeight: 900, marginBottom: 4, textTransform: 'uppercase' }}>{isHour ? 'PER HOUR' : 'PER DAY'}</span><br />
+                {new Date(b.pickupDate).toLocaleDateString('en-IN')} {b.pickupTime}<br />
+                <span style={{ color: '#888', fontSize: '0.78rem', fontWeight: 600 }}>→ {new Date(b.returnDate).toLocaleDateString('en-IN')} {b.returnTime} ({qty}{isHour ? 'h' : 'd'})</span>
               </td>
-              <td style={{ padding: '1rem', fontWeight: 800, color: '#E53935', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.05rem' }}>₹{b.totalAmount?.toLocaleString('en-IN')}</td>
+              <td style={{ padding: '1rem', fontWeight: 800, color: '#E53935', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.05rem' }}>
+                ₹{rate?.toLocaleString('en-IN')}/{isHour ? 'hr' : 'day'}<br />
+                <span style={{ color: '#888', fontSize: '0.75rem', fontWeight: 700 }}>Total: ₹{b.totalAmount?.toLocaleString('en-IN')}</span>
+                {b.securityDeposit > 0 && (
+                  <><br /><span style={{ color: '#888', fontSize: '0.7rem', fontWeight: 600 }}>+₹{b.securityDeposit.toLocaleString('en-IN')} deposit</span></>
+                )}
+              </td>
               <td style={{ padding: '1rem' }}>
                 <select value={b.status} onChange={e => handleStatus(b._id, e.target.value)}
                   className="input-light" style={{ padding: '0.4rem', fontSize: '0.82rem', height: 'auto', background: '#F9F9F9', fontWeight: 700, minWidth: 130 }}>
@@ -1853,7 +1844,8 @@ const RentalBookingsTab = () => {
                 </select>
               </td>
             </tr>
-          )) : (
+            );
+          }) : (
             <tr><td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: '#AAA', fontWeight: 600 }}>No rental bookings yet</td></tr>
           )}
         </tbody>

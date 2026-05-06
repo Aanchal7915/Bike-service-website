@@ -83,10 +83,16 @@ const getRentalCars = asyncHandler(async (req, res) => {
 // @desc  Get single rental car
 // @route GET /api/rentals/cars/:id
 const getRentalCar = asyncHandler(async (req, res) => {
-  const car = await RentalCar.findById(req.params.id);
+  const { id } = req.params;
+  if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+    res.status(400);
+    throw new Error('Invalid rental bike id');
+  }
+  const car = await RentalCar.findById(id);
   if (!car) { res.status(404); throw new Error('Rental bike not found'); }
-  car.views += 1;
-  await car.save();
+  // Increment views without running full document validation (legacy docs may be missing
+  // fields that became required later) and don't fail the request if it errors.
+  RentalCar.updateOne({ _id: id }, { $inc: { views: 1 } }).catch(() => {});
   res.json({ success: true, car });
 });
 
@@ -164,7 +170,12 @@ const createRentalBooking = asyncHandler(async (req, res) => {
   if (!car) { res.status(404); throw new Error('Rental bike not found'); }
   if (car.status !== 'available') { res.status(400); throw new Error('This bike is not available for rent'); }
 
-  const allowedUnits = (car.rentalUnits && car.rentalUnits.length) ? car.rentalUnits : ['day'];
+  // Allowed units: from config + auto-include any unit that has a valid price set.
+  const allowedUnits = Array.isArray(car.rentalUnits) ? [...car.rentalUnits] : [];
+  if (car.pricePerHour > 0 && !allowedUnits.includes('hour')) allowedUnits.push('hour');
+  if (car.pricePerDay > 0 && !allowedUnits.includes('day')) allowedUnits.push('day');
+  if (!allowedUnits.length) allowedUnits.push('day');
+
   const unit = rentalUnit && allowedUnits.includes(rentalUnit) ? rentalUnit : allowedUnits[0];
   if (unit === 'hour' && (!car.pricePerHour || car.pricePerHour <= 0)) {
     res.status(400);
@@ -231,6 +242,7 @@ const createRentalBooking = asyncHandler(async (req, res) => {
       year: car.year,
       image: car.images?.[0],
       pricePerDay: car.pricePerDay,
+      pricePerHour: car.pricePerHour || 0,
     },
     pickupDate, returnDate, pickupTime, returnTime,
     rentalUnit: unit,
@@ -305,7 +317,7 @@ const verifyRentalPayment = asyncHandler(async (req, res) => {
 // @route GET /api/rentals/bookings/my
 const getMyRentalBookings = asyncHandler(async (req, res) => {
   const bookings = await RentalBooking.find({ user: req.user._id })
-    .populate('rentalCar', 'title brand model year images pricePerDay')
+    .populate('rentalCar', 'title brand model year images pricePerDay pricePerHour rentalUnits')
     .sort({ createdAt: -1 });
   res.json({ success: true, bookings });
 });
@@ -318,7 +330,7 @@ const getAllRentalBookings = asyncHandler(async (req, res) => {
   const total = await RentalBooking.countDocuments(query);
   const bookings = await RentalBooking.find(query)
     .populate('user', 'name phone email')
-    .populate('rentalCar', 'title brand model year images pricePerDay')
+    .populate('rentalCar', 'title brand model year images pricePerDay pricePerHour rentalUnits')
     .sort({ createdAt: -1 })
     .skip((page - 1) * limit)
     .limit(Number(limit));

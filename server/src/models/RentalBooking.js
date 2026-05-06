@@ -11,6 +11,7 @@ const rentalBookingSchema = new mongoose.Schema(
       year: Number,
       image: String,
       pricePerDay: Number,
+      pricePerHour: Number,
     },
     pickupDate: { type: Date, required: true },
     returnDate: { type: Date, required: true },

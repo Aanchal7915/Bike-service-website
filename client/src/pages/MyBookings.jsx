@@ -383,8 +383,13 @@ export default function MyBookings() {
                         <h3 style={{ color: '#111', fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.3rem', lineHeight: 1 }}>
                           {booking.carSnapshot?.brand || booking.rentalCar?.brand} {booking.carSnapshot?.model || booking.rentalCar?.model}
                         </h3>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.4rem' }}>
-                          <span style={{ color: '#666', fontSize: '0.85rem', fontWeight: 600 }}>{booking.carSnapshot?.year || booking.rentalCar?.year} • {booking.totalDays} day(s)</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
+                          <span style={{ color: '#666', fontSize: '0.85rem', fontWeight: 600 }}>
+                            {booking.carSnapshot?.year || booking.rentalCar?.year} • {booking.rentalUnit === 'hour' ? `${booking.totalHours} hour(s)` : `${booking.totalDays} day(s)`}
+                          </span>
+                          {booking.rentalUnit === 'hour' && (
+                            <span style={{ background: '#FEF3C7', color: '#92400E', padding: '2px 8px', borderRadius: '6px', fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase' }}>HOURLY</span>
+                          )}
                           {statusBadge(booking.status)}
                         </div>
                       </div>
