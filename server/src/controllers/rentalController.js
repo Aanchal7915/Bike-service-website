@@ -228,7 +228,7 @@ const createRentalBooking = asyncHandler(async (req, res) => {
       const order = await razorpay.orders.create(options);
       booking.payment.razorpayOrderId = order.id;
       await booking.save();
-      return res.status(201).json({ success: true, booking, order });
+      return res.status(201).json({ success: true, booking, order, key: process.env.RAZORPAY_KEY_ID });
     } catch (err) {
       await RentalBooking.findByIdAndDelete(booking._id);
       res.status(500);

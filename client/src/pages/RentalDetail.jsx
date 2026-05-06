@@ -105,7 +105,7 @@ export default function RentalDetail() {
         return;
       }
 
-      const rzpKey = import.meta.env.VITE_RAZORPAY_KEY_ID;
+      const rzpKey = res.key || import.meta.env.VITE_RAZORPAY_KEY_ID;
       if (!rzpKey) {
         toast.error('Payment gateway key is missing. Contact admin.');
         setSubmitting(false);
