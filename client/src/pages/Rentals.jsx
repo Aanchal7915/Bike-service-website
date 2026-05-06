@@ -42,8 +42,11 @@ export default function Rentals() {
         }
       `}</style>
       {/* Hero */}
-      <div style={{ background: 'linear-gradient(135deg, #111111 0%, #000000 100%)', padding: '4rem 1rem 5rem', color: 'white' }}>
-        <div className="max-w-6xl mx-auto">
+      <div style={{ background: '#000000', padding: '4rem 1rem 5rem', color: 'white', position: 'relative', overflow: 'hidden' }}>
+        {/* Red glow accent */}
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(ellipse at 50% 50%, rgba(229,57,53,0.15) 0%, transparent 60%)', pointerEvents: 'none' }} />
+        
+        <div className="max-w-6xl mx-auto" style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(229,57,53,0.1)', border: '1px solid rgba(229,57,53,0.25)', padding: '0.4rem 1rem', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.1em', marginBottom: '1.2rem', color: '#E53935' }}>
             <Sparkles size={14} /> SELF-DRIVE RENTALS
           </div>
