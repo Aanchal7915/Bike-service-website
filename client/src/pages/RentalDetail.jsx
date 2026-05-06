@@ -140,7 +140,7 @@ export default function RentalDetail() {
           email: user.email,
           contact: form.contactPhone
         },
-        theme: { color: '#1E3A8A' },
+        theme: { color: '#E53935' },
         modal: {
           ondismiss: () => {
             toast.error('Payment cancelled');
@@ -168,7 +168,7 @@ export default function RentalDetail() {
     <div style={{ minHeight: '100vh', background: '#F8FAFC' }}>
       <div className="max-w-6xl mx-auto px-4 py-6">
         <button onClick={() => navigate('/rentals')}
-          style={{ background: 'none', border: 'none', color: '#1E3A8A', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 700, marginBottom: '1.2rem' }}>
+          style={{ background: 'none', border: 'none', color: '#E53935', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 700, marginBottom: '1.2rem' }}>
           <ArrowLeft size={16} /> BACK TO RENTALS
         </button>
 
@@ -189,7 +189,7 @@ export default function RentalDetail() {
                 <div style={{ display: 'flex', gap: '0.5rem', padding: '0.8rem', overflowX: 'auto' }}>
                   {car.images.map((img, idx) => (
                     <img key={idx} src={img} alt="" onClick={() => setActiveImage(idx)}
-                      style={{ width: '70px', height: '50px', objectFit: 'cover', borderRadius: '8px', cursor: 'pointer', border: idx === activeImage ? '2px solid #1E3A8A' : '2px solid transparent' }} />
+                      style={{ width: '70px', height: '50px', objectFit: 'cover', borderRadius: '8px', cursor: 'pointer', border: idx === activeImage ? '2px solid #E53935' : '2px solid transparent' }} />
                   ))}
                 </div>
               )}
@@ -204,7 +204,7 @@ export default function RentalDetail() {
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '1.2rem', flexWrap: 'wrap', margin: '1.2rem 0' }}>
                 {allowedUnits.includes('day') && (
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem' }}>
-                    <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2.1rem', fontWeight: 950, color: '#1E3A8A' }}>₹{car.pricePerDay?.toLocaleString('en-IN')}</span>
+                    <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2.1rem', fontWeight: 950, color: '#E53935' }}>₹{car.pricePerDay?.toLocaleString('en-IN')}</span>
                     <span style={{ color: '#64748B', fontWeight: 700, fontSize: '0.9rem' }}>/ day</span>
                   </div>
                 )}
@@ -252,7 +252,7 @@ export default function RentalDetail() {
                   <h3 style={{ fontWeight: 900, color: '#0F172A', marginBottom: '0.8rem', fontSize: '0.95rem' }}>Features</h3>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                     {car.features.map((f, i) => (
-                      <span key={i} style={{ background: '#EFF6FF', color: '#1E3A8A', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.82rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <span key={i} style={{ background: '#FFF5F5', color: '#E53935', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.82rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                         <CheckCircle size={12} /> {f}
                       </span>
                     ))}
@@ -262,7 +262,7 @@ export default function RentalDetail() {
 
               {car.location?.city && (
                 <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#475569', fontWeight: 700 }}>
-                  <MapPin size={16} style={{ color: '#1E3A8A' }} />
+                  <MapPin size={16} style={{ color: '#E53935' }} />
                   Pickup: {[car.location.city, car.location.state, car.location.pincode].filter(Boolean).join(', ')}
                 </div>
               )}
@@ -281,7 +281,7 @@ export default function RentalDetail() {
                   <button key={u} type="button" onClick={() => setForm({ ...form, rentalUnit: u })}
                     style={{
                       flex: 1, padding: '0.5rem 0.6rem', borderRadius: '7px', border: 'none', cursor: 'pointer',
-                      background: unit === u ? '#1E3A8A' : 'transparent',
+                      background: unit === u ? '#E53935' : 'transparent',
                       color: unit === u ? 'white' : '#475569',
                       fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em',
                       transition: 'all 0.2s'
@@ -330,7 +330,7 @@ export default function RentalDetail() {
               className="input-light" style={{ height: '42px', marginBottom: '0.8rem' }} />
 
             <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '0.8rem', border: '1px solid #E2E8F0', marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#1E3A8A', fontWeight: 800, fontSize: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#E53935', fontWeight: 800, fontSize: '0.75rem' }}>
                 <Shield size={14} /> SECURE ONLINE PAYMENT
               </div>
               <p style={{ fontSize: '0.65rem', color: '#64748B', marginTop: '0.2rem', fontWeight: 600 }}>Razorpay encrypted checkout</p>
@@ -364,12 +364,12 @@ export default function RentalDetail() {
               )}
               <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #E2E8F0', paddingTop: '0.6rem', marginTop: '0.4rem' }}>
                 <span style={{ fontWeight: 900, color: '#0F172A', fontSize: '0.85rem' }}>TOTAL</span>
-                <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.3rem', fontWeight: 950, color: '#1E3A8A' }}>₹{totalAmount.toLocaleString('en-IN')}</span>
+                <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.3rem', fontWeight: 950, color: '#E53935' }}>₹{totalAmount.toLocaleString('en-IN')}</span>
               </div>
             </div>
 
             <button type="submit" disabled={submitting || car.status !== 'available'}
-              style={{ width: '100%', background: car.status === 'available' ? '#1E3A8A' : '#94A3B8', color: 'white', border: 'none', borderRadius: '12px', padding: '0.8rem', fontWeight: 900, fontSize: '0.9rem', cursor: car.status === 'available' && !submitting ? 'pointer' : 'not-allowed', letterSpacing: '0.1em', fontFamily: 'Rajdhani, sans-serif' }}>
+              style={{ width: '100%', background: car.status === 'available' ? '#E53935' : '#94A3B8', color: 'white', border: 'none', borderRadius: '12px', padding: '0.8rem', fontWeight: 900, fontSize: '0.9rem', cursor: car.status === 'available' && !submitting ? 'pointer' : 'not-allowed', letterSpacing: '0.1em', fontFamily: 'Rajdhani, sans-serif' }}>
               {car.status !== 'available' ? 'CURRENTLY UNAVAILABLE' : submitting ? 'PROVISING PAYMENT...' : 'CONFIRM & PAY NOW'}
             </button>
 

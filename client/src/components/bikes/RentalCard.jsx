@@ -20,7 +20,7 @@ export default function RentalCard({ car, onClick }) {
         display: 'flex',
         flexDirection: 'column',
         cursor: 'pointer',
-        boxShadow: hovered ? '0 30px 60px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(30, 58, 138, 0.1)' : '0 10px 30px rgba(0,0,0,0.04)',
+        boxShadow: hovered ? '0 30px 60px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(229, 57, 53, 0.1)' : '0 10px 30px rgba(0,0,0,0.04)',
         transform: hovered ? 'translateY(-12px)' : 'translateY(0)',
         transition: 'all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)',
         height: '100%',
@@ -56,7 +56,7 @@ export default function RentalCard({ car, onClick }) {
       <div style={{ padding: '0.75rem', flex: 1, display: 'flex', flexDirection: 'column', background: '#FFFFFF', borderTop: '1px solid #EEE' }}>
         <div style={{ marginBottom: '0.3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', gap: '0.6rem' }}>
-            <span style={{ color: '#1E3A8A', fontSize: '0.6rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '2px', fontFamily: 'Rajdhani, sans-serif' }}>
+            <span style={{ color: '#E53935', fontSize: '0.6rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '2px', fontFamily: 'Rajdhani, sans-serif' }}>
               <Calendar size={11} /> {car.year}
             </span>
             <span style={{ color: '#64748B', fontSize: '0.65rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '2px', fontFamily: 'Rajdhani, sans-serif' }}>
@@ -88,7 +88,7 @@ export default function RentalCard({ car, onClick }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
           <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
-              <span className="product-card-price" style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.05rem', fontWeight: 950, color: '#1E3A8A' }}>
+              <span className="product-card-price" style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.05rem', fontWeight: 950, color: '#E53935' }}>
                 ₹{car.pricePerDay?.toLocaleString('en-IN')}
               </span>
               <span style={{ color: '#64748B', fontSize: '0.6rem', fontWeight: 800 }}>/day</span>
@@ -104,10 +104,10 @@ export default function RentalCard({ car, onClick }) {
           </div>
           <div className="product-card-btn" style={{
             height: '28px', padding: '0 0.75rem',
-            background: '#1E3A8A', borderRadius: '6px', color: 'white',
+            background: '#E53935', borderRadius: '6px', color: 'white',
             display: 'flex', alignItems: 'center', gap: '0.3rem',
             fontSize: '0.65rem', fontWeight: 800, fontFamily: 'Rajdhani, sans-serif',
-            letterSpacing: '0.05em', boxShadow: '0 4px 10px rgba(30, 58, 138, 0.15)',
+            letterSpacing: '0.05em', boxShadow: '0 4px 10px rgba(229, 57, 53, 0.15)',
             transition: 'all 0.3s'
           }}>
             RENT NOW <ArrowRight size={12} />
