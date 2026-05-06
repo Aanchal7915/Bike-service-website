@@ -8,7 +8,7 @@ import BikeCard from '../components/bikes/BikeCard';
 import PartCard from '../components/parts/PartCard';
 import RentalCard from '../components/bikes/RentalCard';
 import { getActiveServiceTypes } from '../api/serviceApi';
-import { PageLoader } from '../components/common/LoadingSpinner';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 import heroBikeVideo from '../assets/bike-hero.mp4';
 import heroBike from '../assets/hero-bike.png';
 import heroBikeMobile from '../assets/hero-bike (2).png';
@@ -68,7 +68,6 @@ export default function Home() {
   }, []);
 
   const slide = heroSlides[currentSlide];
-  const anyLoading = loading || partsLoading || servicesLoading || rentalLoading;
 
   return (
     <div style={{ background: '#000' }}>
@@ -90,31 +89,7 @@ export default function Home() {
           .home-hero-stats > div > div:last-child { font-size: 0.5rem !important; }
           .home-parts-grid, .home-bikes-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.6rem !important; }
         }
-        @keyframes top-loader-slide {
-          0% { transform: translateX(-100%); }
-          50% { transform: translateX(0); }
-          100% { transform: translateX(100%); }
-        }
-        @keyframes pulse-fetch {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.6; transform: scale(0.95); }
-        }
       `}</style>
-
-      {/* Top loading bar — visible while any backend data is loading */}
-      {anyLoading && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 3, background: 'rgba(229,57,53,0.15)', zIndex: 9999, overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: 0, left: 0, height: '100%', width: '40%', background: 'linear-gradient(90deg, transparent, #E53935, transparent)', animation: 'top-loader-slide 1.4s ease-in-out infinite' }} />
-        </div>
-      )}
-
-      {/* Floating "Loading products..." pill — fixed bottom-right while data loads */}
-      {anyLoading && (
-        <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 9998, background: '#111', color: 'white', padding: '0.6rem 1rem', borderRadius: '999px', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 10px 30px rgba(0,0,0,0.25)', fontSize: '0.78rem', fontWeight: 700, fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.05em' }}>
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#E53935', animation: 'pulse-fetch 1.2s ease-in-out infinite' }} />
-          LOADING PRODUCTS...
-        </div>
-      )}
       {/* HERO — Split layout: left content / right bike image */}
       <section className="hero-split" style={{ minHeight: '92vh', display: 'flex', position: 'relative', overflow: 'hidden' }}>
         <style>{`
@@ -289,17 +264,7 @@ export default function Home() {
             </div>
 
             {loading ? (
-              <div className="home-bikes-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' }}>
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="card-dark" style={{ height: 320 }}>
-                    <div className="skeleton" style={{ height: 200 }} />
-                    <div style={{ padding: '1rem' }}>
-                      <div className="skeleton" style={{ height: 18, width: '60%', marginBottom: '0.5rem' }} />
-                      <div className="skeleton" style={{ height: 14, width: '40%' }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <LoadingSpinner size="lg" text="Loading..." />
             ) : (
               <div className="home-bikes-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' }}>
                 {featured.map((bike) => <BikeCard key={bike._id} bike={bike} />)}
@@ -339,9 +304,7 @@ export default function Home() {
           </div>
 
           {servicesLoading ? (
-            <div className="home-services-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1rem' }}>
-              {[...Array(4)].map((_, i) => <div key={i} className="skeleton" style={{ height: 160, borderRadius: '10px' }} />)}
-            </div>
+            <LoadingSpinner size="lg" text="Loading..." />
           ) : (
           <div className="home-services-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.6rem' }}>
             {serviceTypes.map((service, idx) => (
@@ -439,17 +402,7 @@ export default function Home() {
             </div>
 
             {rentalLoading ? (
-              <div className="home-bikes-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' }}>
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="card-dark" style={{ height: 320 }}>
-                    <div className="skeleton" style={{ height: 200 }} />
-                    <div style={{ padding: '1rem' }}>
-                      <div className="skeleton" style={{ height: 18, width: '60%', marginBottom: '0.5rem' }} />
-                      <div className="skeleton" style={{ height: 14, width: '40%' }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <LoadingSpinner size="lg" text="Loading..." />
             ) : (
               <div className="home-bikes-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' }}>
                 {rentalCars.map((car) => <RentalCard key={car._id} car={car} />)}
@@ -481,11 +434,7 @@ export default function Home() {
             </div>
 
             {partsLoading ? (
-              <div className="home-parts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.5rem' }}>
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="skeleton" style={{ height: 300, background: '#eee' }} />
-                ))}
-              </div>
+              <LoadingSpinner size="lg" text="Loading..." />
             ) : (
               <div className="home-parts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.5rem' }}>
                 {featured.map((bike) => <BikeCard key={bike._id} bike={bike} />)}
@@ -518,11 +467,7 @@ export default function Home() {
           </div>
 
           {(loading || partsLoading) ? (
-            <div className="home-parts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.5rem' }}>
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="skeleton" style={{ height: 300 }} />
-              ))}
-            </div>
+            <LoadingSpinner size="lg" text="Loading..." />
           ) : (
             <div className="home-parts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.5rem' }}>
               {bestsellerBikes.map((bike) => (
