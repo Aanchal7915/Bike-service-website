@@ -85,34 +85,54 @@ export default function RentalCard({ car, onClick }) {
           </div>
         )}
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
+        <div className="rental-card-bottom" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', gap: '0.4rem', flexWrap: 'nowrap' }}>
+          <div className="rental-card-price-col" style={{ display: 'flex', flexDirection: 'column', lineHeight: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
-              <span className="product-card-price" style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.05rem', fontWeight: 950, color: '#E53935' }}>
+              <span className="product-card-price rental-card-day-price" style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.05rem', fontWeight: 950, color: '#E53935' }}>
                 ₹{car.pricePerDay?.toLocaleString('en-IN')}
               </span>
-              <span style={{ color: '#64748B', fontSize: '0.6rem', fontWeight: 800 }}>/day</span>
+              <span className="rental-card-day-unit" style={{ color: '#64748B', fontSize: '0.6rem', fontWeight: 800 }}>/day</span>
             </div>
             {car.pricePerHour > 0 && (
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px', marginTop: '2px' }}>
-                <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '0.85rem', fontWeight: 800, color: '#475569' }}>
+                <span className="rental-card-hour-price" style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '0.85rem', fontWeight: 800, color: '#475569' }}>
                   ₹{car.pricePerHour?.toLocaleString('en-IN')}
                 </span>
-                <span style={{ color: '#94A3B8', fontSize: '0.55rem', fontWeight: 800 }}>/hour</span>
+                <span className="rental-card-hour-unit" style={{ color: '#94A3B8', fontSize: '0.55rem', fontWeight: 800 }}>/hour</span>
               </div>
             )}
           </div>
-          <div className="product-card-btn" style={{
+          <div className="product-card-btn rental-card-btn" style={{
             height: '28px', padding: '0 0.75rem',
             background: '#E53935', borderRadius: '6px', color: 'white',
             display: 'flex', alignItems: 'center', gap: '0.3rem',
             fontSize: '0.65rem', fontWeight: 800, fontFamily: 'Rajdhani, sans-serif',
             letterSpacing: '0.05em', boxShadow: '0 4px 10px rgba(229, 57, 53, 0.15)',
-            transition: 'all 0.3s'
+            transition: 'all 0.3s', flexShrink: 0, whiteSpace: 'nowrap'
           }}>
             RENT NOW <ArrowRight size={12} />
           </div>
         </div>
+        <style>{`
+          @media (max-width: 640px) {
+            .rental-card-bottom { gap: 0.25rem !important; }
+            .rental-card-day-price { font-size: 0.78rem !important; }
+            .rental-card-day-unit { font-size: 0.5rem !important; }
+            .rental-card-hour-price { font-size: 0.65rem !important; }
+            .rental-card-hour-unit { font-size: 0.45rem !important; }
+            .rental-card-btn {
+              height: 22px !important;
+              padding: 0 0.45rem !important;
+              font-size: 0.55rem !important;
+              letter-spacing: 0.02em !important;
+              gap: 0.15rem !important;
+            }
+          }
+          @media (max-width: 400px) {
+            .rental-card-day-price { font-size: 0.7rem !important; }
+            .rental-card-btn { padding: 0 0.35rem !important; font-size: 0.5rem !important; }
+          }
+        `}</style>
       </div>
     </div>
   );
