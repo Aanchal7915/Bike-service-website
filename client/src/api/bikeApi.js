@@ -2,8 +2,8 @@ import API from './axios';
 
 export const getBikes = (params) => API.get('/bikes', { params });
 export const getBike = (id) => API.get(`/bikes/${id}`);
-export const getFeaturedBikes = () => API.get('/bikes/featured');
-export const getBestsellerBikes = () => API.get('/bikes/bestseller');
+export const getFeaturedBikes = (params) => API.get('/bikes/featured', { params });
+export const getBestsellerBikes = (params) => API.get('/bikes/bestseller', { params });
 export const createBike = (data) => API.post('/bikes', data, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const updateBike = (id, data) => API.put(`/bikes/${id}`, data);
 export const deleteBike = (id) => API.delete(`/bikes/${id}`);

@@ -48,10 +48,10 @@ export default function Home() {
 
   useEffect(() => {
     Promise.all([
-      getFeaturedBikes().then(({ data }) => setFeatured(data.bikes)),
+      getFeaturedBikes({ limit: 10 }).then(({ data }) => setFeatured(data.bikes || [])),
       getFeaturedParts().then(({ data }) => setFeaturedParts(data.parts || [])),
       getBestsellerParts({ limit: 8 }).then(({ data }) => setBestsellerParts(data.parts || [])),
-      getBestsellerBikes().then(({ data }) => setBestsellerBikes(data.bikes || [])),
+      getBestsellerBikes({ limit: 8 }).then(({ data }) => setBestsellerBikes(data.bikes || [])),
       getActiveServiceTypes().then(({ data }) => setServiceTypes(data.serviceTypes || [])),
       getRentalCars({ limit: 8 }).then(({ data }) => setRentalCars(data.cars || []))
     ])
@@ -267,7 +267,7 @@ export default function Home() {
               <LoadingSpinner size="lg" text="Loading..." />
             ) : (
               <div className="home-bikes-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.5rem' }}>
-                {featured.map((bike) => <BikeCard key={bike._id} bike={bike} />)}
+                {featured.slice(0, 10).map((bike) => <BikeCard key={bike._id} bike={bike} />)}
               </div>
             )}
           </div>
@@ -437,8 +437,12 @@ export default function Home() {
               <LoadingSpinner size="lg" text="Loading..." />
             ) : (
               <div className="home-parts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.5rem' }}>
-                {featured.map((bike) => <BikeCard key={bike._id} bike={bike} />)}
-                {featuredParts.map((part) => <PartCard key={part._id} part={part} />)}
+                {[
+                  ...featured.map((bike) => ({ kind: 'bike', item: bike })),
+                  ...featuredParts.map((part) => ({ kind: 'part', item: part })),
+                ].slice(0, 8).map(({ kind, item }) => kind === 'bike'
+                  ? <BikeCard key={`b-${item._id}`} bike={item} />
+                  : <PartCard key={`p-${item._id}`} part={item} />)}
               </div>
             )}
           </div>
@@ -470,12 +474,12 @@ export default function Home() {
             <LoadingSpinner size="lg" text="Loading..." />
           ) : (
             <div className="home-parts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.5rem' }}>
-              {bestsellerBikes.map((bike) => (
-                <BikeCard key={bike._id} bike={bike} />
-              ))}
-              {bestsellerParts.map((part) => (
-                <PartCard key={part._id} part={part} />
-              ))}
+              {[
+                ...bestsellerBikes.map((bike) => ({ kind: 'bike', item: bike })),
+                ...bestsellerParts.map((part) => ({ kind: 'part', item: part })),
+              ].slice(0, 8).map(({ kind, item }) => kind === 'bike'
+                ? <BikeCard key={`b-${item._id}`} bike={item} />
+                : <PartCard key={`p-${item._id}`} part={item} />)}
             </div>
           )}
         </div>
