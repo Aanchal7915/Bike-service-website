@@ -5,7 +5,7 @@ import API from '../../api/axios';
 import * as adminApi from '../../api/adminApi';
 import * as rentalApi from '../../api/rentalApi';
 import toast from 'react-hot-toast';
-import { Users, Bike, Wrench, TrendingUp, Package, Clock, Check, CheckCircle, AlertCircle, BarChart3, Settings, LogOut, Home, ShoppingBag, List, Loader, Plus, Edit2, Trash2, Menu, X, Car, Calendar, MapPin } from 'lucide-react';
+import { Users, Bike, Wrench, TrendingUp, Package, Clock, Check, CheckCircle, AlertCircle, BarChart3, Settings, LogOut, Home, ShoppingBag, List, Loader, Plus, Edit2, Trash2, Menu, X, Car, Calendar, MapPin, Search } from 'lucide-react';
 import { io } from 'socket.io-client';
 const StatCard = ({ icon: Icon, label, value, color }) => (
   <div style={{ background: '#FFFFFF', border: '1.5px solid #EEE', borderRadius: '24px', padding: '1.2rem 1.5rem', boxShadow: '0 10px 30px rgba(0,0,0,0.02)', transition: 'all 0.3s' }}>
@@ -1534,13 +1534,17 @@ const RentalsTab = () => {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [form, setForm] = useState({
     title: '', brand: '', model: '', year: '', pricePerDay: '', pricePerHour: '',
-    securityDeposit: '', securityDepositRefundable: true,
+    securityDeposit: '', securityDepositRefundable: true, securityDepositCompulsory: true,
     fuelType: 'petrol', transmission: 'manual', seats: 5,
-    mileage: '', description: '', city: '', state: '', pincode: '',
+    mileage: '', description: '',
+    city: '', state: '', pincode: '', address: '',
+    dropCity: '', dropState: '', dropPincode: '', dropAddress: '',
     minRentalDays: 1, maxRentalDays: 30,
     minRentalHours: 1, maxRentalHours: 24,
     isFeatured: false, status: 'available',
     features: '',
+    registrationNumber: '', bikeNumber: '', rcNumber: '', chassisNumber: '', engineNumber: '',
+    insuranceValidTill: '', pucValidTill: '',
   });
 
   useEffect(() => {
@@ -1554,13 +1558,17 @@ const RentalsTab = () => {
     setShowForm(false); setEditId(null); setImages([]); setExistingImages([]); setImagePreviews([]);
     setForm({
       title: '', brand: '', model: '', year: '', pricePerDay: '', pricePerHour: '',
-      securityDeposit: '', securityDepositRefundable: true,
+      securityDeposit: '', securityDepositRefundable: true, securityDepositCompulsory: true,
       fuelType: 'petrol', transmission: 'manual', seats: 5,
-      mileage: '', description: '', city: '', state: '', pincode: '',
+      mileage: '', description: '',
+      city: '', state: '', pincode: '', address: '',
+      dropCity: '', dropState: '', dropPincode: '', dropAddress: '',
       minRentalDays: 1, maxRentalDays: 30,
       minRentalHours: 1, maxRentalHours: 24,
       isFeatured: false, status: 'available',
       features: '',
+      registrationNumber: '', bikeNumber: '', rcNumber: '', chassisNumber: '', engineNumber: '',
+      insuranceValidTill: '', pucValidTill: '',
     });
   };
 
@@ -1571,14 +1579,20 @@ const RentalsTab = () => {
       pricePerDay: car.pricePerDay || '', pricePerHour: car.pricePerHour || '',
       securityDeposit: car.securityDeposit || '',
       securityDepositRefundable: car.securityDepositRefundable !== false,
+      securityDepositCompulsory: car.securityDepositCompulsory !== false,
       fuelType: car.fuelType || 'petrol',
       transmission: car.transmission || 'manual', seats: car.seats || 5,
       mileage: car.mileage || '', description: car.description || '',
-      city: car.location?.city || '', state: car.location?.state || '', pincode: car.location?.pincode || '',
+      city: car.location?.city || '', state: car.location?.state || '', pincode: car.location?.pincode || '', address: car.location?.address || '',
+      dropCity: car.dropLocation?.city || '', dropState: car.dropLocation?.state || '', dropPincode: car.dropLocation?.pincode || '', dropAddress: car.dropLocation?.address || '',
       minRentalDays: car.minRentalDays || 1, maxRentalDays: car.maxRentalDays || 30,
       minRentalHours: car.minRentalHours || 1, maxRentalHours: car.maxRentalHours || 24,
       isFeatured: car.isFeatured || false, status: car.status || 'available',
       features: (car.features || []).join(', '),
+      registrationNumber: car.registrationNumber || '', bikeNumber: car.bikeNumber || '',
+      rcNumber: car.rcNumber || '', chassisNumber: car.chassisNumber || '', engineNumber: car.engineNumber || '',
+      insuranceValidTill: car.insuranceValidTill ? car.insuranceValidTill.split('T')[0] : '',
+      pucValidTill: car.pucValidTill ? car.pucValidTill.split('T')[0] : '',
     });
     setExistingImages(car.images || []);
     setImages([]); setImagePreviews([]);
@@ -1607,6 +1621,7 @@ const RentalsTab = () => {
       fd.append('pricePerDay', form.pricePerDay); fd.append('pricePerHour', form.pricePerHour || 0);
       fd.append('securityDeposit', form.securityDeposit || 0);
       fd.append('securityDepositRefundable', form.securityDepositRefundable);
+      fd.append('securityDepositCompulsory', form.securityDepositCompulsory);
       fd.append('fuelType', form.fuelType); fd.append('transmission', form.transmission);
       fd.append('seats', form.seats); fd.append('mileage', form.mileage);
       fd.append('description', form.description); fd.append('isFeatured', form.isFeatured);
@@ -1614,7 +1629,15 @@ const RentalsTab = () => {
       fd.append('minRentalDays', form.minRentalDays); fd.append('maxRentalDays', form.maxRentalDays);
       fd.append('minRentalHours', form.minRentalHours || 1); fd.append('maxRentalHours', form.maxRentalHours || 24);
       units.forEach(u => fd.append('rentalUnits[]', u));
-      fd.append('location', JSON.stringify({ city: form.city, state: form.state, pincode: form.pincode }));
+      fd.append('registrationNumber', form.registrationNumber || '');
+      fd.append('bikeNumber', form.bikeNumber || '');
+      fd.append('rcNumber', form.rcNumber || '');
+      fd.append('chassisNumber', form.chassisNumber || '');
+      fd.append('engineNumber', form.engineNumber || '');
+      if (form.insuranceValidTill) fd.append('insuranceValidTill', form.insuranceValidTill);
+      if (form.pucValidTill) fd.append('pucValidTill', form.pucValidTill);
+      fd.append('location', JSON.stringify({ city: form.city, state: form.state, pincode: form.pincode, address: form.address }));
+      fd.append('dropLocation', JSON.stringify({ city: form.dropCity, state: form.dropState, pincode: form.dropPincode, address: form.dropAddress }));
       fd.append('features', JSON.stringify(form.features.split(',').map(f => f.trim()).filter(Boolean)));
       for (const img of images) fd.append('images', img);
       for (const url of existingImages) fd.append('existingImages', url);
@@ -1660,8 +1683,34 @@ const RentalsTab = () => {
               <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>PRICE / DAY (₹) *</label><input type="number" className="input-light" required value={form.pricePerDay} onChange={e => setForm({ ...form, pricePerDay: e.target.value })} style={{ height: 46 }} /></div>
               <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>PRICE / HOUR (₹)</label><input type="number" className="input-light" value={form.pricePerHour} onChange={e => setForm({ ...form, pricePerHour: e.target.value })} style={{ height: 46 }} /></div>
               <div>
-                <label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>SECURITY DEPOSIT (REFUNDABLE) (₹)</label>
+                <label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>SECURITY DEPOSIT (₹)</label>
                 <input type="number" className="input-light" value={form.securityDeposit} onChange={e => setForm({ ...form, securityDeposit: e.target.value })} style={{ height: 46 }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>COMPULSORY DEPOSIT?</label>
+                <div style={{ height: 46, display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
+                  <button type="button"
+                    onClick={() => setForm({ ...form, securityDepositCompulsory: !form.securityDepositCompulsory })}
+                    aria-pressed={form.securityDepositCompulsory}
+                    style={{
+                      position: 'relative',
+                      width: 54, height: 28, borderRadius: 999,
+                      border: 'none', cursor: 'pointer', padding: 0,
+                      background: form.securityDepositCompulsory ? '#E53935' : '#CBD5E1',
+                      transition: 'background 0.2s',
+                      boxShadow: form.securityDepositCompulsory ? '0 4px 10px rgba(229,57,53,0.25)' : 'inset 0 1px 3px rgba(0,0,0,0.08)',
+                    }}>
+                    <span style={{
+                      position: 'absolute', top: 3, left: form.securityDepositCompulsory ? 29 : 3,
+                      width: 22, height: 22, borderRadius: '50%', background: 'white',
+                      transition: 'left 0.2s',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                    }} />
+                  </button>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 900, letterSpacing: '0.05em', color: form.securityDepositCompulsory ? '#E53935' : '#94A3B8', textTransform: 'uppercase' }}>
+                    {form.securityDepositCompulsory ? 'Compulsory' : 'Optional'}
+                  </span>
+                </div>
               </div>
               <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>SEATS</label><input type="number" className="input-light" min={1} max={3} value={form.seats} onChange={e => setForm({ ...form, seats: e.target.value })} style={{ height: 46 }} /></div>
               <div><label style={{ fontSize: '0.75rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>FUEL TYPE</label>
@@ -1691,14 +1740,38 @@ const RentalsTab = () => {
           </div>
 
           <div style={{ background: '#F9F9F9', padding: '1.5rem', borderRadius: '16px', marginBottom: '1.2rem', border: '1px solid #EEE' }}>
-            <h4 style={{ fontSize: '0.78rem', fontWeight: 900, marginBottom: '1rem', color: '#111', textTransform: 'uppercase', letterSpacing: '0.08em' }}>LOCATION & EXTRAS</h4>
+            <h4 style={{ fontSize: '0.78rem', fontWeight: 900, marginBottom: '1rem', color: '#111', textTransform: 'uppercase', letterSpacing: '0.08em' }}>PICKUP LOCATION</h4>
             <div className="admin-form-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.9rem', marginBottom: '0.9rem' }}>
               <input className="input-light" placeholder="City" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} style={{ height: 46 }} />
               <input className="input-light" placeholder="State" value={form.state} onChange={e => setForm({ ...form, state: e.target.value })} style={{ height: 46 }} />
               <input className="input-light" placeholder="Pincode" value={form.pincode} onChange={e => setForm({ ...form, pincode: e.target.value })} style={{ height: 46 }} />
             </div>
-            <input className="input-light" placeholder="Features (comma separated, e.g. ABS, Digital Meter, Bluetooth)" value={form.features} onChange={e => setForm({ ...form, features: e.target.value })} style={{ height: 46, marginBottom: '0.9rem' }} />
+            <input className="input-light" placeholder="Pickup address (optional)" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} style={{ height: 46, marginBottom: '1.4rem' }} />
+
+            <h4 style={{ fontSize: '0.78rem', fontWeight: 900, marginBottom: '1rem', color: '#111', textTransform: 'uppercase', letterSpacing: '0.08em' }}>DROP LOCATION</h4>
+            <div className="admin-form-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.9rem', marginBottom: '0.9rem' }}>
+              <input className="input-light" placeholder="Drop City" value={form.dropCity} onChange={e => setForm({ ...form, dropCity: e.target.value })} style={{ height: 46 }} />
+              <input className="input-light" placeholder="Drop State" value={form.dropState} onChange={e => setForm({ ...form, dropState: e.target.value })} style={{ height: 46 }} />
+              <input className="input-light" placeholder="Drop Pincode" value={form.dropPincode} onChange={e => setForm({ ...form, dropPincode: e.target.value })} style={{ height: 46 }} />
+            </div>
+            <input className="input-light" placeholder="Drop address (optional)" value={form.dropAddress} onChange={e => setForm({ ...form, dropAddress: e.target.value })} style={{ height: 46, marginBottom: '1.4rem' }} />
+
+            <h4 style={{ fontSize: '0.78rem', fontWeight: 900, marginBottom: '1rem', color: '#111', textTransform: 'uppercase', letterSpacing: '0.08em' }}>EXTRAS</h4>
+            <input className="input-light" placeholder="Extra features (comma separated, e.g. ABS, Digital Meter, Bluetooth)" value={form.features} onChange={e => setForm({ ...form, features: e.target.value })} style={{ height: 46, marginBottom: '0.9rem' }} />
             <textarea className="input-light" placeholder="Description" rows={3} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} style={{ minHeight: 80, padding: '0.8rem', resize: 'vertical' }} />
+          </div>
+
+          <div style={{ background: '#F9F9F9', padding: '1.5rem', borderRadius: '16px', marginBottom: '1.2rem', border: '1px solid #EEE' }}>
+            <h4 style={{ fontSize: '0.78rem', fontWeight: 900, marginBottom: '1rem', color: '#111', textTransform: 'uppercase', letterSpacing: '0.08em' }}>BIKE DOCUMENTS & IDENTITY</h4>
+            <div className="admin-form-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.9rem' }}>
+              <div><label style={{ fontSize: '0.72rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>REGISTRATION NO.</label><input className="input-light" placeholder="e.g. MH12AB1234" maxLength={12} value={form.registrationNumber} onChange={e => setForm({ ...form, registrationNumber: e.target.value.toUpperCase() })} style={{ height: 46 }} /></div>
+              <div><label style={{ fontSize: '0.72rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>BIKE NUMBER</label><input className="input-light" placeholder="Display number" maxLength={12} value={form.bikeNumber} onChange={e => setForm({ ...form, bikeNumber: e.target.value.toUpperCase() })} style={{ height: 46 }} /></div>
+              <div><label style={{ fontSize: '0.72rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>RC NUMBER</label><input className="input-light" maxLength={20} value={form.rcNumber} onChange={e => setForm({ ...form, rcNumber: e.target.value.toUpperCase() })} style={{ height: 46 }} /></div>
+              <div><label style={{ fontSize: '0.72rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>CHASSIS NUMBER</label><input className="input-light" maxLength={17} value={form.chassisNumber} onChange={e => setForm({ ...form, chassisNumber: e.target.value.toUpperCase() })} style={{ height: 46 }} /></div>
+              <div><label style={{ fontSize: '0.72rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>ENGINE NUMBER</label><input className="input-light" maxLength={17} value={form.engineNumber} onChange={e => setForm({ ...form, engineNumber: e.target.value.toUpperCase() })} style={{ height: 46 }} /></div>
+              <div><label style={{ fontSize: '0.72rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>INSURANCE VALID TILL</label><input type="date" className="input-light" value={form.insuranceValidTill} onChange={e => setForm({ ...form, insuranceValidTill: e.target.value })} style={{ height: 46 }} /></div>
+              <div><label style={{ fontSize: '0.72rem', color: '#666', fontWeight: 800, marginBottom: '0.3rem', display: 'block' }}>PUC VALID TILL</label><input type="date" className="input-light" value={form.pucValidTill} onChange={e => setForm({ ...form, pucValidTill: e.target.value })} style={{ height: 46 }} /></div>
+            </div>
           </div>
 
           <div style={{ background: '#F9F9F9', padding: '1.5rem', borderRadius: '16px', marginBottom: '1.2rem', border: '1px solid #EEE' }}>
@@ -1772,99 +1845,438 @@ const RentalsTab = () => {
 };
 
 // ── RENTAL BOOKINGS TAB (Admin view + status update) ──
-const RentalBookingsTab = () => {
+const rentalStatusColorMap = {
+  requested: { bg: '#FEF3C7', fg: '#CA8A04' },
+  confirmed: { bg: '#DBEAFE', fg: '#1D4ED8' },
+  active: { bg: '#DCFCE7', fg: '#16A34A' },
+  completed: { bg: '#E0E7FF', fg: '#4338CA' },
+  cancelled: { bg: '#FEE2E2', fg: '#DC2626' },
+};
+
+const RentalBookingsTab = ({ setActiveTab, setTrackingBookingId }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState(null);
+  const [filterMode, setFilterMode] = useState('all');
+  const [filterDay, setFilterDay] = useState(() => new Date().toISOString().split('T')[0]);
+  const [filterMonth, setFilterMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [filterYear, setFilterYear] = useState(() => String(new Date().getFullYear()));
+  const [filterFrom, setFilterFrom] = useState('');
+  const [filterTo, setFilterTo] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
-    rentalApi.getAllRentalBookings({ limit: 100 })
+    rentalApi.getAllRentalBookings({ limit: 200 })
       .then(({ data }) => setData(data.bookings || []))
       .catch(() => toast.error('Failed to load rental bookings'))
       .finally(() => setLoading(false));
   }, []);
 
+  const filtered = data.filter(b => {
+    if (statusFilter !== 'all' && b.status !== statusFilter) return false;
+    if (filterMode === 'all') return true;
+    const created = new Date(b.createdAt);
+    if (filterMode === 'day') return created.toISOString().split('T')[0] === filterDay;
+    if (filterMode === 'month') return created.toISOString().slice(0, 7) === filterMonth;
+    if (filterMode === 'year') return String(created.getFullYear()) === filterYear;
+    if (filterMode === 'custom') {
+      if (filterFrom && created < new Date(filterFrom)) return false;
+      if (filterTo) {
+        const end = new Date(filterTo); end.setHours(23, 59, 59, 999);
+        if (created > end) return false;
+      }
+      return true;
+    }
+    return true;
+  });
+
   const handleStatus = async (id, status) => {
     try {
       const { data: res } = await rentalApi.updateRentalBookingStatus(id, { status });
-      setData(data.map(b => b._id === id ? { ...b, status: res.booking.status } : b));
+      setData(prev => prev.map(b => b._id === id ? (res.booking || { ...b, status }) : b));
+      if (selected && selected._id === id) setSelected(res.booking || { ...selected, status });
       toast.success('Status updated');
-    } catch { toast.error('Failed to update'); }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update status');
+    }
+  };
+
+  const handleCollectBalance = async (id, due) => {
+    const method = window.prompt(`Collect balance ₹${due.toLocaleString('en-IN')} via (cash/online/upi/card)?`, 'cash');
+    if (!method) return;
+    try {
+      const { data: res } = await rentalApi.collectRentalBalance(id, { method });
+      setData(prev => prev.map(b => b._id === id ? (res.booking || { ...b, payment: res.booking?.payment }) : b));
+      if (selected && selected._id === id) setSelected(res.booking || selected);
+      toast.success('Balance collected');
+    } catch (err) { toast.error(err.response?.data?.message || 'Failed to collect balance'); }
   };
 
   if (loading) return <div style={{ textAlign: 'center', padding: '3rem', color: '#888' }}><Loader style={{ animation: 'spin 1s linear infinite' }} size={24} /></div>;
 
   return (
-    <div className="admin-table-wrap" style={{ background: '#FFFFFF', border: '1.5px solid #EEE', borderRadius: '24px', padding: '1.5rem', overflowX: 'auto', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
-      <h3 style={{ color: '#111', fontWeight: 950, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.3rem', marginBottom: '1rem', textTransform: 'uppercase' }}>RENTAL <span style={{ color: '#E53935' }}>BOOKINGS</span> ({data.length})</h3>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
-        <thead>
-          <tr>
-            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Customer</th>
-            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Bike</th>
-            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Schedule</th>
-            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Rate & Total</th>
-            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.length > 0 ? data.map(b => {
+    <div style={{ background: '#FFFFFF', border: '1.5px solid #EEE', borderRadius: '24px', padding: '1.5rem', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.6rem' }}>
+        <h3 style={{ color: '#111', fontWeight: 950, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.3rem', margin: 0, textTransform: 'uppercase' }}>
+          RENTAL <span style={{ color: '#E53935' }}>BOOKINGS</span>
+          <span style={{ fontSize: '0.8rem', color: '#94A3B8', marginLeft: '0.5rem', fontWeight: 700 }}>
+            ({filtered.length}{filtered.length !== data.length ? ` of ${data.length}` : ''})
+          </span>
+        </h3>
+      </div>
+
+      {/* Filter bar */}
+      <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '14px', padding: '0.8rem 1rem', marginBottom: '1.2rem', display: 'flex', flexWrap: 'wrap', gap: '0.6rem', alignItems: 'center' }}>
+        <span style={{ fontSize: '0.7rem', color: '#475569', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Filter:</span>
+        {[['all', 'All'], ['day', 'Day'], ['month', 'Month'], ['year', 'Year'], ['custom', 'Custom']].map(([k, lbl]) => (
+          <button key={k} type="button" onClick={() => setFilterMode(k)}
+            style={{
+              padding: '0.35rem 0.8rem', borderRadius: '8px', border: 'none', cursor: 'pointer',
+              background: filterMode === k ? '#E53935' : 'white',
+              color: filterMode === k ? 'white' : '#475569',
+              fontWeight: 800, fontSize: '0.75rem',
+              boxShadow: filterMode === k ? '0 4px 10px rgba(229,57,53,0.2)' : '0 1px 2px rgba(0,0,0,0.04)',
+              textTransform: 'uppercase', letterSpacing: '0.04em',
+            }}>{lbl}</button>
+        ))}
+        {filterMode === 'day' && (
+          <input type="date" value={filterDay} onChange={e => setFilterDay(e.target.value)}
+            className="input-light" style={{ height: 36, padding: '0 0.6rem', fontSize: '0.8rem', fontWeight: 700 }} />
+        )}
+        {filterMode === 'month' && (
+          <input type="month" value={filterMonth} onChange={e => setFilterMonth(e.target.value)}
+            className="input-light" style={{ height: 36, padding: '0 0.6rem', fontSize: '0.8rem', fontWeight: 700 }} />
+        )}
+        {filterMode === 'year' && (
+          <input type="number" min="2020" max="2099" value={filterYear} onChange={e => setFilterYear(e.target.value)}
+            className="input-light" style={{ height: 36, padding: '0 0.6rem', fontSize: '0.8rem', fontWeight: 700, width: 100 }} />
+        )}
+        {filterMode === 'custom' && (
+          <>
+            <input type="date" value={filterFrom} onChange={e => setFilterFrom(e.target.value)}
+              className="input-light" style={{ height: 36, padding: '0 0.6rem', fontSize: '0.8rem', fontWeight: 700 }} />
+            <span style={{ color: '#94A3B8', fontWeight: 700 }}>→</span>
+            <input type="date" value={filterTo} onChange={e => setFilterTo(e.target.value)}
+              className="input-light" style={{ height: 36, padding: '0 0.6rem', fontSize: '0.8rem', fontWeight: 700 }} />
+          </>
+        )}
+        <span style={{ width: 1, height: 24, background: '#E2E8F0', margin: '0 0.4rem' }} />
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+          className="input-light" style={{ height: 36, padding: '0 0.6rem', fontSize: '0.8rem', fontWeight: 700 }}>
+          <option value="all">All Statuses</option>
+          <option value="requested">Requested</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="active">Active</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+
+      {filtered.length === 0 ? (
+        <p style={{ textAlign: 'center', padding: '3rem', color: '#AAA', fontWeight: 600 }}>{data.length === 0 ? 'No rental bookings yet' : 'No bookings match the current filter'}</p>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '1rem' }}>
+          {filtered.map(b => {
+            const sc = rentalStatusColorMap[b.status] || { bg: '#F1F5F9', fg: '#475569' };
             const isHour = b.rentalUnit === 'hour';
-            const rate = isHour ? b.pricePerHour : b.pricePerDay;
-            const qty = isHour ? b.totalHours : b.totalDays;
+            const car = b.rentalCar || {};
+            const img = b.carSnapshot?.image || car.images?.[0];
             return (
-            <tr key={b._id} style={{ borderBottom: '1px solid #F5F5F5' }}>
-              <td style={{ padding: '1rem', fontWeight: 700, color: '#111' }}>
-                {b.user?.name}<br />
-                <span style={{ color: '#888', fontSize: '0.78rem', fontWeight: 600 }}>{b.contactPhone || b.user?.phone}</span>
-              </td>
-              <td style={{ padding: '1rem', fontWeight: 700, color: '#111' }}>
-                {b.carSnapshot?.brand || b.rentalCar?.brand} {b.carSnapshot?.model || b.rentalCar?.model}<br />
-                <span style={{ color: '#888', fontSize: '0.78rem', fontWeight: 600 }}>{b.carSnapshot?.year || b.rentalCar?.year}</span>
-              </td>
-              <td style={{ padding: '1rem', fontWeight: 700, color: '#111' }}>
-                <span style={{ display: 'inline-block', background: isHour ? '#FEF3C7' : '#DBEAFE', color: isHour ? '#92400E' : '#1E40AF', padding: '2px 8px', borderRadius: '6px', fontSize: '0.65rem', fontWeight: 900, marginBottom: 4, textTransform: 'uppercase' }}>{isHour ? 'PER HOUR' : 'PER DAY'}</span><br />
-                {new Date(b.pickupDate).toLocaleDateString('en-IN')} {b.pickupTime}<br />
-                <span style={{ color: '#888', fontSize: '0.78rem', fontWeight: 600 }}>→ {new Date(b.returnDate).toLocaleDateString('en-IN')} {b.returnTime} ({qty}{isHour ? 'h' : 'd'})</span>
-              </td>
-              <td style={{ padding: '1rem', fontWeight: 800, color: '#E53935', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.05rem' }}>
-                ₹{rate?.toLocaleString('en-IN')}/{isHour ? 'hr' : 'day'}<br />
-                <span style={{ color: '#888', fontSize: '0.75rem', fontWeight: 700 }}>Total: ₹{b.totalAmount?.toLocaleString('en-IN')}</span>
-                {b.securityDeposit > 0 && (
-                  <><br /><span style={{ color: '#888', fontSize: '0.7rem', fontWeight: 600 }}>+₹{b.securityDeposit.toLocaleString('en-IN')} deposit</span></>
-                )}
-              </td>
-              <td style={{ padding: '1rem' }}>
-                <select value={b.status} onChange={e => handleStatus(b._id, e.target.value)}
-                  className="input-light" style={{ padding: '0.4rem', fontSize: '0.82rem', height: 'auto', background: '#F9F9F9', fontWeight: 700, minWidth: 130 }}>
-                  <option value="requested">Requested</option>
-                  <option value="confirmed">Confirmed</option>
-                  <option value="active">Active</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-              </td>
-            </tr>
+              <div key={b._id} onClick={() => setSelected(b)}
+                style={{ background: '#FFF', border: '1px solid #EEE', borderRadius: '16px', padding: '1rem', cursor: 'pointer', transition: 'all 0.25s' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#E53935'; e.currentTarget.style.boxShadow = '0 14px 35px rgba(229,57,53,0.1)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = '#EEE'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                  <span style={{ background: '#0F172A', color: 'white', padding: '0.25rem 0.55rem', borderRadius: '6px', fontSize: '0.65rem', fontWeight: 900, fontFamily: 'monospace', letterSpacing: '0.05em' }}>#{b._id.slice(-8).toUpperCase()}</span>
+                  <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                    {['active', 'confirmed'].includes(b.status) && setActiveTab && setTrackingBookingId && (
+                      <button onClick={(e) => { e.stopPropagation(); setTrackingBookingId(b._id); setActiveTab('live-tracking'); }}
+                        style={{ background: 'rgba(229,57,53,0.1)', color: '#E53935', border: 'none', padding: '0.2rem 0.6rem', borderRadius: '999px', fontSize: '0.6rem', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                        <MapPin size={10} /> TRACK
+                      </button>
+                    )}
+                    <span style={{ background: sc.bg, color: sc.fg, padding: '0.2rem 0.6rem', borderRadius: '999px', fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{b.status}</span>
+                  </div>
+                </div>
+                <div style={{ height: 110, background: '#F1F5F9', borderRadius: '10px', overflow: 'hidden', marginBottom: '0.6rem' }}>
+                  {img ? <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#CBD5E1' }}><Bike size={32} /></div>}
+                </div>
+                <h4 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 900, fontSize: '1rem', color: '#0F172A', margin: 0, lineHeight: 1.1 }}>
+                  {b.carSnapshot?.brand || car.brand} {b.carSnapshot?.model || car.model}
+                </h4>
+                <p style={{ color: '#64748B', fontSize: '0.72rem', fontWeight: 600, marginTop: '0.2rem' }}>
+                  {b.fullName || b.user?.name || 'Customer'} • {b.contactPhone || b.user?.phone || '-'}
+                </p>
+                <div style={{ marginTop: '0.6rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.7rem', color: '#475569', fontWeight: 700 }}>
+                    {new Date(b.pickupDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} → {new Date(b.returnDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                    <span style={{ color: '#94A3B8', marginLeft: '0.3rem' }}>({isHour ? `${b.totalHours}h` : `${b.totalDays}d`})</span>
+                  </span>
+                  <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 900, color: '#E53935', fontSize: '1rem' }}>₹{b.totalAmount?.toLocaleString('en-IN')}</span>
+                </div>
+                <div style={{ marginTop: '0.5rem', fontSize: '0.65rem', fontWeight: 800, color: b.payment?.status === 'paid' ? '#16A34A' : '#CA8A04', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  {(b.payment?.method || 'cod').toUpperCase()} • {b.payment?.status === 'paid' ? '✓ PAID' : (b.payment?.status === 'advance_paid' ? 'ADVANCE PAID' : 'PAYMENT PENDING')}
+                </div>
+              </div>
             );
-          }) : (
-            <tr><td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: '#AAA', fontWeight: 600 }}>No rental bookings yet</td></tr>
+          })}
+        </div>
+      )}
+
+      {selected && (
+        <RentalBookingDetailModal
+          booking={selected}
+          onClose={() => setSelected(null)}
+          onUpdateStatus={(s) => handleStatus(selected._id, s)}
+          onCollectBalance={(due) => handleCollectBalance(selected._id, due)}
+          onTrack={setActiveTab && setTrackingBookingId ? () => { setTrackingBookingId(selected._id); setActiveTab('live-tracking'); setSelected(null); } : null} />
+      )}
+    </div>
+  );
+};
+
+const RentalBookingDetailModal = ({ booking, onClose, onUpdateStatus, onCollectBalance, onTrack }) => {
+  const sc = rentalStatusColorMap[booking.status] || { bg: '#F1F5F9', fg: '#475569' };
+  const isHour = booking.rentalUnit === 'hour';
+  const car = booking.rentalCar || {};
+  const img = booking.carSnapshot?.image || car.images?.[0];
+  const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+  const fmtDateTime = (d, t) => `${fmtDate(d)} • ${t || '—'}`;
+  const reg = car.registrationNumber || booking.carSnapshot?.registrationNumber;
+
+  return (
+    <div onClick={onClose}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem', backdropFilter: 'blur(4px)' }}>
+      <div onClick={e => e.stopPropagation()}
+        style={{ background: 'white', borderRadius: '20px', maxWidth: 720, width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 30px 80px rgba(0,0,0,0.3)' }}>
+        {/* Header */}
+        <div style={{ padding: '1.5rem 1.8rem', borderBottom: '1px solid #EEE', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.6rem' }}>
+          <div>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <span style={{ background: '#0F172A', color: 'white', padding: '0.3rem 0.7rem', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 900, fontFamily: 'monospace' }}>#{booking._id.slice(-8).toUpperCase()}</span>
+              <span style={{ background: sc.bg, color: sc.fg, padding: '0.25rem 0.7rem', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase' }}>{booking.status}</span>
+            </div>
+            <p style={{ color: '#64748B', fontSize: '0.78rem', marginTop: '0.4rem', fontWeight: 600 }}>Booked on {new Date(booking.createdAt).toLocaleString('en-IN')}</p>
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            {onTrack && ['active', 'confirmed'].includes(booking.status) && (
+              <button onClick={onTrack} style={{ background: '#E53935', border: 'none', borderRadius: '10px', padding: '0.5rem 0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontWeight: 800, color: 'white', fontSize: '0.8rem' }}>
+                <MapPin size={14} /> LIVE TRACK
+              </button>
+            )}
+            <button onClick={onClose} style={{ background: '#F1F5F9', border: 'none', borderRadius: '10px', padding: '0.5rem 0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontWeight: 800, color: '#475569' }}>
+              <X size={16} /> CLOSE
+            </button>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: '1.5rem 1.8rem' }}>
+          {/* Status update */}
+          <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '1.5rem', padding: '1rem', background: '#F1F5F9', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+            <label style={{ fontSize: '0.85rem', color: '#0F172A', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Update Current Status:</label>
+            <select value={booking.status} onChange={e => onUpdateStatus(e.target.value)}
+              className="input-light" style={{ padding: '0.5rem 0.8rem', fontSize: '0.9rem', height: 'auto', background: 'white', fontWeight: 800, minWidth: 160, border: '1px solid #CBD5E1' }}>
+              <option value="requested">Requested</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+
+          {/* Bike summary */}
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1.2rem' }}>
+            {img ? <img src={img} alt="" style={{ width: 110, height: 80, objectFit: 'cover', borderRadius: '12px', border: '1px solid #EEE' }} /> : <div style={{ width: 110, height: 80, borderRadius: '12px', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Bike size={32} color="#CBD5E1" /></div>}
+            <div style={{ flex: 1 }}>
+              <h3 style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 900, fontSize: '1.4rem', color: '#0F172A', margin: 0, lineHeight: 1.1 }}>
+                {booking.carSnapshot?.brand || car.brand} {booking.carSnapshot?.model || car.model}
+              </h3>
+              <p style={{ color: '#64748B', fontSize: '0.85rem', marginTop: '0.2rem', fontWeight: 600 }}>
+                {booking.carSnapshot?.year || car.year}
+                {car.fuelType && ` • ${car.fuelType.toUpperCase()}`}
+                {car.transmission && ` • ${car.transmission.toUpperCase()}`}
+              </p>
+              {reg && (
+                <span style={{ display: 'inline-block', marginTop: '0.4rem', background: '#0F172A', color: 'white', padding: '3px 10px', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.05em' }}>{reg}</span>
+              )}
+            </div>
+          </div>
+
+          {/* Vehicle Identity */}
+          <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '1rem', marginBottom: '1rem' }}>
+            <div style={{ color: '#64748B', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Vehicle Identity</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.4rem 1rem', fontSize: '0.85rem', color: '#0F172A', fontWeight: 700 }}>
+              <div><strong style={{ color: '#475569', fontWeight: 600 }}>Reg No:</strong> <span style={{ fontFamily: 'monospace' }}>{reg || '-'}</span></div>
+              <div><strong style={{ color: '#475569', fontWeight: 600 }}>Bike No:</strong> {car.bikeNumber || booking.carSnapshot?.bikeNumber || '-'}</div>
+              <div><strong style={{ color: '#475569', fontWeight: 600 }}>RC No:</strong> {car.rcNumber || '-'}</div>
+              <div><strong style={{ color: '#475569', fontWeight: 600 }}>Chassis:</strong> {car.chassisNumber || '-'}</div>
+              <div><strong style={{ color: '#475569', fontWeight: 600 }}>Engine:</strong> {car.engineNumber || '-'}</div>
+            </div>
+          </div>
+
+          {/* Customer */}
+          <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '1rem', marginBottom: '1rem' }}>
+            <div style={{ color: '#64748B', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Customer</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.4rem 1rem', fontSize: '0.85rem', color: '#0F172A', fontWeight: 700 }}>
+              <div><strong style={{ color: '#475569', fontWeight: 600 }}>Name:</strong> {booking.fullName || booking.user?.name || '-'}</div>
+              <div><strong style={{ color: '#475569', fontWeight: 600 }}>Phone:</strong> {booking.contactPhone || booking.user?.phone || '-'}</div>
+              <div><strong style={{ color: '#475569', fontWeight: 600 }}>Email:</strong> {booking.user?.email || '-'}</div>
+            </div>
+          </div>
+
+          {/* Schedule */}
+          <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '1rem', marginBottom: '1rem' }}>
+            <div style={{ color: '#64748B', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Schedule</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.4rem 1rem', fontSize: '0.85rem', color: '#0F172A', fontWeight: 700 }}>
+              <div><strong style={{ color: '#475569', fontWeight: 600 }}>Pickup:</strong> {fmtDateTime(booking.pickupDate, booking.pickupTime)}</div>
+              <div><strong style={{ color: '#475569', fontWeight: 600 }}>Return:</strong> {fmtDateTime(booking.returnDate, booking.returnTime)}</div>
+              <div><strong style={{ color: '#475569', fontWeight: 600 }}>Duration:</strong> {isHour ? `${booking.totalHours} hour(s)` : `${booking.totalDays} day(s)`}</div>
+              <div><strong style={{ color: '#475569', fontWeight: 600 }}>Mode:</strong> {(booking.rentalUnit || 'day').toUpperCase()}</div>
+            </div>
+            {booking.pickupAddress && (booking.pickupAddress.street || booking.pickupAddress.city) && (
+              <div style={{ marginTop: '0.6rem', fontSize: '0.82rem', color: '#475569', fontWeight: 600 }}>
+                <strong>Pickup Address:</strong> {[booking.pickupAddress.street, booking.pickupAddress.city, booking.pickupAddress.state, booking.pickupAddress.pincode].filter(Boolean).join(', ')}
+              </div>
+            )}
+            {car.location?.city && (
+              <div style={{ marginTop: '0.4rem', fontSize: '0.82rem', color: '#475569', fontWeight: 600 }}>
+                <strong style={{ color: '#E53935' }}>📍 Pickup (bike):</strong> {[car.location.city, car.location.state, car.location.pincode].filter(Boolean).join(', ')}
+              </div>
+            )}
+            {car.dropLocation?.city && (
+              <div style={{ marginTop: '0.4rem', fontSize: '0.82rem', color: '#475569', fontWeight: 600 }}>
+                <strong style={{ color: '#16A34A' }}>📍 Drop (bike):</strong> {[car.dropLocation.city, car.dropLocation.state, car.dropLocation.pincode].filter(Boolean).join(', ')}
+              </div>
+            )}
+          </div>
+
+          {/* Pricing */}
+          <div style={{ background: '#FEF2F2', border: '1px solid rgba(229,57,53,0.15)', borderRadius: '12px', padding: '1rem', marginBottom: '1rem' }}>
+            <div style={{ color: '#E53935', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Pricing</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#475569', fontWeight: 700, marginBottom: '0.3rem' }}>
+              <span>{isHour ? `₹${booking.pricePerHour?.toLocaleString('en-IN')} × ${booking.totalHours} hour(s)` : `₹${booking.pricePerDay?.toLocaleString('en-IN')} × ${booking.totalDays} day(s)`}</span>
+              <span>₹{booking.subtotal?.toLocaleString('en-IN')}</span>
+            </div>
+            {booking.securityDeposit > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#475569', fontWeight: 700, marginBottom: '0.3rem' }}>
+                <span>Security Deposit (refundable)</span><span>₹{booking.securityDeposit?.toLocaleString('en-IN')}</span>
+              </div>
+            )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(229,57,53,0.2)', paddingTop: '0.5rem', marginTop: '0.5rem' }}>
+              <span style={{ fontWeight: 900, color: '#0F172A' }}>TOTAL</span>
+              <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 950, fontSize: '1.3rem', color: '#E53935' }}>₹{booking.totalAmount?.toLocaleString('en-IN')}</span>
+            </div>
+          </div>
+
+          {/* Payment */}
+          <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '1rem', marginBottom: '1rem' }}>
+            <div style={{ color: '#64748B', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Payment</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.4rem 1rem', fontSize: '0.85rem', color: '#0F172A', fontWeight: 700 }}>
+              <div><strong style={{ color: '#475569', fontWeight: 600 }}>Method:</strong> {(booking.payment?.method || 'cod').toUpperCase()}</div>
+              <div><strong style={{ color: '#475569', fontWeight: 600 }}>Status:</strong> <span style={{ color: booking.payment?.status === 'paid' ? '#16A34A' : '#CA8A04' }}>{(booking.payment?.status || 'pending').toUpperCase()}</span></div>
+              {booking.payment?.plan && <div><strong style={{ color: '#475569', fontWeight: 600 }}>Plan:</strong> {booking.payment.plan.toUpperCase()}</div>}
+              {booking.payment?.razorpayOrderId && <div style={{ gridColumn: '1 / -1', wordBreak: 'break-all' }}><strong style={{ color: '#475569', fontWeight: 600 }}>Order ID:</strong> <span style={{ fontFamily: 'monospace', fontSize: '0.78rem' }}>{booking.payment.razorpayOrderId}</span></div>}
+              {booking.payment?.razorpayPaymentId && <div style={{ gridColumn: '1 / -1', wordBreak: 'break-all' }}><strong style={{ color: '#475569', fontWeight: 600 }}>Payment ID:</strong> <span style={{ fontFamily: 'monospace', fontSize: '0.78rem' }}>{booking.payment.razorpayPaymentId}</span></div>}
+              {booking.payment?.paidAt && <div><strong style={{ color: '#475569', fontWeight: 600 }}>Paid At:</strong> {new Date(booking.payment.paidAt).toLocaleString('en-IN')}</div>}
+            </div>
+            {booking.payment?.balanceDue > 0 && (
+              <div style={{ marginTop: '0.6rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.8rem', background: '#FEE2E2', borderRadius: 8 }}>
+                <span style={{ color: '#DC2626', fontSize: '0.85rem', fontWeight: 800 }}>Balance due: ₹{booking.payment.balanceDue.toLocaleString('en-IN')}</span>
+                <button onClick={() => onCollectBalance(booking.payment.balanceDue)}
+                  style={{ background: '#16A34A', color: 'white', border: 'none', borderRadius: 6, padding: '5px 10px', fontSize: '0.7rem', fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase' }}>
+                  Collect
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* KYC Documents */}
+          {(booking.kyc?.aadharNumber || booking.kyc?.panNumber || booking.kyc?.aadharImage || booking.kyc?.panImage || booking.kyc?.licenseImage) && (
+            <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '12px', padding: '1rem', marginBottom: '1rem' }}>
+              <div style={{ color: '#92400E', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>KYC Documents</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.4rem 1rem', fontSize: '0.85rem', color: '#0F172A', fontWeight: 700, marginBottom: '0.7rem' }}>
+                {booking.kyc?.aadharNumber && (
+                  <div><strong style={{ color: '#475569', fontWeight: 600 }}>Aadhar:</strong> <span style={{ fontFamily: 'monospace' }}>{booking.kyc.aadharNumber.replace(/(\d{4})(\d{4})(\d{4})/, '$1 $2 $3')}</span></div>
+                )}
+                {booking.kyc?.panNumber && (
+                  <div><strong style={{ color: '#475569', fontWeight: 600 }}>PAN:</strong> <span style={{ fontFamily: 'monospace' }}>{booking.kyc.panNumber}</span></div>
+                )}
+                {booking.driverLicense && (
+                  <div><strong style={{ color: '#475569', fontWeight: 600 }}>License:</strong> <span style={{ fontFamily: 'monospace' }}>{booking.driverLicense}</span></div>
+                )}
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
+                {[
+                  ['Aadhar', booking.kyc?.aadharImage],
+                  ['PAN', booking.kyc?.panImage],
+                  ['License', booking.kyc?.licenseImage],
+                ].filter(([, url]) => url).map(([label, url]) => (
+                  <a key={label} href={url} target="_blank" rel="noopener noreferrer"
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', textDecoration: 'none' }}>
+                    <div style={{ width: 110, height: 80, borderRadius: '10px', overflow: 'hidden', border: '2px solid #FDE68A', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {/\.pdf$/i.test(url) ? (
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#B45309' }}>📄 PDF</span>
+                      ) : (
+                        <img src={url} alt={label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      )}
+                    </div>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#92400E', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
           )}
-        </tbody>
-      </table>
+
+          {booking.notes && (
+            <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', padding: '0.7rem 1rem', borderRadius: '12px', fontSize: '0.85rem', color: '#92400E', fontWeight: 600, marginBottom: '1rem' }}>
+              <strong>Customer Note:</strong> {booking.notes}
+            </div>
+          )}
+
+          {/* Status timeline */}
+          {booking.statusHistory?.length > 0 && (
+            <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '1rem', marginBottom: '1rem' }}>
+              <div style={{ color: '#64748B', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Status History</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                {booking.statusHistory.map((h, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.78rem', borderBottom: i < booking.statusHistory.length - 1 ? '1px dashed #E2E8F0' : 'none', paddingBottom: '0.3rem' }}>
+                    <div>
+                      <strong style={{ color: '#0F172A', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.04em' }}>{h.status}</strong>
+                      {h.note && <span style={{ color: '#64748B', marginLeft: '0.5rem' }}>— {h.note}</span>}
+                    </div>
+                    <span style={{ color: '#94A3B8', fontWeight: 600, whiteSpace: 'nowrap' }}>{new Date(h.updatedAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
 
 
 // ── LIVE TRACKING TAB ──────────────────────────────────────────
-const LiveTrackingTab = () => {
+const LiveTrackingTab = ({ targetId, onClearTarget }) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [selectedBooking, setSelectedBooking] = useState(targetId || null);
   const [socketConnected, setSocketConnected] = useState(false);
+  const [filterText, setFilterText] = useState('');
+  const [expandedCard, setExpandedCard] = useState(targetId || null);
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef({});
   const socketRef = useRef(null);
+
+  useEffect(() => {
+    if (targetId) {
+      setSelectedBooking(targetId);
+      setExpandedCard(targetId);
+    }
+  }, [targetId]);
 
   useEffect(() => {
     // Load Leaflet CSS
@@ -1923,7 +2335,7 @@ const LiveTrackingTab = () => {
           // Create new marker
           const carIcon = L.divIcon({
             className: 'custom-car-marker',
-            html: `<div style="background:#1E3A8A;color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:16px;border:3px solid white;box-shadow:0 4px 15px rgba(30,58,138,0.4);">🚗</div>`,
+            html: `<div style="background:#E53935;color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:16px;border:3px solid white;box-shadow:0 4px 15px rgba(229,57,53,0.4);">🏍️</div>`,
             iconSize: [36, 36],
             iconAnchor: [18, 18],
           });
@@ -1962,7 +2374,7 @@ const LiveTrackingTab = () => {
         if (b.currentLocation?.lat && b.currentLocation?.lng) {
           const carIcon = L.divIcon({
             className: 'custom-car-marker',
-            html: `<div style="background:#1E3A8A;color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:16px;border:3px solid white;box-shadow:0 4px 15px rgba(30,58,138,0.4);">🚗</div>`,
+            html: `<div style="background:#E53935;color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:16px;border:3px solid white;box-shadow:0 4px 15px rgba(229,57,53,0.4);">🏍️</div>`,
             iconSize: [36, 36],
             iconAnchor: [18, 18],
           });
@@ -2004,6 +2416,7 @@ const LiveTrackingTab = () => {
 
   const focusBooking = (booking) => {
     setSelectedBooking(booking._id);
+    if (onClearTarget) onClearTarget();
     if (mapInstanceRef.current && booking.currentLocation?.lat) {
       mapInstanceRef.current.setView([booking.currentLocation.lat, booking.currentLocation.lng], 15, { animate: true });
       if (markersRef.current[booking._id]) {
@@ -2012,66 +2425,123 @@ const LiveTrackingTab = () => {
     }
   };
 
+  const filteredBookings = bookings.filter(b => {
+    const s = filterText.toLowerCase();
+    const renterName = (b.user?.name || '').toLowerCase();
+    const brand = (b.carSnapshot?.brand || b.rentalCar?.brand || '').toLowerCase();
+    const model = (b.carSnapshot?.model || b.rentalCar?.model || '').toLowerCase();
+    return renterName.includes(s) || brand.includes(s) || model.includes(s);
+  });
+
   if (loading) return <div style={{textAlign:'center', padding:'3rem', color:'#888'}}><Loader style={{ animation: 'spin 1s linear infinite' }} size={24} /></div>;
 
   return (
     <div style={{ display: 'flex', gap: '1.5rem', height: 'calc(100vh - 120px)' }}>
       {/* Sidebar - Active Bookings List */}
-      <div style={{ width: 340, flexShrink: 0, background: '#FFF', border: '1.5px solid #EEE', borderRadius: '24px', padding: '1.5rem', overflowY: 'auto', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-          <h3 style={{ color: '#111', fontWeight: 950, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.3rem', margin: 0 }}>
-            ACTIVE <span style={{ color: '#1E3A8A' }}>RENTALS</span>
-          </h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: socketConnected ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', padding: '0.3rem 0.8rem', borderRadius: '999px' }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: socketConnected ? '#10B981' : '#EF4444', animation: socketConnected ? 'pulse 2s infinite' : 'none' }} />
-            <span style={{ fontSize: '0.7rem', fontWeight: 800, color: socketConnected ? '#10B981' : '#EF4444' }}>
-              {socketConnected ? 'LIVE' : 'OFFLINE'}
-            </span>
+      <div style={{ width: 340, flexShrink: 0, background: '#FFF', border: '1.5px solid #EEE', borderRadius: '24px', padding: '1.5rem', display: 'flex', flexDirection: 'column', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
+        <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+            <h3 style={{ color: '#111', fontWeight: 950, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.3rem', margin: 0 }}>
+              ACTIVE <span style={{ color: '#E53935' }}>RENTALS</span>
+            </h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: socketConnected ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', padding: '0.2rem 0.6rem', borderRadius: '999px' }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: socketConnected ? '#10B981' : '#EF4444', animation: socketConnected ? 'pulse 2s infinite' : 'none' }} />
+              <span style={{ fontSize: '0.62rem', fontWeight: 800, color: socketConnected ? '#10B981' : '#EF4444' }}>
+                {socketConnected ? 'LIVE' : 'OFFLINE'}
+              </span>
+            </div>
+          </div>
+
+          <div style={{ position: 'relative' }}>
+            <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+            <input
+              type="text"
+              placeholder="Filter by renter or bike..."
+              value={filterText}
+              onChange={(e) => setFilterText(e.target.value)}
+              style={{ width: '100%', background: '#F8FAFC', border: '1.5px solid #E2E8F0', borderRadius: '12px', padding: '0.6rem 0.8rem 0.6rem 2rem', fontSize: '0.8rem', fontWeight: 600, outline: 'none', transition: 'all 0.2s' }}
+              onFocus={(e) => e.target.style.borderColor = '#E53935'}
+              onBlur={(e) => e.target.style.borderColor = '#E2E8F0'}
+            />
           </div>
         </div>
 
-        {bookings.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#AAA' }}>
-            <MapPin size={40} style={{ marginBottom: '1rem', color: '#DDD' }} />
-            <p style={{ fontWeight: 600 }}>No active rentals at the moment</p>
-          </div>
-        ) : bookings.map(b => (
-          <div key={b._id} onClick={() => focusBooking(b)}
-            style={{
-              background: selectedBooking === b._id ? '#EFF6FF' : '#F9F9F9',
-              border: `1.5px solid ${selectedBooking === b._id ? '#1E3A8A' : '#EEE'}`,
-              borderRadius: '16px', padding: '1rem', marginBottom: '0.8rem', cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <h4 style={{ color: '#111', fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', margin: 0 }}>
-                  {b.carSnapshot?.brand} {b.carSnapshot?.model}
-                </h4>
-                <p style={{ color: '#666', fontSize: '0.8rem', fontWeight: 600, margin: '0.3rem 0' }}>
-                  Renter: {b.user?.name || 'N/A'}
-                </p>
-                <p style={{ color: '#888', fontSize: '0.75rem', fontWeight: 600, margin: 0 }}>
-                  {b.user?.phone || 'No phone'}
-                </p>
-              </div>
-              {b.currentLocation?.lat ? (
-                <div style={{ background: 'rgba(16,185,129,0.1)', padding: '0.3rem 0.6rem', borderRadius: '8px' }}>
-                  <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#10B981' }}>TRACKING</span>
-                </div>
-              ) : (
-                <div style={{ background: 'rgba(245,158,11,0.1)', padding: '0.3rem 0.6rem', borderRadius: '8px' }}>
-                  <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#F59E0B' }}>WAITING</span>
-                </div>
-              )}
+        <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.2rem' }}>
+          {filteredBookings.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#AAA' }}>
+              <MapPin size={40} style={{ marginBottom: '1rem', color: '#DDD' }} />
+              <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>{bookings.length === 0 ? 'No active rentals at the moment' : 'No matching rentals'}</p>
             </div>
-            {b.currentLocation?.updatedAt && (
-              <p style={{ color: '#94A3B8', fontSize: '0.7rem', fontWeight: 700, margin: '0.5rem 0 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                <Clock size={11} /> Last update: {new Date(b.currentLocation.updatedAt).toLocaleTimeString('en-IN')}
-              </p>
-            )}
-          </div>
-        ))}
+          ) : filteredBookings.map(b => {
+            const car = {
+              ...(b.carSnapshot || {}),
+              ...(typeof b.rentalCar === 'object' ? b.rentalCar : {})
+            };
+            const isExpanded = expandedCard === b._id;
+            return (
+              <div key={b._id} onClick={() => focusBooking(b)}
+                style={{
+                  background: selectedBooking === b._id ? '#FEF2F2' : '#F9F9F9',
+                  border: `1.5px solid ${selectedBooking === b._id ? '#E53935' : '#EEE'}`,
+                  borderRadius: '16px', padding: '1rem', marginBottom: '0.8rem', cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1 }}>
+                    <h4 style={{ color: '#111', fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.1rem', margin: 0 }}>
+                      {car.brand} {car.model}
+                    </h4>
+                    <p style={{ color: '#666', fontSize: '0.8rem', fontWeight: 600, margin: '0.3rem 0' }}>
+                      Renter: {b.fullName || b.user?.name || 'N/A'}
+                    </p>
+                    <p style={{ color: '#888', fontSize: '0.75rem', fontWeight: 600, margin: 0 }}>
+                      {b.contactPhone || b.user?.phone || 'No phone'}
+                    </p>
+
+                    {isExpanded && (
+                      <div style={{ marginTop: '0.8rem', padding: '0.55rem 0.7rem', background: '#FFF', borderRadius: '10px', border: '1px solid #E2E8F0', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.02)' }}>
+                        <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', marginBottom: '0.45rem', letterSpacing: '0.05em' }}>Vehicle Identity</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '60px 1fr', rowGap: '0.35rem', columnGap: '0.4rem' }}>
+                          {[
+                            ['REG', car.registrationNumber],
+                            ['BIKE NO', car.bikeNumber],
+                            ['CHASSIS', car.chassisNumber],
+                            ['ENGINE', car.engineNumber],
+                            ['RC NO', car.rcNumber],
+                          ].flatMap(([label, value]) => [
+                            <span key={`${label}-l`} style={{ fontSize: '0.58rem', color: '#475569', fontWeight: 700 }}>{label}:</span>,
+                            <span key={`${label}-v`} style={{ fontSize: '0.58rem', color: '#475569', fontWeight: 700, fontFamily: 'monospace', wordBreak: 'break-all' }}>{value || '-'}</span>,
+                          ])}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+                    {b.currentLocation?.lat ? (
+                      <div style={{ background: 'rgba(16,185,129,0.1)', padding: '0.3rem 0.6rem', borderRadius: '8px' }}>
+                        <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#10B981' }}>TRACKING</span>
+                      </div>
+                    ) : (
+                      <div style={{ background: 'rgba(245,158,11,0.1)', padding: '0.3rem 0.6rem', borderRadius: '8px' }}>
+                        <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#F59E0B' }}>WAITING</span>
+                      </div>
+                    )}
+                    <div onClick={(e) => { e.stopPropagation(); setExpandedCard(isExpanded ? null : b._id); }}
+                      style={{ padding: '0.4rem', color: '#94A3B8', transition: 'color 0.2s', cursor: 'pointer' }}>
+                      {isExpanded ? '▲' : '▼'}
+                    </div>
+                  </div>
+                </div>
+
+                {b.currentLocation?.updatedAt && (
+                  <p style={{ color: '#94A3B8', fontSize: '0.7rem', fontWeight: 700, margin: '0.5rem 0 0', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <Clock size={11} /> Last update: {new Date(b.currentLocation.updatedAt).toLocaleTimeString('en-IN')}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Map Container */}
@@ -2097,6 +2567,7 @@ export default function AdminDashboard() {
   const [recentServices, setRecentServices] = useState([]);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [trackingBookingId, setTrackingBookingId] = useState(null);
 
   useEffect(() => {
     if (!user || user.role !== 'admin') { navigate('/'); return; }
@@ -2162,8 +2633,11 @@ export default function AdminDashboard() {
       `}</style>
       {/* Mobile top bar */}
       <div className="admin-mobile-topbar" style={{ display: 'none', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 60, background: '#111', borderBottom: '1px solid #2A2A2A', padding: '0.7rem 1rem', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 950, color: 'white', fontSize: '1.3rem', letterSpacing: '-0.02em' }}>
-          <span style={{ color: '#E53935' }}>MOTO</span>XPRESS
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <img src="/src/assets/logo.png" alt="MotoExpress Logo" style={{ height: '30px', width: 'auto' }} />
+          <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 950, color: 'white', fontSize: '1.3rem', letterSpacing: '-0.02em' }}>
+            MotoExpress
+          </span>
         </div>
         <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '0.3rem' }}>
           {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
@@ -2174,8 +2648,11 @@ export default function AdminDashboard() {
       {/* Sidebar */}
       <div className={`admin-sidebar${sidebarOpen ? ' open' : ''}`} style={{ width: 280, background: '#111', borderRight: '1px solid #2A2A2A', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
         <div style={{ padding: '2rem 1.5rem', borderBottom: '1px solid #2A2A2A' }}>
-          <div style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 950, color: 'white', fontSize: '1.8rem', letterSpacing: '-0.02em', lineHeight: 1 }}>
-            <span style={{ color: '#E53935' }}>MOTO</span>XPRESS
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.2rem' }}>
+            <img src="/src/assets/logo.png" alt="MotoExpress Logo" style={{ height: '36px', width: 'auto' }} />
+            <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 950, color: 'white', fontSize: '1.8rem', letterSpacing: '-0.02em', lineHeight: 1 }}>
+              MotoExpress
+            </span>
           </div>
           <div style={{ color: '#555', fontSize: '0.8rem', marginTop: '0.4rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>ADMIN PORTAL</div>
         </div>
@@ -2270,11 +2747,11 @@ export default function AdminDashboard() {
           {activeTab === 'parts' && <PartsTab />}
           {activeTab === 'bikes' && <BikesTab />}
           {activeTab === 'rentals' && <RentalsTab />}
-          {activeTab === 'rental-bookings' && <RentalBookingsTab />}
+          {activeTab === 'rental-bookings' && <RentalBookingsTab setActiveTab={setActiveTab} setTrackingBookingId={setTrackingBookingId} />}
           {activeTab === 'sells' && <SellsTab />}
           {activeTab === 'orders' && <OrdersTab />}
           {activeTab === 'leads' && <LeadsTab />}
-          {activeTab === 'live-tracking' && <LiveTrackingTab />}
+          {activeTab === 'live-tracking' && <LiveTrackingTab targetId={trackingBookingId} onClearTarget={() => setTrackingBookingId(null)} />}
 
         </div>
       </div>

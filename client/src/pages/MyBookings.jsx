@@ -3,10 +3,10 @@ import { useAuth } from '../context/AuthContext';
 import { getMyBookings } from '../api/serviceApi';
 import { getMySellRequests, getMyOrders } from '../api/storeApi';
 import { getMyEnquiries } from '../api/bikeApi';
-import { getMyRentalBookings, cancelMyRentalBooking } from '../api/rentalApi';
+import { getMyRentalBookings, cancelMyRentalBooking, createRentalBalanceOrder, verifyRentalBalancePayment } from '../api/rentalApi';
 import { useNavigate } from 'react-router-dom';
 import { PageLoader } from '../components/common/LoadingSpinner';
-import { Wrench, TrendingUp, ShoppingBag, Clock, CheckCircle, XCircle, Loader, MessageSquare, Calendar, Bike } from 'lucide-react';
+import { Wrench, TrendingUp, ShoppingBag, Clock, CheckCircle, XCircle, Loader, MessageSquare, Calendar, Bike, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const statusBadge = (status) => {
@@ -30,6 +30,47 @@ export default function MyBookings() {
   const [enquiries, setEnquiries] = useState([]);
   const [rentals, setRentals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expandedRental, setExpandedRental] = useState(null);
+
+  const loadRazorpaySdk = () => new Promise((resolve) => {
+    if (window.Razorpay) return resolve(true);
+    const s = document.createElement('script');
+    s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    s.onload = () => resolve(true);
+    s.onerror = () => resolve(false);
+    document.body.appendChild(s);
+  });
+
+  const handlePayBalance = async (booking) => {
+    try {
+      const { data: { order, key } } = await createRentalBalanceOrder(booking._id);
+      const ok = await loadRazorpaySdk();
+      if (!ok) return toast.error('Failed to load Razorpay');
+      const rzp = new window.Razorpay({
+        key: key || import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'MotoXpress Rental',
+        description: `Balance Payment for ${booking.carSnapshot?.brand} ${booking.carSnapshot?.model}`,
+        order_id: order.id,
+        prefill: { name: booking.fullName || user.name, email: user.email, contact: booking.contactPhone || user.phone },
+        theme: { color: '#E53935' },
+        handler: async (response) => {
+          try {
+            const { data } = await verifyRentalBalancePayment(booking._id, response);
+            setRentals(prev => prev.map(r => r._id === booking._id ? data.booking : r));
+            toast.success('Balance paid!');
+          } catch (err) {
+            toast.error(err.response?.data?.message || 'Payment verification failed');
+          }
+        },
+      });
+      rzp.on('payment.failed', () => toast.error('Payment failed'));
+      rzp.open();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not initialise payment');
+    }
+  };
 
   useEffect(() => {
     if (!user) { navigate('/login'); return; }
@@ -365,15 +406,43 @@ export default function MyBookings() {
                 <p style={{ color: '#888', fontSize: '1.1rem', fontWeight: 500, marginBottom: '2rem' }}>No rental bookings yet</p>
                 <button onClick={() => navigate('/rentals')} className="btn-primary" style={{ padding: '0.8rem 2.5rem', fontWeight: 700 }}>Rent a Bike</button>
               </div>
-            ) : rentals.map((booking) => (
-              <div key={booking._id} style={{ background: '#FFF', border: '1px solid #EEE', borderRadius: '20px', padding: '1.8rem', marginBottom: '1.5rem', boxShadow: '0 4px 20px rgba(0,0,0,0.02)', transition: 'all 0.3s' }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = '#E53935'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = '#EEE'}>
+            ) : rentals.map((booking) => {
+              const isHour = booking.rentalUnit === 'hour';
+              const duration = isHour ? `${booking.totalHours} hour(s)` : `${booking.totalDays} day(s)`;
+              const unitPrice = isHour ? booking.pricePerHour : booking.pricePerDay;
+              const car = booking.rentalCar || {};
+              const reg = car.registrationNumber || booking.carSnapshot?.registrationNumber;
+              return (
+              <div key={booking._id} style={{ background: '#FFF', border: '1px solid', borderColor: expandedRental === booking._id ? '#E53935' : '#EEE', borderRadius: '24px', padding: '1.8rem', marginBottom: '1.5rem', boxShadow: expandedRental === booking._id ? '0 20px 40px rgba(0,0,0,0.08)' : '0 4px 20px rgba(0,0,0,0.02)', transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)', cursor: 'pointer', overflow: 'hidden', position: 'relative' }}
+                onClick={() => setExpandedRental(expandedRental === booking._id ? null : booking._id)}>
+                {/* Booking ID strip */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '0.6rem', paddingBottom: '0.8rem', borderBottom: '1px dashed #E2E8F0', marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                    <span style={{ background: '#0F172A', color: 'white', padding: '0.3rem 0.7rem', borderRadius: '8px', fontSize: '0.72rem', fontWeight: 900, fontFamily: 'monospace', letterSpacing: '0.05em' }}>
+                      #{booking._id.slice(-8).toUpperCase()}
+                    </span>
+                    {statusBadge(booking.status)}
+                    {booking.status === 'active' && (
+                      <button onClick={(e) => { e.stopPropagation(); navigate(`/track/${booking._id}`); }}
+                        style={{ background: 'rgba(229,57,53,0.1)', color: '#E53935', border: 'none', padding: '0.25rem 0.7rem', borderRadius: '999px', fontSize: '0.65rem', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', marginLeft: '0.4rem' }}>
+                        <MapPin size={12} /> TRACK
+                      </button>
+                    )}
+                    <span style={{ background: booking.payment?.status === 'paid' ? '#DCFCE7' : booking.payment?.status === 'refunded' ? '#FEF3C7' : '#FEE2E2', color: booking.payment?.status === 'paid' ? '#16A34A' : booking.payment?.status === 'refunded' ? '#CA8A04' : '#DC2626', padding: '0.25rem 0.7rem', borderRadius: '999px', fontSize: '0.68rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      {(booking.payment?.method || 'cod').toUpperCase()} • {(booking.payment?.status || 'pending').toUpperCase()}
+                    </span>
+                  </div>
+                  <span style={{ color: '#94A3B8', fontSize: '0.72rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    {expandedRental === booking._id ? 'Click to collapse' : 'Click to view details'}
+                    <div style={{ transform: expandedRental === booking._id ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'all 0.3s' }}>▼</div>
+                  </span>
+                </div>
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
                   <div style={{ flex: 1, minWidth: '250px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.8rem' }}>
-                      {booking.carSnapshot?.image || booking.rentalCar?.images?.[0] ? (
-                        <img src={booking.carSnapshot?.image || booking.rentalCar?.images?.[0]} alt="" style={{ width: 80, height: 60, borderRadius: '12px', objectFit: 'cover', border: '1px solid #EEE' }} />
+                      {booking.carSnapshot?.image || car.images?.[0] ? (
+                        <img src={booking.carSnapshot?.image || car.images?.[0]} alt="" style={{ width: 80, height: 60, borderRadius: '12px', objectFit: 'cover', border: '1px solid #EEE' }} />
                       ) : (
                         <div style={{ background: 'rgba(229,57,53,0.05)', width: 80, height: 60, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(229,57,53,0.1)' }}>
                           <Bike size={24} style={{ color: '#E53935' }} />
@@ -381,66 +450,223 @@ export default function MyBookings() {
                       )}
                       <div>
                         <h3 style={{ color: '#111', fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.3rem', lineHeight: 1 }}>
-                          {booking.carSnapshot?.brand || booking.rentalCar?.brand} {booking.carSnapshot?.model || booking.rentalCar?.model}
+                          {booking.carSnapshot?.brand || car.brand} {booking.carSnapshot?.model || car.model}
                         </h3>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
-                          <span style={{ color: '#666', fontSize: '0.85rem', fontWeight: 600 }}>
-                            {booking.carSnapshot?.year || booking.rentalCar?.year} • {booking.rentalUnit === 'hour' ? `${booking.totalHours} hour(s)` : `${booking.totalDays} day(s)`}
-                          </span>
-                          {booking.rentalUnit === 'hour' && (
-                            <span style={{ background: '#FEF3C7', color: '#92400E', padding: '2px 8px', borderRadius: '6px', fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase' }}>HOURLY</span>
+                          <span style={{ color: '#666', fontSize: '0.85rem', fontWeight: 600 }}>{booking.carSnapshot?.year || car.year} • {duration}</span>
+                          {reg && (
+                            <span style={{ background: '#0F172A', color: 'white', padding: '2px 8px', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800, fontFamily: 'Rajdhani, sans-serif', letterSpacing: '0.05em' }}>{reg}</span>
                           )}
-                          {statusBadge(booking.status)}
                         </div>
                       </div>
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', marginTop: '0.8rem' }}>
-                      <div style={{ background: '#F5F5F5', padding: '0.3rem 0.8rem', borderRadius: '8px', fontSize: '0.85rem', color: '#555', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                        <Calendar size={13} /> Pickup: {new Date(booking.pickupDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} {booking.pickupTime}
+                      <div style={{ background: '#F5F5F5', padding: '0.3rem 0.8rem', borderRadius: '8px', fontSize: '0.82rem', color: '#555', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                        <Calendar size={13} /> Pickup: {new Date(booking.pickupDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} • {booking.pickupTime}
                       </div>
-                      <div style={{ background: '#F5F5F5', padding: '0.3rem 0.8rem', borderRadius: '8px', fontSize: '0.85rem', color: '#555', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                        <Calendar size={13} /> Return: {new Date(booking.returnDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} {booking.returnTime}
+                      <div style={{ background: '#F5F5F5', padding: '0.3rem 0.8rem', borderRadius: '8px', fontSize: '0.82rem', color: '#555', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                        <Calendar size={13} /> Return: {new Date(booking.returnDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} • {booking.returnTime}
                       </div>
                     </div>
                   </div>
                   <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
-                    <div style={{ background: 'rgba(229,57,53,0.03)', padding: '0.6rem 1rem', borderRadius: '12px', border: '1px solid rgba(229,57,53,0.05)' }}>
-                      <div style={{ color: '#E53935', fontSize: '0.75rem', fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: 'Rajdhani, sans-serif' }}>TOTAL</div>
-                      <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.6rem', fontWeight: 900, color: '#111' }}>₹{booking.totalAmount?.toLocaleString('en-IN')}</div>
+                    <div style={{ background: 'rgba(229,57,53,0.03)', padding: '0.8rem 1.2rem', borderRadius: '14px', border: '1px solid rgba(229,57,53,0.1)' }}>
+                      <div style={{ color: '#E53935', fontSize: '0.75rem', fontWeight: 950, letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: 'Rajdhani, sans-serif' }}>TOTAL</div>
+                      <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.6rem', fontWeight: 950, color: '#0F172A' }}>₹{booking.totalAmount?.toLocaleString('en-IN')}</div>
                     </div>
                     {['requested', 'confirmed'].includes(booking.status) && (
-                      <button onClick={() => handleCancelRental(booking._id)} style={{ background: 'rgba(239, 68, 68, 0.08)', color: '#DC2626', border: 'none', borderRadius: '10px', padding: '0.5rem 1rem', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <button onClick={(e) => { e.stopPropagation(); handleCancelRental(booking._id); }} style={{ background: 'rgba(239, 68, 68, 0.08)', color: '#DC2626', border: 'none', borderRadius: '10px', padding: '0.5rem 1rem', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                         <XCircle size={13} /> CANCEL
                       </button>
                     )}
                   </div>
                 </div>
 
-                {/* Status Timeline */}
-                <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #F5F5F5' }}>
-                  <div style={{ display: 'flex', gap: '0' }}>
-                    {['requested', 'confirmed', 'active', 'completed'].map((s, i) => {
-                      const order = ['requested', 'confirmed', 'active', 'completed'];
-                      const currentIdx = order.indexOf(booking.status);
-                      const stepIdx = order.indexOf(s);
-                      const isComplete = stepIdx <= currentIdx;
-                      return (
-                        <div key={s} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                            {i > 0 && <div style={{ flex: 1, height: 3, background: isComplete ? '#E53935' : '#F0F0F0' }} />}
-                            <div style={{ width: 22, height: 22, borderRadius: '50%', background: isComplete ? '#E53935' : '#F0F0F0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                              {isComplete ? <CheckCircle size={14} color="white" /> : <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#CCC' }} />}
-                            </div>
-                            {i < 3 && <div style={{ flex: 1, height: 3, background: stepIdx < currentIdx ? '#E53935' : '#F0F0F0' }} />}
-                          </div>
-                          <span style={{ color: isComplete ? '#111' : '#AAA', fontSize: '0.72rem', marginTop: '0.4rem', fontWeight: 800, textTransform: 'uppercase', fontFamily: 'Rajdhani, sans-serif' }}>{s}</span>
+                {/* Collapsible Content */}
+                <div style={{ maxHeight: expandedRental === booking._id ? '2400px' : '0', opacity: expandedRental === booking._id ? 1 : 0, transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)', visibility: expandedRental === booking._id ? 'visible' : 'hidden' }}>
+                  {/* Price + identity breakdown */}
+                  <div style={{ marginTop: '1.2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.6rem' }}>
+                    <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '0.6rem 0.8rem', borderRadius: '10px' }}>
+                      <div style={{ color: '#64748B', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Rate</div>
+                      <div style={{ color: '#0F172A', fontWeight: 800, fontSize: '0.9rem', marginTop: '2px' }}>₹{unitPrice?.toLocaleString('en-IN')} / {isHour ? 'hour' : 'day'} × {isHour ? booking.totalHours : booking.totalDays}</div>
+                    </div>
+                    {booking.securityDeposit > 0 && (
+                      <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '0.6rem 0.8rem', borderRadius: '10px' }}>
+                        <div style={{ color: '#64748B', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Security Deposit</div>
+                        <div style={{ color: '#0F172A', fontWeight: 800, fontSize: '0.9rem', marginTop: '2px' }}>₹{booking.securityDeposit.toLocaleString('en-IN')} <span style={{ fontSize: '0.6rem', color: '#16A34A', fontWeight: 800 }}>REFUNDABLE</span></div>
+                      </div>
+                    )}
+                    <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '0.6rem 0.8rem', borderRadius: '10px' }}>
+                      <div style={{ color: '#64748B', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Contact</div>
+                      <div style={{ color: '#0F172A', fontWeight: 800, fontSize: '0.85rem', marginTop: '2px', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                        <span>👤 {booking.fullName || user.name}</span>
+                        <span>📞 {booking.contactPhone || '-'}</span>
+                      </div>
+                    </div>
+                    {booking.payment?.razorpayPaymentId && (
+                      <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '0.6rem 0.8rem', borderRadius: '10px' }}>
+                        <div style={{ color: '#64748B', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Payment ID</div>
+                        <div style={{ color: '#0F172A', fontWeight: 700, fontSize: '0.78rem', marginTop: '2px', fontFamily: 'monospace', wordBreak: 'break-all' }}>{booking.payment.razorpayPaymentId}</div>
+                      </div>
+                    )}
+                    <div style={{ background: (booking.payment?.balanceDue > 0 || booking.payment?.status === 'pending') ? '#FFF7ED' : '#F0FDF4', border: (booking.payment?.balanceDue > 0 || booking.payment?.status === 'pending') ? '1px solid #FFEDD5' : '1px solid #DCFCE7', padding: '0.6rem 0.8rem', borderRadius: '10px' }}>
+                      <div style={{ color: (booking.payment?.balanceDue > 0 || booking.payment?.status === 'pending') ? '#C2410C' : '#16A34A', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Payment Status</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginTop: '2px' }}>
+                        <div style={{ color: '#0F172A', fontWeight: 800, fontSize: '0.85rem' }}>
+                          {booking.payment?.balanceDue > 0 ? `Balance: ₹${booking.payment.balanceDue.toLocaleString('en-IN')}` : booking.payment?.status === 'paid' ? 'FULLY PAID' : 'PENDING'}
                         </div>
-                      );
-                    })}
+                        {booking.payment?.balanceDue > 0 && (
+                          <button onClick={(e) => { e.stopPropagation(); handlePayBalance(booking); }}
+                            style={{ background: '#E53935', color: 'white', border: 'none', borderRadius: '6px', padding: '0.3rem 0.6rem', fontSize: '0.65rem', fontWeight: 900, cursor: 'pointer', fontFamily: 'Rajdhani, sans-serif', textTransform: 'uppercase' }}>
+                            PAY NOW
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {booking.notes && (
+                    <div style={{ marginTop: '1rem', background: '#FFFBEB', border: '1px solid #FDE68A', padding: '0.6rem 0.9rem', borderRadius: '10px', fontSize: '0.85rem', color: '#92400E', fontWeight: 600 }}>
+                      <strong>Note:</strong> {booking.notes}
+                    </div>
+                  )}
+
+                  {/* Bike Specifications */}
+                  <div style={{ marginTop: '1.2rem', paddingTop: '1.2rem', borderTop: '1px solid #F5F5F5' }}>
+                    <h4 style={{ color: '#0F172A', fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', fontSize: '0.95rem', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Bike Specifications</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.5rem' }}>
+                      {[
+                        ['Transmission', car.transmission?.toUpperCase()],
+                        ['Fuel', car.fuelType?.toUpperCase()],
+                        ['Seats', car.seats],
+                        ['Mileage', car.mileage],
+                      ].filter(([, v]) => v != null && v !== '').map(([k, v]) => (
+                        <div key={k} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '0.5rem 0.7rem', borderRadius: '8px' }}>
+                          <div style={{ color: '#64748B', fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{k}</div>
+                          <div style={{ color: '#0F172A', fontWeight: 800, fontSize: '0.82rem', marginTop: '2px' }}>{v}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Pickup Location */}
+                  {car.location?.city && (
+                    <div style={{ marginTop: '1rem' }}>
+                      <div style={{ background: 'rgba(229,57,53,0.05)', border: '1px solid rgba(229,57,53,0.15)', padding: '0.7rem 0.9rem', borderRadius: '10px' }}>
+                        <div style={{ color: '#E53935', fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.2rem' }}>📍 Pickup</div>
+                        <div style={{ color: '#0F172A', fontWeight: 700, fontSize: '0.82rem' }}>{[car.location.city, car.location.state, car.location.pincode].filter(Boolean).join(', ')}</div>
+                      </div>
+                    </div>
+                  )}
+                  {car.dropLocation?.city && (
+                    <div style={{ marginTop: '0.6rem' }}>
+                      <div style={{ background: 'rgba(22,163,74,0.05)', border: '1px solid rgba(22,163,74,0.15)', padding: '0.7rem 0.9rem', borderRadius: '10px' }}>
+                        <div style={{ color: '#16A34A', fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.2rem' }}>📍 Drop</div>
+                        <div style={{ color: '#0F172A', fontWeight: 700, fontSize: '0.82rem' }}>{[car.dropLocation.city, car.dropLocation.state, car.dropLocation.pincode].filter(Boolean).join(', ')}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Timing Details */}
+                  <div style={{ marginTop: '1rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.5rem' }}>
+                    <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '0.55rem 0.8rem', borderRadius: '10px' }}>
+                      <div style={{ color: '#64748B', fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Booked At</div>
+                      <div style={{ color: '#0F172A', fontWeight: 700, fontSize: '0.78rem', marginTop: '2px' }}>{new Date(booking.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                    </div>
+                    {booking.statusHistory?.slice().reverse().find(h => h.status === 'active') && (
+                      <div style={{ background: 'rgba(229,57,53,0.05)', border: '1px solid rgba(229,57,53,0.15)', padding: '0.55rem 0.8rem', borderRadius: '10px' }}>
+                        <div style={{ color: '#E53935', fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Actual Pickup</div>
+                        <div style={{ color: '#E53935', fontWeight: 700, fontSize: '0.78rem', marginTop: '2px' }}>{new Date(booking.statusHistory.slice().reverse().find(h => h.status === 'active').updatedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                      </div>
+                    )}
+                    {booking.statusHistory?.slice().reverse().find(h => h.status === 'completed') && (
+                      <div style={{ background: '#F0FDF4', border: '1px solid #DCFCE7', padding: '0.55rem 0.8rem', borderRadius: '10px' }}>
+                        <div style={{ color: '#16A34A', fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Actual Drop</div>
+                        <div style={{ color: '#16A34A', fontWeight: 700, fontSize: '0.78rem', marginTop: '2px' }}>{new Date(booking.statusHistory.slice().reverse().find(h => h.status === 'completed').updatedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                      </div>
+                    )}
+                    {booking.payment?.paidAt && (
+                      <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '0.55rem 0.8rem', borderRadius: '10px' }}>
+                        <div style={{ color: '#64748B', fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Paid At</div>
+                        <div style={{ color: '#0F172A', fontWeight: 700, fontSize: '0.78rem', marginTop: '2px' }}>{new Date(booking.payment.paidAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* KYC Documents */}
+                  {(booking.kyc?.aadharNumber || booking.kyc?.panNumber || booking.kyc?.aadharImage || booking.kyc?.panImage || booking.kyc?.licenseImage) && (
+                    <div style={{ marginTop: '1.2rem', paddingTop: '1.2rem', borderTop: '1px solid #F5F5F5' }}>
+                      <h4 style={{ color: '#0F172A', fontWeight: 900, fontFamily: 'Rajdhani, sans-serif', fontSize: '0.95rem', marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>KYC Documents</h4>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem', marginBottom: '0.7rem' }}>
+                        {booking.kyc?.aadharNumber && (
+                          <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '0.55rem 0.8rem', borderRadius: '10px' }}>
+                            <div style={{ color: '#64748B', fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Aadhar No.</div>
+                            <div style={{ color: '#0F172A', fontWeight: 800, fontSize: '0.82rem', marginTop: '2px', fontFamily: 'monospace' }}>{booking.kyc.aadharNumber.replace(/(\d{4})(\d{4})(\d{4})/, '$1 $2 $3')}</div>
+                          </div>
+                        )}
+                        {booking.kyc?.panNumber && (
+                          <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '0.55rem 0.8rem', borderRadius: '10px' }}>
+                            <div style={{ color: '#64748B', fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>PAN No.</div>
+                            <div style={{ color: '#0F172A', fontWeight: 800, fontSize: '0.82rem', marginTop: '2px', fontFamily: 'monospace' }}>{booking.kyc.panNumber}</div>
+                          </div>
+                        )}
+                        {booking.driverLicense && (
+                          <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '0.55rem 0.8rem', borderRadius: '10px' }}>
+                            <div style={{ color: '#64748B', fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Driving License No.</div>
+                            <div style={{ color: '#0F172A', fontWeight: 800, fontSize: '0.82rem', marginTop: '2px', fontFamily: 'monospace' }}>{booking.driverLicense}</div>
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        {[
+                          ['Aadhar', booking.kyc?.aadharImage],
+                          ['PAN', booking.kyc?.panImage],
+                          ['License', booking.kyc?.licenseImage],
+                        ].filter(([, url]) => url).map(([label, url]) => (
+                          <a key={label} href={url} target="_blank" rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', textDecoration: 'none' }}>
+                            <div style={{ width: 90, height: 65, borderRadius: '8px', overflow: 'hidden', border: '1.5px solid #E2E8F0', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              {/\.pdf$/i.test(url) ? (
+                                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#475569' }}>PDF</span>
+                              ) : (
+                                <img src={url} alt={label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              )}
+                            </div>
+                            <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#475569', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Status Timeline */}
+                  <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #F5F5F5' }}>
+                    <div style={{ display: 'flex', gap: '0' }}>
+                      {['requested', 'confirmed', 'active', 'completed'].map((s, i) => {
+                        const order = ['requested', 'confirmed', 'active', 'completed'];
+                        const currentIdx = order.indexOf(booking.status);
+                        const stepIdx = order.indexOf(s);
+                        const isComplete = stepIdx <= currentIdx;
+                        return (
+                          <div key={s} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                              {i > 0 && <div style={{ flex: 1, height: 3, background: isComplete ? '#E53935' : '#F1F5F9' }} />}
+                              <div style={{ width: 22, height: 22, borderRadius: '50%', background: isComplete ? '#E53935' : '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                {isComplete ? <CheckCircle size={14} color="white" /> : <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#CBD5E1' }} />}
+                              </div>
+                              {i < 3 && <div style={{ flex: 1, height: 3, background: stepIdx < currentIdx ? '#E53935' : '#F1F5F9' }} />}
+                            </div>
+                            <span style={{ color: isComplete ? '#111' : '#AAA', fontSize: '0.72rem', marginTop: '0.4rem', fontWeight: 800, textTransform: 'uppercase', fontFamily: 'Rajdhani, sans-serif' }}>{s}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

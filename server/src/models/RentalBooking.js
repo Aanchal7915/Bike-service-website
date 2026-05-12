@@ -12,6 +12,8 @@ const rentalBookingSchema = new mongoose.Schema(
       image: String,
       pricePerDay: Number,
       pricePerHour: Number,
+      bikeNumber: String,
+      registrationNumber: String,
     },
     pickupDate: { type: Date, required: true },
     returnDate: { type: Date, required: true },
@@ -33,7 +35,15 @@ const rentalBookingSchema = new mongoose.Schema(
     },
     driverLicense: { type: String },
     contactPhone: { type: String, required: true },
+    fullName: { type: String },
     notes: { type: String },
+    kyc: {
+      aadharNumber: { type: String, trim: true },
+      panNumber: { type: String, trim: true, uppercase: true },
+      aadharImage: { type: String },
+      panImage: { type: String },
+      licenseImage: { type: String },
+    },
     status: {
       type: String,
       enum: ['requested', 'confirmed', 'active', 'completed', 'cancelled'],
@@ -48,7 +58,17 @@ const rentalBookingSchema = new mongoose.Schema(
     ],
     payment: {
       method: { type: String, enum: ['online', 'cod'], default: 'online' },
-      status: { type: String, enum: ['pending', 'paid', 'refunded'], default: 'pending' },
+      status: { type: String, enum: ['pending', 'advance_paid', 'paid', 'refunded'], default: 'pending' },
+      // 'full'    → pay totalAmount online up-front
+      // 'advance' → pay securityDeposit (or quoted advance) online now, rest at drop
+      // 'on_drop' → pay everything in cash at drop time
+      plan: { type: String, enum: ['full', 'advance', 'on_drop'], default: 'full' },
+      advanceAmount: { type: Number, default: 0 },
+      balanceDue: { type: Number, default: 0 },
+      amountPaid: { type: Number, default: 0 },
+      balanceCollectedAt: { type: Date },
+      balanceCollectedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      balanceMethod: { type: String, enum: ['cash', 'online', 'upi', 'card', ''], default: '' },
       transactionId: String,
       razorpayOrderId: String,
       razorpayPaymentId: String,

@@ -10,10 +10,8 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div style={{ background: 'linear-gradient(135deg, #E53935, #C62828)', borderRadius: '8px', padding: '6px 10px' }}>
-                <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: 'white', fontSize: '1.1rem' }}>MOTO</span>
-              </div>
-              <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: 'white', fontSize: '1.25rem' }}>XPRESS</span>
+              <img src="/src/assets/logo.png" alt="MotoExpress Logo" style={{ height: '32px', width: 'auto' }} />
+              <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: 'white', fontSize: '1.25rem' }}>MotoExpress</span>
             </div>
             <p style={{ fontSize: '0.9rem', lineHeight: 1.7 }}>India's fastest bike buy, sell & service platform. Get your bike serviced in 1 hour or sell it the same day.</p>
             <div className="flex items-center gap-3 mt-4">
@@ -56,7 +54,7 @@ export default function Footer() {
             <h4 style={{ color: 'white', fontWeight: 600, marginBottom: '1rem', fontSize: '0.95rem' }}>Contact Us</h4>
             {[
               { Icon: Phone, text: '+91 98765 43210' },
-              { Icon: Mail, text: 'support@motoxpress.in' },
+              { Icon: Mail, text: 'support@motoexpress.in' },
               { Icon: MapPin, text: 'Mumbai, Maharashtra, India' },
             ].map(({ Icon, text }) => (
               <div key={text} className="flex items-center gap-2" style={{ marginBottom: '0.75rem', fontSize: '0.87rem' }}>
@@ -74,7 +72,7 @@ export default function Footer() {
         </div>
 
         <div style={{ borderTop: '1px solid #1A1A1A', marginTop: '2.5rem', paddingTop: '1.5rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
-          <p style={{ fontSize: '0.83rem' }}>© {new Date().getFullYear()} MotoXpress. All rights reserved.</p>
+          <p style={{ fontSize: '0.83rem' }}>© {new Date().getFullYear()} MotoExpress. All rights reserved.</p>
           <div className="flex items-center gap-4" style={{ fontSize: '0.83rem' }}>
             <Link to="/privacy" style={{ color: '#888', textDecoration: 'none' }}>Privacy Policy</Link>
             <Link to="/terms" style={{ color: '#888', textDecoration: 'none' }}>Terms of Service</Link>

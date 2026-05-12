@@ -114,7 +114,7 @@ export default function Home() {
             </div>
 
             {/* Brand + Title */}
-            <p style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1rem', fontWeight: 600, color: '#555', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '0.3rem' }}>MOTOXPRESS</p>
+            <p style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1rem', fontWeight: 600, color: '#555', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '0.3rem' }}>MotoExpress</p>
             <h1 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: 'clamp(2.2rem, 5vw, 3.8rem)', fontWeight: 900, lineHeight: 1.05, marginBottom: '1rem' }}>
               <span style={{ color: '#E53935' }}>{slide.title.split(' ')[0]}</span>{' '}
               <span style={{ color: 'white' }}>{slide.title.split(' ').slice(1).join(' ')}</span>
@@ -490,7 +490,7 @@ export default function Home() {
       <section style={{ background: '#F5F5F5', padding: '5rem 0' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2.5rem', fontWeight: 800, color: '#111111' }}>Why <span className="gradient-text">MotoXpress?</span></h2>
+            <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '2.5rem', fontWeight: 800, color: '#111111' }}>Why <span className="gradient-text">MotoExpress?</span></h2>
             <p style={{ color: '#555', marginTop: '0.5rem' }}>India's most trusted bike platform</p>
           </div>
           <div className="home-why-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1rem' }}>

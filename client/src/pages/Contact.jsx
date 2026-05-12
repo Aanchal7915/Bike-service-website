@@ -76,8 +76,8 @@ export default function Contact() {
                   </div>
                   <div>
                     <p style={{ color: '#111', fontWeight: 700, marginBottom: '0.3rem', fontSize: '1.05rem' }}>Email Us</p>
-                    <p style={{ color: '#666', fontSize: '0.92rem' }}>support@motoxpress.com</p>
-                    <p style={{ color: '#666', fontSize: '0.92rem' }}>sales@motoxpress.com</p>
+                    <p style={{ color: '#666', fontSize: '0.92rem' }}>support@motoexpress.com</p>
+                    <p style={{ color: '#666', fontSize: '0.92rem' }}>sales@motoexpress.com</p>
                   </div>
                 </div>
 
@@ -172,7 +172,7 @@ export default function Contact() {
         <h3 style={{ textAlign: 'center', padding: '2.5rem 0', fontFamily: 'Rajdhani, sans-serif', color: '#888', letterSpacing: '0.3em', fontSize: '0.85rem', background: '#F9F9F9' }}>FIND US ON MAP</h3>
         <div style={{ width: '100%', height: '480px', background: '#FAFAFA', position: 'relative' }}>
           <iframe 
-            title="MotoXpress Showroom Location"
+            title="MotoExpress Showroom Location"
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d120638.16345638!2d72.8258!3d19.076!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c6306644edc1%3A0x5da4ed8f8d646c1e!2sMumbai%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1649160000000!5m2!1sen!2sin" 
             width="100%" 
             height="100%" 

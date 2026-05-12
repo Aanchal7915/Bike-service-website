@@ -18,6 +18,7 @@ import SpareParts from './pages/SpareParts';
 import Cart from './pages/Cart';
 import MyBookings from './pages/MyBookings';
 import AdminDashboard from './pages/admin/Dashboard';
+import TrackBooking from './pages/TrackBooking';
 import Profile from './pages/Profile';
 import PartDetail from './pages/PartDetail';
 import Wishlist from './pages/Wishlist';
@@ -75,6 +76,7 @@ function App() {
             <Route path="/rentals/:id" element={<Layout><RentalDetail /></Layout>} />
             <Route path="/my-bookings" element={<Layout><MyBookings /></Layout>} />
             <Route path="/my-orders" element={<Layout><MyBookings /></Layout>} />
+            <Route path="/track/:id" element={<Layout><TrackBooking /></Layout>} />
             <Route path="/profile" element={<Layout><Profile /></Layout>} />
             <Route path="/wishlist" element={<Layout><Wishlist /></Layout>} />
             <Route path="/about" element={<Layout><About /></Layout>} />

@@ -50,7 +50,7 @@ export default function About() {
             <span style={{ color: '#E53935' }}>BIKE OWNERSHIP</span>
           </h1>
           <p style={{ color: '#999', fontSize: '1.1rem', lineHeight: 1.7, fontWeight: 500 }}>
-            Founded with a passion for engines and a vision for convenience, MotoXpress is India's most trusted platform for buying, selling, and servicing motorcycles. We bridge the gap between quality bikes and passionate riders.
+            Founded with a passion for engines and a vision for convenience, MotoExpress is India's most trusted platform for buying, selling, and servicing motorcycles. We bridge the gap between quality bikes and passionate riders.
           </p>
         </div>
       </section>
@@ -85,7 +85,7 @@ export default function About() {
                 A JOURNEY DRIVEN BY <span style={{ color: '#E53935' }}>EXCELLENCE</span>
               </h2>
               <p style={{ color: '#555', fontSize: '1.05rem', lineHeight: 1.8, marginBottom: '1.5rem' }}>
-                MotoXpress started as a small garage experiment in 2018. Today, we have transformed into a full-stack automotive ecosystem. Whether you're looking for a high-performance superbike or a reliable daily commuter, we ensure a transparent and premium experience.
+                MotoExpress started as a small garage experiment in 2018. Today, we have transformed into a full-stack automotive ecosystem. Whether you're looking for a high-performance superbike or a reliable daily commuter, we ensure a transparent and premium experience.
               </p>
               <div className="journey-subgrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                 <div style={{ background: '#FFF', padding: '1.5rem', borderRadius: '16px', border: '1px solid #EEE', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>

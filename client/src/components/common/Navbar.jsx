@@ -88,13 +88,10 @@ export default function Navbar() {
     <nav style={{ background: '#111111', borderBottom: '1px solid #1e1e1e' }} className="sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <div style={{ background: 'linear-gradient(135deg, #E53935, #C62828)', borderRadius: '8px', padding: '6px 10px' }}>
-              <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: 'white', fontSize: '1.2rem', letterSpacing: '0.05em' }}>MOTO</span>
-            </div>
-            <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: 'white', fontSize: '1.35rem', letterSpacing: '0.03em' }}>
-              XPRESS
+            <img src="/src/assets/logo.png" alt="MotoExpress Logo" style={{ height: '40px', width: 'auto' }} />
+            <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: 'white', fontSize: '1.4rem', letterSpacing: '0.03em' }}>
+              MotoExpress
             </span>
           </Link>
 
