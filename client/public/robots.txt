@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://motoexpress.avanienterprises.in/sitemap.xml

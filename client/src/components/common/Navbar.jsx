@@ -87,16 +87,16 @@ export default function Navbar() {
   return (
     <nav style={{ background: '#111111', borderBottom: '1px solid #1e1e1e' }} className="sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2">
-            <img src="/src/assets/logo.png" alt="MotoExpress Logo" style={{ height: '40px', width: 'auto' }} />
-            <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: 'white', fontSize: '1.4rem', letterSpacing: '0.03em' }}>
+        <div className="flex items-center justify-between h-16 gap-1 sm:gap-4 lg:gap-8">
+          <Link to="/" className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            <img src="/src/assets/logo.png" alt="MotoExpress Logo" className="h-8 sm:h-10 w-auto" />
+            <span className="text-[1.1rem] sm:text-[1.4rem]" style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: 'white', letterSpacing: '0.03em' }}>
               MotoExpress
             </span>
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-1 ml-4 lg:ml-8">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -105,7 +105,7 @@ export default function Navbar() {
                   color: location.pathname.startsWith(link.href) ? '#E53935' : '#ccc',
                   padding: '0.5rem 1rem',
                   borderRadius: '6px',
-                  fontSize: '0.9rem',
+                  fontSize: '0.75rem',
                   fontWeight: 500,
                   textDecoration: 'none',
                   transition: 'color 0.2s',
@@ -120,7 +120,7 @@ export default function Navbar() {
           </div>
 
           {/* Right side */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             {/* Search Toggle */}
             <div style={{ position: 'relative' }}>
               {!searchOpen ? (
@@ -256,9 +256,9 @@ export default function Navbar() {
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-1.5">
-                <Link to="/login" className="btn-outline hidden sm:inline-flex" style={{ padding: '0.4rem 0.9rem', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>Login</Link>
-                <Link to="/register" className="btn-primary" style={{ padding: '0.4rem 0.9rem', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>Sign Up</Link>
+              <div className="flex items-center gap-1 sm:gap-1.5">
+                <Link to="/login" className="btn-outline hidden sm:inline-flex" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>Login</Link>
+                <Link to="/register" className="btn-primary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>Sign Up</Link>
               </div>
             )}
 
