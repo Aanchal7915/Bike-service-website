@@ -53,20 +53,51 @@ export default function Footer() {
           {/* Contact */}
           <div>
             <h4 style={{ color: 'white', fontWeight: 600, marginBottom: '1rem', fontSize: '0.95rem' }}>Contact Us</h4>
-            {[
-              { Icon: Phone, text: '+91 98765 43210' },
-              { Icon: Mail, text: 'support@motoexpress.in' },
-              { Icon: MapPin, text: 'Mumbai, Maharashtra, India' },
-            ].map(({ Icon, text }) => (
-              <div key={text} className="flex items-center gap-2" style={{ marginBottom: '0.75rem', fontSize: '0.87rem' }}>
-                <Icon size={14} style={{ color: '#E53935', flexShrink: 0 }} />
-                <span>{text}</span>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.2rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
+                  <MapPin size={12} style={{ color: '#E53935' }} />
+                  <span style={{ color: 'white', fontSize: '0.75rem', fontWeight: 700 }}>GURGAON</span>
+                </div>
+                <p style={{ fontSize: '0.7rem', lineHeight: 1.4 }}>Tower B, 3rd Floor, Unitech Cyber Park, Sector 39, 122002</p>
               </div>
-            ))}
-            <div style={{ marginTop: '1.5rem', padding: '1rem', background: '#1A1A1A', borderRadius: '8px', border: '1px solid #2A2A2A' }}>
-              <p style={{ fontSize: '0.82rem', color: '#aaa', marginBottom: '0.5rem' }}>Emergency Bike Rescue</p>
-              <a href="tel:+919876543210" style={{ color: '#E53935', fontWeight: 700, fontSize: '1.1rem', textDecoration: 'none', fontFamily: 'Rajdhani, sans-serif' }}>
-                📞 +91 98765 43210
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
+                  <MapPin size={12} style={{ color: '#E53935' }} />
+                  <span style={{ color: 'white', fontSize: '0.75rem', fontWeight: 700 }}>MUMBAI</span>
+                </div>
+                <p style={{ fontSize: '0.7rem', lineHeight: 1.4 }}>Third Floor, Vasudev Chamber, Teli Galli Cross Rd, Andheri East, 400069</p>
+              </div>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
+                  <MapPin size={12} style={{ color: '#E53935' }} />
+                  <span style={{ color: 'white', fontSize: '0.75rem', fontWeight: 700 }}>ROHTAK</span>
+                </div>
+                <p style={{ fontSize: '0.7rem', lineHeight: 1.4 }}>108, First Floor, Agro Mall, Rohtak</p>
+              </div>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
+                  <MapPin size={12} style={{ color: '#E53935' }} />
+                  <span style={{ color: 'white', fontSize: '0.75rem', fontWeight: 700 }}>AUSTRALIA</span>
+                </div>
+                <p style={{ fontSize: '0.7rem', lineHeight: 1.4 }}>Australia</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2" style={{ marginBottom: '0.6rem', fontSize: '0.87rem' }}>
+              <Phone size={14} style={{ color: '#E53935', flexShrink: 0 }} />
+              <span>+91 9253625099</span>
+            </div>
+            <div className="flex items-center gap-2" style={{ marginBottom: '1rem', fontSize: '0.87rem' }}>
+              <Mail size={14} style={{ color: '#E53935', flexShrink: 0 }} />
+              <span>kp@avanienterprises.in</span>
+            </div>
+            
+            <div style={{ padding: '0.75rem', background: '#1A1A1A', borderRadius: '8px', border: '1px solid #2A2A2A' }}>
+              <p style={{ fontSize: '0.75rem', color: '#aaa', marginBottom: '0.2rem' }}>Quick Support</p>
+              <a href="tel:+919253625099" style={{ color: '#E53935', fontWeight: 700, fontSize: '1rem', textDecoration: 'none', fontFamily: 'Rajdhani, sans-serif' }}>
+                📞 +91 9253625099
               </a>
             </div>
           </div>

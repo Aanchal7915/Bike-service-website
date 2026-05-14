@@ -20,9 +20,73 @@ const StatCard = ({ icon: Icon, label, value, color }) => (
   </div>
 );
 
+const FilterBar = ({ 
+  filterMode, setFilterMode, 
+  filterDay, setFilterDay, 
+  filterMonth, setFilterMonth, 
+  filterYear, setFilterYear, 
+  filterFrom, setFilterFrom, 
+  filterTo, setFilterTo, 
+  statusFilter, setStatusFilter,
+  statusOptions = [] 
+}) => {
+  return (
+    <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '14px', padding: '0.8rem 1rem', marginBottom: '1.2rem', display: 'flex', flexWrap: 'wrap', gap: '0.6rem', alignItems: 'center' }}>
+      <span style={{ fontSize: '0.7rem', color: '#475569', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Filter:</span>
+      {[['all', 'All'], ['day', 'Day'], ['month', 'Month'], ['year', 'Year'], ['custom', 'Custom']].map(([k, lbl]) => (
+        <button key={k} type="button" onClick={() => setFilterMode(k)}
+          style={{
+            padding: '0.35rem 0.8rem', borderRadius: '8px', border: 'none', cursor: 'pointer',
+            background: filterMode === k ? '#E53935' : 'white',
+            color: filterMode === k ? 'white' : '#475569',
+            fontWeight: 800, fontSize: '0.75rem',
+            boxShadow: filterMode === k ? '0 4px 10px rgba(229,57,53,0.2)' : '0 1px 2px rgba(0,0,0,0.04)',
+            textTransform: 'uppercase', letterSpacing: '0.04em',
+          }}>{lbl}</button>
+      ))}
+      {filterMode === 'day' && (
+        <input type="date" value={filterDay} onChange={e => setFilterDay(e.target.value)}
+          className="input-light" style={{ height: 36, padding: '0 0.6rem', fontSize: '0.8rem', fontWeight: 700 }} />
+      )}
+      {filterMode === 'month' && (
+        <input type="month" value={filterMonth} onChange={e => setFilterMonth(e.target.value)}
+          className="input-light" style={{ height: 36, padding: '0 0.6rem', fontSize: '0.8rem', fontWeight: 700 }} />
+      )}
+      {filterMode === 'year' && (
+        <input type="number" min="2020" max="2099" value={filterYear} onChange={e => setFilterYear(e.target.value)}
+          className="input-light" style={{ height: 36, padding: '0 0.6rem', fontSize: '0.8rem', fontWeight: 700, width: 100 }} />
+      )}
+      {filterMode === 'custom' && (
+        <>
+          <input type="date" value={filterFrom} onChange={e => setFilterFrom(e.target.value)}
+            className="input-light" style={{ height: 36, padding: '0 0.6rem', fontSize: '0.8rem', fontWeight: 700 }} />
+          <span style={{ color: '#94A3B8', fontWeight: 700 }}>→</span>
+          <input type="date" value={filterTo} onChange={e => setFilterTo(e.target.value)}
+            className="input-light" style={{ height: 36, padding: '0 0.6rem', fontSize: '0.8rem', fontWeight: 700 }} />
+        </>
+      )}
+      <span style={{ width: 1, height: 24, background: '#E2E8F0', margin: '0 0.4rem' }} />
+      <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+        className="input-light" style={{ height: 36, padding: '0 0.6rem', fontSize: '0.8rem', fontWeight: 700 }}>
+        <option value="all">All Statuses</option>
+        {statusOptions.map(opt => (
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
+        ))}
+      </select>
+    </div>
+  );
+};
+
 const UsersTab = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filterMode, setFilterMode] = useState('all');
+  const [filterDay, setFilterDay] = useState(() => new Date().toISOString().split('T')[0]);
+  const [filterMonth, setFilterMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [filterYear, setFilterYear] = useState(() => String(new Date().getFullYear()));
+  const [filterFrom, setFilterFrom] = useState('');
+  const [filterTo, setFilterTo] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     adminApi.getUsers().then(({ data }) => setData(data.users || [])).catch(() => toast.error('Failed to load users')).finally(() => setLoading(false));
@@ -44,28 +108,59 @@ const UsersTab = () => {
     } catch { toast.error('Error updating role'); }
   };
 
+  const filtered = data.filter(u => {
+    if (statusFilter !== 'all' && u.role !== statusFilter) return false;
+    if (filterMode === 'all') return true;
+    const date = new Date(u.createdAt);
+    if (filterMode === 'day') return date.toISOString().split('T')[0] === filterDay;
+    if (filterMode === 'month') return date.toISOString().slice(0, 7) === filterMonth;
+    if (filterMode === 'year') return String(date.getFullYear()) === filterYear;
+    if (filterMode === 'custom') {
+      if (filterFrom && date < new Date(filterFrom)) return false;
+      if (filterTo) {
+        const end = new Date(filterTo); end.setHours(23, 59, 59, 999);
+        if (date > end) return false;
+      }
+      return true;
+    }
+    return true;
+  });
+
   if(loading) return <div style={{textAlign:'center', padding:'3rem', color:'#888'}}><Loader style={{ animation: 'spin 1s linear infinite' }} size={24} /></div>;
 
   return (
     <div className="admin-table-wrap" style={{ background: '#FFFFFF', border: '1.5px solid #EEE', borderRadius: '24px', padding: '1.5rem', overflowX: 'auto', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
+      <h3 style={{ color: '#111', fontWeight: 950, marginBottom: '2rem', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.5rem', textTransform: 'uppercase' }}>PLATFORM <span style={{ color: '#E53935' }}>USERS</span> ({filtered.length})</h3>
+      
+      <FilterBar 
+        filterMode={filterMode} setFilterMode={setFilterMode}
+        filterDay={filterDay} setFilterDay={setFilterDay}
+        filterMonth={filterMonth} setFilterMonth={setFilterMonth}
+        filterYear={filterYear} setFilterYear={setFilterYear}
+        filterFrom={filterFrom} setFilterFrom={setFilterFrom}
+        filterTo={filterTo} setFilterTo={setFilterTo}
+        statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+        statusOptions={[{ value: 'user', label: 'USER' }, { value: 'admin', label: 'ADMIN' }, { value: 'mechanic', label: 'MECHANIC' }]}
+      />
+
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
         <thead>
           <tr>
-            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>User Details</th>
-            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Contact</th>
-            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A', whiteSpace: 'nowrap' }}>Registered On</th>
-            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A', whiteSpace: 'nowrap' }}>Role & Access Status</th>
+            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #EEE', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase' }}>User Details</th>
+            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #EEE', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase' }}>Contact</th>
+            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #EEE', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Registered On</th>
+            <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #EEE', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Role & Access Status</th>
           </tr>
         </thead>
         <tbody>
-          {data.map((u) => (
+          {filtered.map((u) => (
             <tr key={u._id} style={{ borderBottom: '1px solid #F5F5F5' }}>
               <td style={{ padding: '1.2rem', color: '#111', display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <div style={{ width: 40, height: 40, borderRadius: '12px', background: '#F9F9F9', border: '1.5px solid #EEE', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E53935', fontWeight: 900, fontSize: '1.1rem' }}>{u.name?.charAt(0).toUpperCase()}</div>
-                <span>{u.name}</span>
+                <span style={{ fontWeight: 800 }}>{u.name}</span>
               </td>
-              <td style={{ padding: '1rem', color: '#888' }}>{u.email}<br/>{u.phone || '-'}</td>
-              <td style={{ padding: '1rem', color: '#888' }}>{new Date(u.createdAt).toLocaleDateString('en-IN')}</td>
+              <td style={{ padding: '1rem', color: '#888', fontWeight: 600 }}>{u.email}<br/>{u.phone || '-'}</td>
+              <td style={{ padding: '1rem', color: '#888', fontWeight: 600 }}>{new Date(u.createdAt).toLocaleDateString('en-IN')}</td>
               <td style={{ padding: '1rem' }}>
                 <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
                   <select className="input-light" style={{ padding: '0.4rem', fontSize: '0.85rem', height: 'auto', background: '#F9F9F9', width: '110px', fontWeight: 700 }} value={u.role} onChange={(e) => changeRole(u._id, e.target.value)}>
@@ -78,6 +173,7 @@ const UsersTab = () => {
               </td>
             </tr>
           ))}
+          {!filtered.length && <tr><td colSpan={4} style={{ padding: '5rem 2rem', textAlign: 'center', color: '#AAA', fontWeight: 800, fontSize: '1.1rem', background: '#F9F9F9', borderRadius: '0 0 24px 24px' }}>No users found matching filters.</td></tr>}
         </tbody>
       </table>
     </div>
@@ -96,6 +192,14 @@ const ServicesTab = () => {
   const [showMechForm, setShowMechForm] = useState(false);
   const [mechForm, setMechForm] = useState({ name: '', email: '', phone: '', password: '' });
   const [savingMech, setSavingMech] = useState(false);
+
+  const [filterMode, setFilterMode] = useState('all');
+  const [filterDay, setFilterDay] = useState(() => new Date().toISOString().split('T')[0]);
+  const [filterMonth, setFilterMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [filterYear, setFilterYear] = useState(() => String(new Date().getFullYear()));
+  const [filterFrom, setFilterFrom] = useState('');
+  const [filterTo, setFilterTo] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const handleAddMechanic = async (e) => {
     e.preventDefault();
@@ -140,15 +244,31 @@ const ServicesTab = () => {
     }
   };
 
+  const filtered = data.filter(b => {
+    if (statusFilter !== 'all' && b.status !== statusFilter) return false;
+    if (filterMode === 'all') return true;
+    const date = new Date(b.scheduledDate);
+    if (filterMode === 'day') return date.toISOString().split('T')[0] === filterDay;
+    if (filterMode === 'month') return date.toISOString().slice(0, 7) === filterMonth;
+    if (filterMode === 'year') return String(date.getFullYear()) === filterYear;
+    if (filterMode === 'custom') {
+      if (filterFrom && date < new Date(filterFrom)) return false;
+      if (filterTo) {
+        const end = new Date(filterTo); end.setHours(23, 59, 59, 999);
+        if (date > end) return false;
+      }
+      return true;
+    }
+    return true;
+  });
+
   const resetStForm = () => { setShowStForm(false); setEditSt(null); setStForm({ value: '', label: '', price: '', desc: '', order: 0, isActive: true }); };
 
   const handleStSubmit = async (e) => {
     e.preventDefault();
-    console.log('UPDATING SERVICE TYPE:', { id: editSt, payload: stForm });
     try {
       if (editSt) {
         const { data } = await adminApi.updateServiceType(editSt, stForm);
-        console.log('UPDATE RESPONSE:', data);
         if (data.serviceType) {
           setServiceTypes(prev => prev.map(s => s._id === editSt ? data.serviceType : s));
           toast.success('Service type updated!');
@@ -158,7 +278,6 @@ const ServicesTab = () => {
         }
       } else {
         const { data } = await adminApi.createServiceType(stForm);
-        console.log('CREATE RESPONSE:', data);
         if (data.serviceType) {
           setServiceTypes(prev => [...prev, data.serviceType]);
           toast.success('Service type added!');
@@ -168,7 +287,6 @@ const ServicesTab = () => {
         }
       }
     } catch (err) { 
-      console.error('SAVE ERROR:', err);
       toast.error(err.response?.data?.message || 'Failed to save service type'); 
     }
   };
@@ -189,6 +307,8 @@ const ServicesTab = () => {
   };
 
   if(loading) return <div style={{textAlign:'center', padding:'3rem', color:'#888'}}><Loader style={{ animation: 'spin 1s linear infinite' }} size={24} /></div>;
+
+  const statusOpts = ['requested', 'accepted', 'in_progress', 'completed', 'cancelled'];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -320,18 +440,30 @@ const ServicesTab = () => {
 
       {/* ── Service Bookings Table ── */}
       <div className="admin-table-wrap" style={{ background: '#FFFFFF', border: '1.5px solid #EEE', borderRadius: '24px', padding: '1.5rem', overflowX: 'auto', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
-        <h3 style={{ color: '#111', fontWeight: 950, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.3rem', marginBottom: '1rem', textTransform: 'uppercase' }}>SERVICE <span style={{ color: '#E53935' }}>BOOKINGS</span></h3>
+        <h3 style={{ color: '#111', fontWeight: 950, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.3rem', marginBottom: '1rem', textTransform: 'uppercase' }}>SERVICE <span style={{ color: '#E53935' }}>BOOKINGS</span> ({filtered.length})</h3>
+        
+        <FilterBar 
+          filterMode={filterMode} setFilterMode={setFilterMode}
+          filterDay={filterDay} setFilterDay={setFilterDay}
+          filterMonth={filterMonth} setFilterMonth={setFilterMonth}
+          filterYear={filterYear} setFilterYear={setFilterYear}
+          filterFrom={filterFrom} setFilterFrom={setFilterFrom}
+          filterTo={filterTo} setFilterTo={setFilterTo}
+          statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+          statusOptions={statusOpts.map(o => ({ value: o, label: o.replace('_', ' ').toUpperCase() }))}
+        />
+
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
           <thead>
             <tr>
-              <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Customer</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Bike & Service</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Date & Type</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #2A2A2A' }}>Status & Mechanic Assign</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #EEE', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase' }}>Customer</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #EEE', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase' }}>Bike & Service</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #EEE', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase' }}>Date & Type</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', color: '#aaa', borderBottom: '1px solid #EEE', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase' }}>Status & Mechanic Assign</th>
             </tr>
           </thead>
           <tbody>
-            {data.length > 0 ? data.map((item) => (
+            {filtered.length > 0 ? filtered.map((item) => (
               <tr key={item._id} style={{ borderBottom: '1px solid #F5F5F5' }}>
                 <td style={{ padding: '1.2rem', color: '#111', fontWeight: 700 }}>{item.user?.name}<br/><span style={{color:'#888',fontSize:'0.82rem',fontWeight:600}}>{item.user?.phone}</span></td>
                 <td style={{ padding: '1.2rem', color: '#111', fontWeight: 700 }}>{item.bikeBrand} {item.bikeModel}<br/><span style={{color:'#888',fontSize:'0.82rem',fontWeight:600}}>{item.serviceLabel}</span></td>
@@ -349,7 +481,7 @@ const ServicesTab = () => {
                 </td>
               </tr>
             )) : (
-              <tr><td colSpan={4} style={{ textAlign: 'center', padding: '3rem', color: '#AAA', fontWeight: 600 }}>No bookings yet</td></tr>
+              <tr><td colSpan={4} style={{ textAlign: 'center', padding: '3rem', color: '#AAA', fontWeight: 800, fontSize: '1.1rem', background: '#F9F9F9', borderRadius: '0 0 24px 24px' }}>No bookings found matching filters.</td></tr>
             )}
           </tbody>
         </table>
@@ -423,10 +555,36 @@ const PartsTab = () => {
     setFormData(prev => prev.farmerLocation === merged ? prev : { ...prev, farmerLocation: merged });
   }, [pincodePricingRows, pincodeLocationMap]);
 
+  const [filterMode, setFilterMode] = useState('all');
+  const [filterDay, setFilterDay] = useState(() => new Date().toISOString().split('T')[0]);
+  const [filterMonth, setFilterMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [filterYear, setFilterYear] = useState(() => String(new Date().getFullYear()));
+  const [filterFrom, setFilterFrom] = useState('');
+  const [filterTo, setFilterTo] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+
   useEffect(() => {
     adminApi.getParts().then(({ data }) => setData(data.parts || [])).finally(() => setLoading(false));
     adminApi.getAdminCategories().then(({ data }) => setCategories(data.categories || []));
   }, []);
+
+  const filtered = data.filter(item => {
+    if (statusFilter !== 'all' && item.category !== statusFilter) return false;
+    if (filterMode === 'all') return true;
+    const date = new Date(item.createdAt);
+    if (filterMode === 'day') return date.toISOString().split('T')[0] === filterDay;
+    if (filterMode === 'month') return date.toISOString().slice(0, 7) === filterMonth;
+    if (filterMode === 'year') return String(date.getFullYear()) === filterYear;
+    if (filterMode === 'custom') {
+      if (filterFrom && date < new Date(filterFrom)) return false;
+      if (filterTo) {
+        const end = new Date(filterTo); end.setHours(23, 59, 59, 999);
+        if (date > end) return false;
+      }
+      return true;
+    }
+    return true;
+  });
 
   const handleSaveCategory = async () => {
     if (!newCatName.trim()) return;
@@ -748,12 +906,24 @@ const PartsTab = () => {
 
   return (
     <div style={{ background: '#FFFFFF', border: '1.5px solid #EEE', borderRadius: '24px', padding: '2rem', overflowX: 'auto', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
-        <h3 style={{ color: '#111', fontWeight: 950, margin: 0, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', letterSpacing: '-0.02em' }}>ACTIVE <span style={{ color: '#E53935' }}>INVENTORY</span></h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <h3 style={{ color: '#111', fontWeight: 950, margin: 0, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', letterSpacing: '-0.02em' }}>ACTIVE <span style={{ color: '#E53935' }}>INVENTORY</span> ({filtered.length})</h3>
         <button className="btn-primary" style={{ padding: '0.8rem 1.6rem', borderRadius: '14px', gap: '0.6rem', fontWeight: 900 }} onClick={() => setShowForm(true)}><Plus size={20} /> ADD PRODUCT</button>
       </div>
+
+      <FilterBar 
+        filterMode={filterMode} setFilterMode={setFilterMode}
+        filterDay={filterDay} setFilterDay={setFilterDay}
+        filterMonth={filterMonth} setFilterMonth={setFilterMonth}
+        filterYear={filterYear} setFilterYear={setFilterYear}
+        filterFrom={filterFrom} setFilterFrom={setFilterFrom}
+        filterTo={filterTo} setFilterTo={setFilterTo}
+        statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+        statusOptions={categories.map(c => ({ value: c.name, label: c.name.toUpperCase() }))}
+      />
+
       <div className="admin-card-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
-        {data.map((item) => (
+        {filtered.map((item) => (
           <div key={item._id} className="card-light" style={{ display: 'flex', flexDirection: 'column', background: '#FFFFFF', border: '1.5px solid #EEE', borderRadius: '24px', overflow: 'hidden', transition: 'all 0.3s' }}>
             <div style={{ padding: '1.8rem', flex: 1 }}>
               <div style={{ display: 'flex', gap: '1.2rem', marginBottom: '1.5rem' }}>
@@ -798,7 +968,7 @@ const PartsTab = () => {
             </div>
           </div>
         ))}
-        {data.length === 0 && <div style={{ gridColumn: '1 / -1', padding: '5rem 2rem', textAlign: 'center', color: '#AAA', fontWeight: 700, fontSize: '1.1rem', background: '#F9F9F9', borderRadius: '24px', border: '1.5px dashed #EEE' }}>No products found. Start adding inventory!</div>}
+        {filtered.length === 0 && <div style={{ gridColumn: '1 / -1', padding: '5rem 2rem', textAlign: 'center', color: '#AAA', fontWeight: 700, fontSize: '1.1rem', background: '#F9F9F9', borderRadius: '24px', border: '1.5px dashed #EEE' }}>No products found matching filters.</div>}
       </div>
     </div>
   );
@@ -853,6 +1023,32 @@ const BikesTab = () => {
     adminApi.getBikes().then(({ data: d }) => setData(d.bikes || [])).finally(() => setLoading(false));
     adminApi.getAdminBrands().then(({ data }) => setBrands(data.brands || []));
   }, []);
+
+  const [filterMode, setFilterMode] = useState('all');
+  const [filterDay, setFilterDay] = useState(() => new Date().toISOString().split('T')[0]);
+  const [filterMonth, setFilterMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [filterYear, setFilterYear] = useState(() => String(new Date().getFullYear()));
+  const [filterFrom, setFilterFrom] = useState('');
+  const [filterTo, setFilterTo] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  const filtered = data.filter(item => {
+    if (statusFilter !== 'all' && item.brand !== statusFilter) return false;
+    if (filterMode === 'all') return true;
+    const date = new Date(item.createdAt);
+    if (filterMode === 'day') return date.toISOString().split('T')[0] === filterDay;
+    if (filterMode === 'month') return date.toISOString().slice(0, 7) === filterMonth;
+    if (filterMode === 'year') return String(date.getFullYear()) === filterYear;
+    if (filterMode === 'custom') {
+      if (filterFrom && date < new Date(filterFrom)) return false;
+      if (filterTo) {
+        const end = new Date(filterTo); end.setHours(23, 59, 59, 999);
+        if (date > end) return false;
+      }
+      return true;
+    }
+    return true;
+  });
 
   const handleSaveBrand = async () => {
     if (!newBrandName.trim()) return;
@@ -1181,11 +1377,23 @@ const BikesTab = () => {
   return (
     <div style={{ background: '#FFFFFF', border: '1.5px solid #EEE', borderRadius: '24px', padding: '2rem', overflowX: 'auto', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
-        <h3 style={{ color: '#111', fontWeight: 950, margin: 0, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', letterSpacing: '-0.02em' }}>BIKE <span style={{ color: '#E53935' }}>LISTINGS</span> ({data.length})</h3>
+        <h3 style={{ color: '#111', fontWeight: 950, margin: 0, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', letterSpacing: '-0.02em' }}>BIKE <span style={{ color: '#E53935' }}>LISTINGS</span> ({filtered.length})</h3>
         <button className="btn-primary" style={{ padding: '0.8rem 1.6rem', borderRadius: '14px', gap: '0.6rem', fontWeight: 900 }} onClick={() => setShowForm(true)}><Plus size={20} /> ADD NEW BIKE</button>
       </div>
+
+      <FilterBar 
+        filterMode={filterMode} setFilterMode={setFilterMode}
+        filterDay={filterDay} setFilterDay={setFilterDay}
+        filterMonth={filterMonth} setFilterMonth={setFilterMonth}
+        filterYear={filterYear} setFilterYear={setFilterYear}
+        filterFrom={filterFrom} setFilterFrom={setFilterFrom}
+        filterTo={filterTo} setFilterTo={setFilterTo}
+        statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+        statusOptions={brands.map(b => ({ value: b.name, label: b.name.toUpperCase() }))}
+      />
+
       <div className="admin-card-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
-        {data.map((item) => (
+        {filtered.map((item) => (
           <div key={item._id} className="card-light" style={{ display: 'flex', flexDirection: 'column', background: '#FFFFFF', border: '1.5px solid #EEE', borderRadius: '24px', overflow: 'hidden', transition: 'all 0.3s' }}>
             <div style={{ padding: '1.8rem', flex: 1 }}>
               <div style={{ display: 'flex', gap: '1.2rem', marginBottom: '1.5rem' }}>
@@ -1238,7 +1446,7 @@ const BikesTab = () => {
             </div>
           </div>
         ))}
-        {data.length === 0 && <div style={{ gridColumn: '1 / -1', padding: '5rem 2rem', textAlign: 'center', color: '#AAA', fontWeight: 700, fontSize: '1.1rem', background: '#F9F9F9', borderRadius: '24px', border: '1.5px dashed #EEE' }}>No bike listings found. Ready to sell?</div>}
+        {filtered.length === 0 && <div style={{ gridColumn: '1 / -1', padding: '5rem 2rem', textAlign: 'center', color: '#AAA', fontWeight: 700, fontSize: '1.1rem', background: '#F9F9F9', borderRadius: '24px', border: '1.5px dashed #EEE' }}>No bike listings found matching filters.</div>}
       </div>
     </div>
   );
@@ -1249,6 +1457,14 @@ const SellsTab = () => {
   const [sells, setSells] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState({}); // { 'id-field': true }
+
+  const [filterMode, setFilterMode] = useState('all');
+  const [filterDay, setFilterDay] = useState(() => new Date().toISOString().split('T')[0]);
+  const [filterMonth, setFilterMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [filterYear, setFilterYear] = useState(() => String(new Date().getFullYear()));
+  const [filterFrom, setFilterFrom] = useState('');
+  const [filterTo, setFilterTo] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const toggleEdit = (id, field) => {
     setEditMode(prev => ({ ...prev, [`${id}-${field}`]: !prev[`${id}-${field}`] }));
@@ -1277,6 +1493,24 @@ const SellsTab = () => {
     } catch { toast.error('Failed'); }
   };
 
+  const filtered = sells.filter(s => {
+    if (statusFilter !== 'all' && s.status !== statusFilter) return false;
+    if (filterMode === 'all') return true;
+    const date = new Date(s.createdAt);
+    if (filterMode === 'day') return date.toISOString().split('T')[0] === filterDay;
+    if (filterMode === 'month') return date.toISOString().slice(0, 7) === filterMonth;
+    if (filterMode === 'year') return String(date.getFullYear()) === filterYear;
+    if (filterMode === 'custom') {
+      if (filterFrom && date < new Date(filterFrom)) return false;
+      if (filterTo) {
+        const end = new Date(filterTo); end.setHours(23, 59, 59, 999);
+        if (date > end) return false;
+      }
+      return true;
+    }
+    return true;
+  });
+
   if (loading) return <div style={{ textAlign: 'center', padding: '3rem', color: '#888' }}><Loader style={{ animation: 'spin 1s linear infinite' }} size={24} /></div>;
 
   const statusOpts = ['pending', 'under_review', 'approved', 'rejected', 'pickup_scheduled', 'sold', 'cancelled'];
@@ -1284,9 +1518,21 @@ const SellsTab = () => {
 
   return (
     <div style={{ background: '#FFFFFF', border: '1.5px solid #EEE', borderRadius: '24px', padding: '2rem', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
-      <h3 style={{ color: '#111', fontWeight: 950, marginBottom: '2rem', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>SELL <span style={{ color: '#E53935' }}>REQUESTS</span> ({sells.length})</h3>
+      <h3 style={{ color: '#111', fontWeight: 950, marginBottom: '2rem', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>SELL <span style={{ color: '#E53935' }}>REQUESTS</span> ({filtered.length})</h3>
+      
+      <FilterBar 
+        filterMode={filterMode} setFilterMode={setFilterMode}
+        filterDay={filterDay} setFilterDay={setFilterDay}
+        filterMonth={filterMonth} setFilterMonth={setFilterMonth}
+        filterYear={filterYear} setFilterYear={setFilterYear}
+        filterFrom={filterFrom} setFilterFrom={setFilterFrom}
+        filterTo={filterTo} setFilterTo={setFilterTo}
+        statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+        statusOptions={statusOpts.map(o => ({ value: o, label: o.replace(/_/g, ' ').toUpperCase() }))}
+      />
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        {sells.map(s => (
+        {filtered.map(s => (
           <div key={s._id} style={{ background: '#F9F9F9', border: '1.5px solid #EEE', borderRadius: '20px', padding: '1.5rem', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1.2rem' }}>
               <div style={{ display: 'flex', gap: '1.2rem' }}>
@@ -1378,6 +1624,14 @@ const OrdersTab = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [filterMode, setFilterMode] = useState('all');
+  const [filterDay, setFilterDay] = useState(() => new Date().toISOString().split('T')[0]);
+  const [filterMonth, setFilterMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [filterYear, setFilterYear] = useState(() => String(new Date().getFullYear()));
+  const [filterFrom, setFilterFrom] = useState('');
+  const [filterTo, setFilterTo] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+
   useEffect(() => {
     setLoading(true);
     adminApi.getOrders().then(({ data }) => setOrders(data.orders || [])).finally(() => setLoading(false));
@@ -1391,6 +1645,24 @@ const OrdersTab = () => {
     } catch { toast.error('Failed'); }
   };
 
+  const filtered = orders.filter(o => {
+    if (statusFilter !== 'all' && o.status !== statusFilter) return false;
+    if (filterMode === 'all') return true;
+    const date = new Date(o.createdAt);
+    if (filterMode === 'day') return date.toISOString().split('T')[0] === filterDay;
+    if (filterMode === 'month') return date.toISOString().slice(0, 7) === filterMonth;
+    if (filterMode === 'year') return String(date.getFullYear()) === filterYear;
+    if (filterMode === 'custom') {
+      if (filterFrom && date < new Date(filterFrom)) return false;
+      if (filterTo) {
+        const end = new Date(filterTo); end.setHours(23, 59, 59, 999);
+        if (date > end) return false;
+      }
+      return true;
+    }
+    return true;
+  });
+
   if (loading) return <div style={{ textAlign: 'center', padding: '3rem', color: '#888' }}><Loader style={{ animation: 'spin 1s linear infinite' }} size={24} /></div>;
 
   const statusOpts = ['placed', 'confirmed', 'shipped', 'delivered', 'cancelled'];
@@ -1398,7 +1670,19 @@ const OrdersTab = () => {
 
   return (
     <div className="admin-table-wrap" style={{ background: '#FFFFFF', border: '1.5px solid #EEE', borderRadius: '24px', padding: '2rem', overflowX: 'auto', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
-      <h3 style={{ color: '#111', fontWeight: 950, marginBottom: '2rem', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>CUSTOMER <span style={{ color: '#E53935' }}>ORDERS</span> ({orders.length})</h3>
+      <h3 style={{ color: '#111', fontWeight: 950, marginBottom: '2rem', fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>CUSTOMER <span style={{ color: '#E53935' }}>ORDERS</span> ({filtered.length})</h3>
+      
+      <FilterBar 
+        filterMode={filterMode} setFilterMode={setFilterMode}
+        filterDay={filterDay} setFilterDay={setFilterDay}
+        filterMonth={filterMonth} setFilterMonth={setFilterMonth}
+        filterYear={filterYear} setFilterYear={setFilterYear}
+        filterFrom={filterFrom} setFilterFrom={setFilterFrom}
+        filterTo={filterTo} setFilterTo={setFilterTo}
+        statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+        statusOptions={statusOpts.map(o => ({ value: o, label: o.toUpperCase() }))}
+      />
+
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
         <thead><tr>
           {['ORDER ID', 'CUSTOMER', 'ITEMS', 'TOTAL', 'PAYMENT', 'STATUS', 'ACTION'].map(h => (
@@ -1406,7 +1690,7 @@ const OrdersTab = () => {
           ))}
         </tr></thead>
         <tbody>
-          {orders.map(o => (
+          {filtered.map(o => (
             <tr key={o._id} style={{ borderBottom: '1px solid #F5F5F5' }}>
               <td style={{ padding: '1.2rem', color: '#888', fontSize: '0.8rem', fontWeight: 700 }}>#{o._id.slice(-8).toUpperCase()}</td>
               <td style={{ padding: '1.2rem' }}>
@@ -1435,7 +1719,13 @@ const OrdersTab = () => {
 const LeadsTab = () => {
   const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('');
+  const [filterMode, setFilterMode] = useState('all');
+  const [filterDay, setFilterDay] = useState(() => new Date().toISOString().split('T')[0]);
+  const [filterMonth, setFilterMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [filterYear, setFilterYear] = useState(() => String(new Date().getFullYear()));
+  const [filterFrom, setFilterFrom] = useState('');
+  const [filterTo, setFilterTo] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     setLoading(true);
@@ -1453,23 +1743,48 @@ const LeadsTab = () => {
   };
 
   const statusColor = { pending: '#FB8C00', contacted: '#1976D2', sold: '#2E7D32', rejected: '#E53935' };
-  const filtered = filter ? enquiries.filter(e => e.status === filter) : enquiries;
+  
+  const filtered = enquiries.filter(e => {
+    if (statusFilter !== 'all' && e.status !== statusFilter) return false;
+    if (filterMode === 'all') return true;
+    const date = new Date(e.createdAt);
+    if (filterMode === 'day') return date.toISOString().split('T')[0] === filterDay;
+    if (filterMode === 'month') return date.toISOString().slice(0, 7) === filterMonth;
+    if (filterMode === 'year') return String(date.getFullYear()) === filterYear;
+    if (filterMode === 'custom') {
+      if (filterFrom && date < new Date(filterFrom)) return false;
+      if (filterTo) {
+        const end = new Date(filterTo); end.setHours(23, 59, 59, 999);
+        if (date > end) return false;
+      }
+      return true;
+    }
+    return true;
+  });
 
   if (loading) return <div style={{ textAlign: 'center', padding: '3rem', color: '#888' }}><Loader style={{ animation: 'spin 1s linear infinite' }} size={24} /></div>;
 
   return (
     <div style={{ background: '#FFFFFF', border: '1.5px solid #EEE', borderRadius: '24px', padding: '2rem', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <h3 style={{ color: '#111', fontWeight: 950, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', textTransform: 'uppercase', letterSpacing: '-0.02em', margin: 0 }}>BUY BIKE <span style={{ color: '#E53935' }}>REQUESTS</span></h3>
-        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-          {['', 'pending', 'contacted', 'sold', 'rejected'].map(s => (
-            <button key={s} onClick={() => setFilter(s)}
-              style={{ padding: '0.35rem 0.9rem', borderRadius: '999px', border: '1px solid', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', borderColor: filter === s ? '#E53935' : '#EEE', background: filter === s ? 'rgba(229,57,53,0.05)' : '#FFF', color: filter === s ? '#E53935' : '#666' }}>
-              {s === '' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
-            </button>
-          ))}
-        </div>
+        <h3 style={{ color: '#111', fontWeight: 950, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', textTransform: 'uppercase', letterSpacing: '-0.02em', margin: 0 }}>BUY BIKE <span style={{ color: '#E53935' }}>REQUESTS</span> ({filtered.length})</h3>
       </div>
+
+      <FilterBar 
+        filterMode={filterMode} setFilterMode={setFilterMode}
+        filterDay={filterDay} setFilterDay={setFilterDay}
+        filterMonth={filterMonth} setFilterMonth={setFilterMonth}
+        filterYear={filterYear} setFilterYear={setFilterYear}
+        filterFrom={filterFrom} setFilterFrom={setFilterFrom}
+        filterTo={filterTo} setFilterTo={setFilterTo}
+        statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+        statusOptions={[
+          { value: 'pending', label: 'PENDING' },
+          { value: 'contacted', label: 'CONTACTED' },
+          { value: 'sold', label: 'SOLD' },
+          { value: 'rejected', label: 'REJECTED' }
+        ]}
+      />
 
       {filtered.length > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -1533,6 +1848,15 @@ const RentalsTab = () => {
   const [images, setImages] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
+
+  const [filterMode, setFilterMode] = useState('all');
+  const [filterDay, setFilterDay] = useState(() => new Date().toISOString().split('T')[0]);
+  const [filterMonth, setFilterMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [filterYear, setFilterYear] = useState(() => String(new Date().getFullYear()));
+  const [filterFrom, setFilterFrom] = useState('');
+  const [filterTo, setFilterTo] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+
   const [form, setForm] = useState({
     title: '', brand: '', model: '', year: '', pricePerDay: '', pricePerHour: '',
     securityDeposit: '', securityDepositRefundable: true, securityDepositCompulsory: true,
@@ -1554,6 +1878,24 @@ const RentalsTab = () => {
       .catch(() => toast.error('Failed to load rentals'))
       .finally(() => setLoading(false));
   }, []);
+
+  const filtered = data.filter(item => {
+    if (statusFilter !== 'all' && item.status !== statusFilter) return false;
+    if (filterMode === 'all') return true;
+    const date = new Date(item.createdAt);
+    if (filterMode === 'day') return date.toISOString().split('T')[0] === filterDay;
+    if (filterMode === 'month') return date.toISOString().slice(0, 7) === filterMonth;
+    if (filterMode === 'year') return String(date.getFullYear()) === filterYear;
+    if (filterMode === 'custom') {
+      if (filterFrom && date < new Date(filterFrom)) return false;
+      if (filterTo) {
+        const end = new Date(filterTo); end.setHours(23, 59, 59, 999);
+        if (date > end) return false;
+      }
+      return true;
+    }
+    return true;
+  });
 
   const resetForm = () => {
     setShowForm(false); setEditId(null); setImages([]); setExistingImages([]); setImagePreviews([]);
@@ -1811,13 +2153,30 @@ const RentalsTab = () => {
   return (
     <div style={{ background: '#FFFFFF', border: '1.5px solid #EEE', borderRadius: '24px', padding: '1.5rem', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
-        <h3 style={{ color: '#111', fontWeight: 950, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.3rem', margin: 0, textTransform: 'uppercase' }}>RENTAL <span style={{ color: '#E53935' }}>BIKES</span> ({data.length})</h3>
+        <h3 style={{ color: '#111', fontWeight: 950, fontFamily: 'Rajdhani, sans-serif', fontSize: '1.3rem', margin: 0, textTransform: 'uppercase' }}>RENTAL <span style={{ color: '#E53935' }}>BIKES</span> ({filtered.length})</h3>
         <button onClick={() => { resetForm(); setShowForm(true); }} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#E53935', color: 'white', border: 'none', borderRadius: '10px', padding: '0.5rem 1.2rem', cursor: 'pointer', fontWeight: 800, fontSize: '0.82rem' }}>
           <Plus size={14} /> ADD BIKE
         </button>
       </div>
+
+      <FilterBar 
+        filterMode={filterMode} setFilterMode={setFilterMode}
+        filterDay={filterDay} setFilterDay={setFilterDay}
+        filterMonth={filterMonth} setFilterMonth={setFilterMonth}
+        filterYear={filterYear} setFilterYear={setFilterYear}
+        filterFrom={filterFrom} setFilterFrom={setFilterFrom}
+        filterTo={filterTo} setFilterTo={setFilterTo}
+        statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+        statusOptions={[
+          { value: 'available', label: 'AVAILABLE' },
+          { value: 'rented', label: 'RENTED' },
+          { value: 'maintenance', label: 'MAINTENANCE' },
+          { value: 'inactive', label: 'INACTIVE' }
+        ]}
+      />
+
       <div className="admin-card-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
-        {data.map(car => (
+        {filtered.map(car => (
           <div key={car._id} style={{ background: '#FFF', border: '1px solid #EEE', borderRadius: '16px', padding: '1rem' }}>
             <div style={{ height: 140, background: '#F1F5F9', borderRadius: '10px', overflow: 'hidden', marginBottom: '0.8rem' }}>
               {car.images?.[0] ? <img src={car.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#CBD5E1' }}><Bike size={36} /></div>}
@@ -1926,52 +2285,16 @@ const RentalBookingsTab = ({ setActiveTab, setTrackingBookingId }) => {
         </h3>
       </div>
 
-      {/* Filter bar */}
-      <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '14px', padding: '0.8rem 1rem', marginBottom: '1.2rem', display: 'flex', flexWrap: 'wrap', gap: '0.6rem', alignItems: 'center' }}>
-        <span style={{ fontSize: '0.7rem', color: '#475569', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Filter:</span>
-        {[['all', 'All'], ['day', 'Day'], ['month', 'Month'], ['year', 'Year'], ['custom', 'Custom']].map(([k, lbl]) => (
-          <button key={k} type="button" onClick={() => setFilterMode(k)}
-            style={{
-              padding: '0.35rem 0.8rem', borderRadius: '8px', border: 'none', cursor: 'pointer',
-              background: filterMode === k ? '#E53935' : 'white',
-              color: filterMode === k ? 'white' : '#475569',
-              fontWeight: 800, fontSize: '0.75rem',
-              boxShadow: filterMode === k ? '0 4px 10px rgba(229,57,53,0.2)' : '0 1px 2px rgba(0,0,0,0.04)',
-              textTransform: 'uppercase', letterSpacing: '0.04em',
-            }}>{lbl}</button>
-        ))}
-        {filterMode === 'day' && (
-          <input type="date" value={filterDay} onChange={e => setFilterDay(e.target.value)}
-            className="input-light" style={{ height: 36, padding: '0 0.6rem', fontSize: '0.8rem', fontWeight: 700 }} />
-        )}
-        {filterMode === 'month' && (
-          <input type="month" value={filterMonth} onChange={e => setFilterMonth(e.target.value)}
-            className="input-light" style={{ height: 36, padding: '0 0.6rem', fontSize: '0.8rem', fontWeight: 700 }} />
-        )}
-        {filterMode === 'year' && (
-          <input type="number" min="2020" max="2099" value={filterYear} onChange={e => setFilterYear(e.target.value)}
-            className="input-light" style={{ height: 36, padding: '0 0.6rem', fontSize: '0.8rem', fontWeight: 700, width: 100 }} />
-        )}
-        {filterMode === 'custom' && (
-          <>
-            <input type="date" value={filterFrom} onChange={e => setFilterFrom(e.target.value)}
-              className="input-light" style={{ height: 36, padding: '0 0.6rem', fontSize: '0.8rem', fontWeight: 700 }} />
-            <span style={{ color: '#94A3B8', fontWeight: 700 }}>→</span>
-            <input type="date" value={filterTo} onChange={e => setFilterTo(e.target.value)}
-              className="input-light" style={{ height: 36, padding: '0 0.6rem', fontSize: '0.8rem', fontWeight: 700 }} />
-          </>
-        )}
-        <span style={{ width: 1, height: 24, background: '#E2E8F0', margin: '0 0.4rem' }} />
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-          className="input-light" style={{ height: 36, padding: '0 0.6rem', fontSize: '0.8rem', fontWeight: 700 }}>
-          <option value="all">All Statuses</option>
-          <option value="requested">Requested</option>
-          <option value="confirmed">Confirmed</option>
-          <option value="active">Active</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
-      </div>
+      <FilterBar 
+        filterMode={filterMode} setFilterMode={setFilterMode}
+        filterDay={filterDay} setFilterDay={setFilterDay}
+        filterMonth={filterMonth} setFilterMonth={setFilterMonth}
+        filterYear={filterYear} setFilterYear={setFilterYear}
+        filterFrom={filterFrom} setFilterFrom={setFilterFrom}
+        filterTo={filterTo} setFilterTo={setFilterTo}
+        statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+        statusOptions={Object.keys(rentalStatusColorMap).map(k => ({ value: k, label: k.toUpperCase() }))}
+      />
 
       {filtered.length === 0 ? (
         <p style={{ textAlign: 'center', padding: '3rem', color: '#AAA', fontWeight: 600 }}>{data.length === 0 ? 'No rental bookings yet' : 'No bookings match the current filter'}</p>

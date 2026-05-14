@@ -53,9 +53,23 @@ export default function Contact() {
                   <div style={{ background: 'rgba(229,57,53,0.05)', padding: '0.75rem', borderRadius: '12px' }}>
                     <MapPin size={22} style={{ color: '#E53935' }} />
                   </div>
-                  <div>
-                    <p style={{ color: '#111', fontWeight: 700, marginBottom: '0.3rem', fontSize: '1.05rem' }}>Visit Our Showroom</p>
-                    <p style={{ color: '#666', fontSize: '0.92rem', lineHeight: 1.6 }}>123 Bike Avenue, Auto Hub, SEZ<br/>Mumbai, Maharashtra 400001</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', width: '100%' }}>
+                    <div>
+                      <p style={{ color: '#111', fontWeight: 700, marginBottom: '0.3rem', fontSize: '0.95rem' }}>GURGAON</p>
+                      <p style={{ color: '#666', fontSize: '0.85rem', lineHeight: 1.6 }}>Tower B, 3rd Floor, Unitech Cyber Park, Sector 39, 122002</p>
+                    </div>
+                    <div>
+                      <p style={{ color: '#111', fontWeight: 700, marginBottom: '0.3rem', fontSize: '0.95rem' }}>MUMBAI</p>
+                      <p style={{ color: '#666', fontSize: '0.85rem', lineHeight: 1.6 }}>Third Floor, Vasudev Chamber, Teli Galli Cross Rd, Andheri East, 400069</p>
+                    </div>
+                    <div>
+                      <p style={{ color: '#111', fontWeight: 700, marginBottom: '0.3rem', fontSize: '0.95rem' }}>ROHTAK</p>
+                      <p style={{ color: '#666', fontSize: '0.85rem', lineHeight: 1.6 }}>108, First Floor, Agro Mall, Rohtak</p>
+                    </div>
+                    <div>
+                      <p style={{ color: '#111', fontWeight: 700, marginBottom: '0.3rem', fontSize: '0.95rem' }}>AUSTRALIA</p>
+                      <p style={{ color: '#666', fontSize: '0.85rem', lineHeight: 1.6 }}>Australia</p>
+                    </div>
                   </div>
                 </div>
 
@@ -65,8 +79,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <p style={{ color: '#111', fontWeight: 700, marginBottom: '0.3rem', fontSize: '1.05rem' }}>Call Us</p>
-                    <p style={{ color: '#666', fontSize: '0.92rem' }}>+91 98765 43210</p>
-                    <p style={{ color: '#666', fontSize: '0.92rem' }}>+91 12345 67890</p>
+                    <p style={{ color: '#666', fontSize: '0.92rem' }}>+91 9253625099</p>
                   </div>
                 </div>
 
@@ -76,8 +89,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <p style={{ color: '#111', fontWeight: 700, marginBottom: '0.3rem', fontSize: '1.05rem' }}>Email Us</p>
-                    <p style={{ color: '#666', fontSize: '0.92rem' }}>support@motoexpress.com</p>
-                    <p style={{ color: '#666', fontSize: '0.92rem' }}>sales@motoexpress.com</p>
+                    <p style={{ color: '#666', fontSize: '0.92rem' }}>kp@avanienterprises.in</p>
                   </div>
                 </div>
 
