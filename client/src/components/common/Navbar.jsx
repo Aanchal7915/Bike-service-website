@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { ShoppingCart, Menu, X, ChevronDown, User, Heart, LogOut, Settings, Wrench, MapPin, Search } from 'lucide-react';
 import API from '../../api/axios';
+import logo from '../../assets/logo.png';
 
 
 
@@ -89,8 +90,8 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-1 sm:gap-4 lg:gap-8">
           <Link to="/" className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-            <img src="/src/assets/logo.png" alt="MotoExpress Logo" className="h-8 sm:h-10 w-auto" />
-            <span className="text-[1.1rem] sm:text-[1.4rem]" style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: 'white', letterSpacing: '0.03em' }}>
+            <img src={logo} alt="MotoExpress Logo" className="h-8 sm:h-10 w-auto" />
+            <span className="text-[1rem] sm:text-[1.4rem]" style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: 'white', letterSpacing: '0.03em' }}>
               MotoExpress
             </span>
           </Link>
@@ -257,8 +258,8 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="flex items-center gap-1 sm:gap-1.5">
-                <Link to="/login" className="btn-outline hidden sm:inline-flex" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>Login</Link>
-                <Link to="/register" className="btn-primary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>Sign Up</Link>
+                <Link to="/login" className="btn-outline" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>Login</Link>
+                <Link to="/register" className="btn-primary !hidden sm:!inline-flex" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>Sign Up</Link>
               </div>
             )}
 

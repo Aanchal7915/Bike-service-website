@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin } from 'lucide-react';
 import { FaFacebook, FaInstagram, FaYoutube, FaTwitter } from 'react-icons/fa';
+import logo from '../../assets/logo.png';
 
 export default function Footer() {
   return (
@@ -10,7 +11,7 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <img src="/src/assets/logo.png" alt="MotoExpress Logo" style={{ height: '32px', width: 'auto' }} />
+              <img src={logo} alt="MotoExpress Logo" style={{ height: '32px', width: 'auto' }} />
               <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 700, color: 'white', fontSize: '1.25rem' }}>MotoExpress</span>
             </div>
             <p style={{ fontSize: '0.9rem', lineHeight: 1.7 }}>India's fastest bike buy, sell & service platform. Get your bike serviced in 1 hour or sell it the same day.</p>

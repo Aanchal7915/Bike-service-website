@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import logo from '../../assets/logo.png';
 import { useAuth } from '../../context/AuthContext';
 import API from '../../api/axios';
 import * as adminApi from '../../api/adminApi';
@@ -2634,7 +2635,7 @@ export default function AdminDashboard() {
       {/* Mobile top bar */}
       <div className="admin-mobile-topbar" style={{ display: 'none', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 60, background: '#111', borderBottom: '1px solid #2A2A2A', padding: '0.7rem 1rem', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <img src="/src/assets/logo.png" alt="MotoExpress Logo" style={{ height: '30px', width: 'auto' }} />
+          <img src={logo} alt="MotoExpress Logo" style={{ height: '30px', width: 'auto' }} />
           <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 950, color: 'white', fontSize: '1.3rem', letterSpacing: '-0.02em' }}>
             MotoExpress
           </span>
@@ -2649,7 +2650,7 @@ export default function AdminDashboard() {
       <div className={`admin-sidebar${sidebarOpen ? ' open' : ''}`} style={{ width: 280, background: '#111', borderRight: '1px solid #2A2A2A', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
         <div style={{ padding: '2rem 1.5rem', borderBottom: '1px solid #2A2A2A' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.2rem' }}>
-            <img src="/src/assets/logo.png" alt="MotoExpress Logo" style={{ height: '36px', width: 'auto' }} />
+            <img src={logo} alt="MotoExpress Logo" style={{ height: '36px', width: 'auto' }} />
             <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 950, color: 'white', fontSize: '1.8rem', letterSpacing: '-0.02em', lineHeight: 1 }}>
               MotoExpress
             </span>
