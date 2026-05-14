@@ -44,63 +44,54 @@ export default function Contact() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             <div style={{ background: '#FFF', padding: '2.5rem', borderRadius: '16px', border: '1px solid #EEE', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
               <h2 style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '1.8rem', fontWeight: 800, marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                <div style={{ width: 4, height: 24, background: '#E53935' }} />
+                <div style={{ width: 4, height: 24, background: '#1D2D50' }} />
                 Contact Information
               </h2>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.8rem' }}>
                 <div style={{ display: 'flex', gap: '1.2rem', alignItems: 'flex-start' }}>
-                  <div style={{ background: 'rgba(229,57,53,0.05)', padding: '0.75rem', borderRadius: '12px' }}>
-                    <MapPin size={22} style={{ color: '#E53935' }} />
+                  <div style={{ background: '#FFF5F5', padding: '1rem', borderRadius: '12px', border: '1px solid #FFEBEB' }}>
+                    <MapPin size={24} style={{ color: '#E53935' }} />
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', width: '100%' }}>
-                    <div>
-                      <p style={{ color: '#111', fontWeight: 700, marginBottom: '0.3rem', fontSize: '0.95rem' }}>GURGAON</p>
-                      <p style={{ color: '#666', fontSize: '0.85rem', lineHeight: 1.6 }}>Tower B, 3rd Floor, Unitech Cyber Park, Sector 39, 122002</p>
-                    </div>
-                    <div>
-                      <p style={{ color: '#111', fontWeight: 700, marginBottom: '0.3rem', fontSize: '0.95rem' }}>MUMBAI</p>
-                      <p style={{ color: '#666', fontSize: '0.85rem', lineHeight: 1.6 }}>Third Floor, Vasudev Chamber, Teli Galli Cross Rd, Andheri East, 400069</p>
-                    </div>
-                    <div>
-                      <p style={{ color: '#111', fontWeight: 700, marginBottom: '0.3rem', fontSize: '0.95rem' }}>ROHTAK</p>
-                      <p style={{ color: '#666', fontSize: '0.85rem', lineHeight: 1.6 }}>108, First Floor, Agro Mall, Rohtak</p>
-                    </div>
-                    <div>
-                      <p style={{ color: '#111', fontWeight: 700, marginBottom: '0.3rem', fontSize: '0.95rem' }}>AUSTRALIA</p>
-                      <p style={{ color: '#666', fontSize: '0.85rem', lineHeight: 1.6 }}>Australia</p>
+                  <div>
+                    <p style={{ color: '#111', fontWeight: 800, marginBottom: '0.5rem', fontSize: '1.1rem', fontFamily: 'Rajdhani, sans-serif' }}>Our Locations</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', color: '#555', fontSize: '0.88rem', lineHeight: 1.5 }}>
+                      <p><strong style={{ color: '#111' }}>Gurgaon:</strong> Tower B, 3rd Floor, Unitech Cyber Park, Sector 39, 122002</p>
+                      <p><strong style={{ color: '#111' }}>Mumbai:</strong> Third Floor, Vasudev Chamber, Teli Galli Cross Rd, Andheri East, 400069</p>
+                      <p><strong style={{ color: '#111' }}>Rohtak:</strong> 106, First Floor, Agro Mall, Rohtak</p>
+                      <p><strong style={{ color: '#111' }}>Australia:</strong> Australia</p>
                     </div>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '1.2rem', alignItems: 'flex-start' }}>
-                  <div style={{ background: 'rgba(229,57,53,0.05)', padding: '0.75rem', borderRadius: '12px' }}>
-                    <Phone size={22} style={{ color: '#E53935' }} />
+                <div style={{ display: 'flex', gap: '1.2rem', alignItems: 'center' }}>
+                  <div style={{ background: '#FFF5F5', padding: '1rem', borderRadius: '12px', border: '1px solid #FFEBEB' }}>
+                    <Phone size={24} style={{ color: '#E53935' }} />
                   </div>
                   <div>
-                    <p style={{ color: '#111', fontWeight: 700, marginBottom: '0.3rem', fontSize: '1.05rem' }}>Call Us</p>
-                    <p style={{ color: '#666', fontSize: '0.92rem' }}>+91 9253625099</p>
+                    <p style={{ color: '#111', fontWeight: 800, marginBottom: '0.2rem', fontSize: '1.1rem', fontFamily: 'Rajdhani, sans-serif' }}>Call Us</p>
+                    <p style={{ color: '#E53935', fontSize: '1rem', fontWeight: 700 }}>+91 9253625099</p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '1.2rem', alignItems: 'center' }}>
+                  <div style={{ background: '#FFF5F5', padding: '1rem', borderRadius: '12px', border: '1px solid #FFEBEB' }}>
+                    <Mail size={24} style={{ color: '#E53935' }} />
+                  </div>
+                  <div>
+                    <p style={{ color: '#111', fontWeight: 800, marginBottom: '0.2rem', fontSize: '1.1rem', fontFamily: 'Rajdhani, sans-serif' }}>Email Us</p>
+                    <p style={{ color: '#555', fontSize: '1rem', fontWeight: 600 }}>kp@avanienterprises.in</p>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '1.2rem', alignItems: 'flex-start' }}>
-                  <div style={{ background: 'rgba(229,57,53,0.05)', padding: '0.75rem', borderRadius: '12px' }}>
-                    <Mail size={22} style={{ color: '#E53935' }} />
+                  <div style={{ background: '#FFF5F5', padding: '1rem', borderRadius: '12px', border: '1px solid #FFEBEB' }}>
+                    <Clock size={24} style={{ color: '#E53935' }} />
                   </div>
                   <div>
-                    <p style={{ color: '#111', fontWeight: 700, marginBottom: '0.3rem', fontSize: '1.05rem' }}>Email Us</p>
-                    <p style={{ color: '#666', fontSize: '0.92rem' }}>kp@avanienterprises.in</p>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '1.2rem', alignItems: 'flex-start' }}>
-                  <div style={{ background: 'rgba(229,57,53,0.05)', padding: '0.75rem', borderRadius: '12px' }}>
-                    <Clock size={22} style={{ color: '#E53935' }} />
-                  </div>
-                  <div>
-                    <p style={{ color: '#111', fontWeight: 700, marginBottom: '0.3rem', fontSize: '1.05rem' }}>Working Hours</p>
-                    <p style={{ color: '#666', fontSize: '0.92rem' }}>Mon - Sat: 9:00 AM - 8:00 PM</p>
-                    <p style={{ color: '#666', fontSize: '0.92rem' }}>Sunday: 10:00 AM - 4:00 PM</p>
+                    <p style={{ color: '#111', fontWeight: 800, marginBottom: '0.4rem', fontSize: '1.1rem', fontFamily: 'Rajdhani, sans-serif' }}>Working Hours</p>
+                    <p style={{ color: '#555', fontSize: '0.9rem', fontWeight: 600 }}>Mon - Sat: 9:00 AM - 8:00 PM</p>
+                    <p style={{ color: '#555', fontSize: '0.9rem', fontWeight: 600 }}>Sunday: 10:00 AM - 4:00 PM</p>
                   </div>
                 </div>
               </div>
