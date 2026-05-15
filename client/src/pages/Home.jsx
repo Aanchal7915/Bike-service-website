@@ -89,6 +89,9 @@ export default function Home() {
           .home-hero-stats > div > div:last-child { font-size: 0.5rem !important; }
           .home-parts-grid, .home-bikes-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.6rem !important; }
         }
+        @media (min-width: 1024px) {
+          .home-parts-grid, .home-bikes-grid { grid-template-columns: repeat(5, 1fr) !important; gap: 1rem !important; }
+        }
       `}</style>
       {/* HERO — Split layout: left content / right bike image */}
       <section className="hero-split" style={{ minHeight: '92vh', display: 'flex', position: 'relative', overflow: 'hidden' }}>

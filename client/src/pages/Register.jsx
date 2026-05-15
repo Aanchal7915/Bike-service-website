@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { User, Mail, Phone, Lock, Eye, EyeOff, ArrowRight, Loader } from 'lucide-react';
 import { useState } from 'react';
+import logo from '../assets/logo.png';
 
 export default function Register() {
   const { register: registerUser, loading } = useAuth();
@@ -25,11 +26,8 @@ export default function Register() {
     <div style={{ minHeight: '100vh', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
       <div style={{ width: '100%', maxWidth: 460 }}>
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <Link to="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.6rem' }}>
-            <div style={{ background: 'linear-gradient(135deg, #E53935, #C62828)', borderRadius: '10px', padding: '10px 14px' }}>
-              <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, color: 'white', fontSize: '1.4rem' }}>MOTO</span>
-            </div>
-            <span style={{ fontFamily: 'Rajdhani, sans-serif', fontWeight: 800, color: '#111', fontSize: '1.6rem' }}>XPRESS</span>
+          <Link to="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <img src={logo} alt="MotoExpress Logo" style={{ height: '60px', width: 'auto', transform: 'scale(4)', transformOrigin: 'center', mixBlendMode: 'screen' }} />
           </Link>
           <h1 style={{ color: '#111', fontSize: '1.8rem', fontWeight: 900, marginTop: '2rem', fontFamily: 'Rajdhani, sans-serif' }}>Create Account</h1>
           <p style={{ color: '#666', marginTop: '0.5rem', fontWeight: 500 }}>Join India's fastest bike platform</p>
