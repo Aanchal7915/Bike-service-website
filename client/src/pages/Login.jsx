@@ -38,39 +38,38 @@ export default function Login() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
-      <div style={{ width: '100%', maxWidth: 440 }}>
+    <div style={{ height: '100vh', background: '#F9F9F9', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem', overflow: 'hidden' }}>
+      <div style={{ width: '100%', maxWidth: 400 }}>
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <Link to="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <img src={logo} alt="MotoExpress Logo" style={{ height: '60px', width: 'auto', transform: 'scale(4)', transformOrigin: 'center', mixBlendMode: 'screen' }} />
+        <div style={{ textAlign: 'center', marginBottom: '0.8rem' }}>
+          <Link to="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#111', width: '80px', height: '80px', borderRadius: '50%', margin: '0 auto 1rem', overflow: 'hidden', border: '3px solid #E53935', boxShadow: '0 4px 15px rgba(229,57,53,0.2)' }}>
+            <img src={logo} alt="MotoExpress Logo" style={{ height: '22px', width: 'auto', transform: 'scale(4.5)', transformOrigin: 'center', mixBlendMode: 'screen' }} />
           </Link>
-          <h1 style={{ color: '#111', fontSize: '1.8rem', fontWeight: 900, marginTop: '2rem', fontFamily: 'Rajdhani, sans-serif' }}>Welcome Back</h1>
-          <p style={{ color: '#666', marginTop: '0.5rem', fontWeight: 500 }}>Login to continue to your account</p>
+          <h1 style={{ color: '#111', fontSize: '1.4rem', fontWeight: 900, marginTop: '0.2rem', fontFamily: 'Rajdhani, sans-serif' }}>Welcome Back</h1>
+          <p style={{ color: '#666', marginTop: '0.1rem', fontSize: '0.82rem' }}>Login to your account</p>
         </div>
  
         {/* Mode toggle */}
-        <div style={{ display: 'flex', background: '#F5F5F5', borderRadius: '12px', padding: '5px', marginBottom: '2.2rem', border: '1px solid #EEE' }}>
+        <div style={{ display: 'flex', background: '#F0F0F0', borderRadius: '10px', padding: '4px', marginBottom: '1rem', border: '1px solid #EEE' }}>
           {['password', 'otp'].map((m) => (
             <button key={m} onClick={() => { setMode(m); setOtpSent(false); }}
               style={{
-                flex: 1, padding: '0.7rem', borderRadius: '8px', border: 'none', cursor: 'pointer',
+                flex: 1, padding: '0.45rem', borderRadius: '6px', border: 'none', cursor: 'pointer',
                 background: mode === m ? '#FFF' : 'transparent',
                 color: mode === m ? '#E53935' : '#888',
-                fontWeight: 700, fontSize: '0.9rem', transition: 'all 0.25s',
-                boxShadow: mode === m ? '0 4px 12px rgba(0,0,0,0.05)' : 'none'
+                fontWeight: 700, fontSize: '0.8rem', transition: 'all 0.25s',
               }}>
-              {m === 'password' ? 'Password' : 'OTP Login'}
+              {m === 'password' ? 'Password' : 'OTP'}
             </button>
           ))}
         </div>
  
         {/* Form card */}
-        <div style={{ background: '#FFF', border: '1px solid #EEE', borderRadius: '20px', padding: '2.5rem', boxShadow: '0 10px 40px rgba(0,0,0,0.03)' }}>
+        <div style={{ background: '#FFF', border: '1px solid #EEE', borderRadius: '16px', padding: '1.4rem', boxShadow: '0 8px 30px rgba(0,0,0,0.05)' }}>
           <form onSubmit={handleSubmit(onSubmit)}>
             {/* Email */}
             <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ color: '#333', fontSize: '0.85rem', fontWeight: 700, display: 'block', marginBottom: '0.6rem' }}>Email Address</label>
+              <label style={{ color: '#888', fontSize: '0.85rem', fontWeight: 700, display: 'block', marginBottom: '0.6rem' }}>Email Address</label>
               <div style={{ position: 'relative' }}>
                 <Mail size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#AAA' }} />
                 <input type="email" className="input-light" style={{ paddingLeft: '2.8rem', height: '52px' }}
@@ -135,9 +134,9 @@ export default function Login() {
           </form>
         </div>
  
-        <p style={{ textAlign: 'center', color: '#666', marginTop: '2rem', fontSize: '0.95rem', fontWeight: 500 }}>
+        <p style={{ textAlign: 'center', color: '#666', marginTop: '0.8rem', fontSize: '0.82rem' }}>
           Don't have an account?{' '}
-          <Link to="/register" style={{ color: '#E53935', textDecoration: 'none', fontWeight: 700 }}>Sign Up Now</Link>
+          <Link to="/register" style={{ color: '#E53935', textDecoration: 'none', fontWeight: 700 }}>Sign Up</Link>
         </p>
       </div>
     </div>

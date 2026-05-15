@@ -23,63 +23,62 @@ export default function Register() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
-      <div style={{ width: '100%', maxWidth: 460 }}>
-        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <Link to="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <img src={logo} alt="MotoExpress Logo" style={{ height: '60px', width: 'auto', transform: 'scale(4)', transformOrigin: 'center', mixBlendMode: 'screen' }} />
+    <div style={{ height: '100vh', background: '#F9F9F9', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem', overflow: 'hidden' }}>
+      <div style={{ width: '100%', maxWidth: 420 }}>
+        <div style={{ textAlign: 'center', marginBottom: '0.6rem' }}>
+          <Link to="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#111', width: '80px', height: '80px', borderRadius: '50%', margin: '0 auto 1rem', overflow: 'hidden', border: '3px solid #E53935', boxShadow: '0 4px 15px rgba(229,57,53,0.2)' }}>
+            <img src={logo} alt="MotoExpress Logo" style={{ height: '22px', width: 'auto', transform: 'scale(4.5)', transformOrigin: 'center', mixBlendMode: 'screen' }} />
           </Link>
-          <h1 style={{ color: '#111', fontSize: '1.8rem', fontWeight: 900, marginTop: '2rem', fontFamily: 'Rajdhani, sans-serif' }}>Create Account</h1>
-          <p style={{ color: '#666', marginTop: '0.5rem', fontWeight: 500 }}>Join India's fastest bike platform</p>
+          <h1 style={{ color: '#111', fontSize: '1.4rem', fontWeight: 900, marginTop: '0.2rem', fontFamily: 'Rajdhani, sans-serif' }}>Create Account</h1>
+          <p style={{ color: '#666', marginTop: '0.1rem', fontSize: '0.82rem' }}>Join India's fastest bike platform</p>
         </div>
  
-        <div style={{ background: '#FFF', border: '1px solid #EEE', borderRadius: '20px', padding: '2.5rem', boxShadow: '0 10px 40px rgba(0,0,0,0.03)' }}>
+        <div style={{ background: '#FFF', border: '1px solid #EEE', borderRadius: '16px', padding: '1.4rem', boxShadow: '0 8px 30px rgba(0,0,0,0.05)' }}>
           <form onSubmit={handleSubmit(onSubmit)}>
             {[
               { name: 'name', label: 'Full Name', icon: User, placeholder: 'John Doe', type: 'text', rules: { required: 'Name is required' } },
-              { name: 'email', label: 'Email Address', icon: Mail, placeholder: 'you@example.com', type: 'email', rules: { pattern: { value: /^\S+@\S+$/i, message: 'Invalid email' } } },
-              { name: 'phone', label: 'Mobile Number', icon: Phone, placeholder: '+91 98765 43210', type: 'tel', rules: {} },
+              { name: 'email', label: 'Email', icon: Mail, placeholder: 'you@example.com', type: 'email', rules: { pattern: { value: /^\S+@\S+$/i, message: 'Invalid email' } } },
+              { name: 'phone', label: 'Mobile', icon: Phone, placeholder: '98765 43210', type: 'tel', rules: {} },
             ].map(({ name, label, icon: Icon, placeholder, type, rules }) => (
-              <div key={name} style={{ marginBottom: '1.5rem' }}>
-                <label style={{ color: '#333', fontSize: '0.85rem', fontWeight: 700, display: 'block', marginBottom: '0.6rem' }}>{label}</label>
+              <div key={name} style={{ marginBottom: '0.8rem' }}>
+                <label style={{ color: '#333', fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem' }}>{label}</label>
                 <div style={{ position: 'relative' }}>
-                  <Icon size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#AAA' }} />
-                  <input type={type} className="input-light" style={{ paddingLeft: '2.8rem', height: '52px' }} placeholder={placeholder} {...register(name, rules)} />
+                  <Icon size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#AAA' }} />
+                  <input type={type} className="input-light" style={{ paddingLeft: '2.5rem', height: '40px', fontSize: '0.85rem' }} placeholder={placeholder} {...register(name, rules)} />
                 </div>
-                {errors[name] && <p style={{ color: '#E53935', fontSize: '0.82rem', marginTop: '0.4rem', fontWeight: 600 }}>{errors[name].message}</p>}
+                {errors[name] && <p style={{ color: '#E53935', fontSize: '0.75rem', marginTop: '0.2rem' }}>{errors[name].message}</p>}
               </div>
             ))}
  
-            <div style={{ marginBottom: '1.8rem' }}>
-              <label style={{ color: '#333', fontSize: '0.85rem', fontWeight: 700, display: 'block', marginBottom: '0.6rem' }}>Password</label>
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ color: '#333', fontSize: '0.8rem', fontWeight: 700, display: 'block', marginBottom: '0.3rem' }}>Password</label>
               <div style={{ position: 'relative' }}>
-                <Lock size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#AAA' }} />
-                <input type={showPass ? 'text' : 'password'} className="input-light" style={{ paddingLeft: '2.8rem', paddingRight: '2.8rem', height: '52px' }}
-                  placeholder="Min. 6 characters"
-                  {...register('password', { required: 'Password required', minLength: { value: 6, message: 'Min 6 characters' } })} />
+                <Lock size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#AAA' }} />
+                <input type={showPass ? 'text' : 'password'} className="input-light" style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem', height: '40px', fontSize: '0.85rem' }}
+                  placeholder="Min. 6 chars"
+                  {...register('password', { required: 'Required', minLength: { value: 6, message: 'Min 6 chars' } })} />
                 <button type="button" onClick={() => setShowPass(!showPass)}
-                  style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#AAA', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                  style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#AAA', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                  {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              {errors.password && <p style={{ color: '#E53935', fontSize: '0.82rem', marginTop: '0.4rem', fontWeight: 600 }}>{errors.password.message}</p>}
+              {errors.password && <p style={{ color: '#E53935', fontSize: '0.75rem', marginTop: '0.2rem' }}>{errors.password.message}</p>}
             </div>
  
-            <p style={{ color: '#888', fontSize: '0.82rem', marginBottom: '1.8rem', lineHeight: 1.6 }}>
-              By creating an account, you agree to our{' '}
-              <Link to="/terms" style={{ color: '#E53935', textDecoration: 'none', fontWeight: 700 }}>Terms</Link> and{' '}
-              <Link to="/privacy" style={{ color: '#E53935', textDecoration: 'none', fontWeight: 700 }}>Privacy</Link>.
+            <p style={{ color: '#888', fontSize: '0.75rem', marginBottom: '1rem', lineHeight: 1.4 }}>
+              By signing up, you agree to our{' '}
+              <Link to="/terms" style={{ color: '#E53935', textDecoration: 'none', fontWeight: 700 }}>Terms</Link> & <Link to="/privacy" style={{ color: '#E53935', textDecoration: 'none', fontWeight: 700 }}>Privacy</Link>.
             </p>
  
-            <button type="submit" className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '1.1rem', fontSize: '1.05rem', fontWeight: 700, borderRadius: '12px' }} disabled={loading}>
-              {loading ? <Loader size={20} style={{ animation: 'spin 1s linear infinite' }} /> : <><ArrowRight size={20} /> CREATE ACCOUNT</>}
+            <button type="submit" className="btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '0.8rem', fontSize: '0.95rem', fontWeight: 700, borderRadius: '10px' }} disabled={loading}>
+              {loading ? <Loader size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <><ArrowRight size={18} /> CREATE ACCOUNT</>}
             </button>
           </form>
         </div>
  
-        <p style={{ textAlign: 'center', color: '#666', marginTop: '2rem', fontSize: '0.95rem', fontWeight: 500 }}>
+        <p style={{ textAlign: 'center', color: '#666', marginTop: '0.8rem', fontSize: '0.82rem' }}>
           Already have an account?{' '}
-          <Link to="/login" style={{ color: '#E53935', textDecoration: 'none', fontWeight: 700 }}>Login here</Link>
+          <Link to="/login" style={{ color: '#E53935', textDecoration: 'none', fontWeight: 700 }}>Login</Link>
         </p>
       </div>
     </div>
